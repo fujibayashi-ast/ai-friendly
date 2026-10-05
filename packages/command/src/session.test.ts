@@ -1,6 +1,9 @@
 import { describe, expect, mock, test } from "bun:test";
+import { z } from "zod";
 import { type TodoState, todoCommands } from "./__fixtures__/todo-commands";
+import { defineCommand } from "./define-command";
 import { createCommandSession } from "./session";
+import type { ApplyResult } from "./types";
 
 const createSession = (confirm?: () => boolean | Promise<boolean>) =>
   createCommandSession({
@@ -200,5 +203,25 @@ describe("types", () => {
     await session.execute({ type: "add_todo", id: "1", title: 1 });
     // @ts-expect-error level must be "low" | "high"
     await session.execute({ type: "set_priority", id: "1", level: "mid" });
+  });
+
+  test("accepts a command without arguments", async () => {
+    const clear = defineCommand({
+      type: "clear",
+      description: "Clear",
+      args: z.object({}),
+      apply(): ApplyResult<TodoState> {
+        return { ok: true, state: { todos: [] } };
+      },
+    });
+    const session = createCommandSession({
+      initialState: { todos: [] } as TodoState,
+      commands: [...todoCommands, clear],
+    });
+    expect(await session.execute({ type: "clear" })).toEqual({ ok: true });
+    // @ts-expect-error clear has no fields
+    await session.execute({ type: "clear", id: "1" });
+    // @ts-expect-error optional fields stay optional and typed
+    await session.execute({ type: "add_todo", id: "1", title: "a", tags: [1] });
   });
 });

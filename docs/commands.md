@@ -75,6 +75,7 @@ args: z.object({
 * 一番外側は定義にないフィールドをエラーにする（`.strict()` で検証する）。入れ子の `z.object` で同じようにしたいときは `z.strictObject` を使う
 * `.describe()` の説明は WebMCP の `inputSchema` と AI 向けの一覧に載る
 * Command は `{ type, ...args }` の平らな形で渡す
+* 引数のない Command は `args: z.object({})` と書き、`execute({ type: "reset_settings" })` で実行する
 
 ## セッション（`createCommandSession`）
 

@@ -52,8 +52,17 @@ export type CommandDefinition<
 /** 定義から求めた、`execute` に渡す Command の型（`{ type, ...args }`） */
 export type CommandOf<D> =
   D extends CommandDefinition<infer _S, infer T, infer Schema>
-    ? Simplify<{ type: T } & z.input<Schema>>
+    ? Simplify<{ type: T } & WithoutIndexSignature<z.input<Schema>>>
     : never;
+
+// zod v4 は `z.object({})` を `{ [x: string]: never }` にするため、そのままだと `type` まで never になる
+type WithoutIndexSignature<T> = {
+  [K in keyof T as string extends K
+    ? never
+    : number extends K
+      ? never
+      : K]: T[K];
+};
 
 /** 型を特定しない Command（`{ type, ...args }` の平らな形） */
 export type Command = { type: string } & Record<string, unknown>;
