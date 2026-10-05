@@ -37,7 +37,9 @@
       "Bash(bun run build:*)",
       "Bash(bun run typecheck:*)",
       "Bash(bun test:*)",
-      "Bash(bun --filter:*)",
+      "Bash(bun run --filter:*)",
+      "Bash(bun run check:*)",
+      "Bash(bun run format:*)",
       "Bash(bunx biome check:*)",
       "Edit",
       "Write"

@@ -91,7 +91,8 @@ packages/
 
 ### モノレポでのコンテキスト節約
 
-* コマンドは変更した package にスコープする（`bun --filter <package> test` / `bunx biome check packages/command`）
+* コマンドは変更した package にスコープする（`bun test packages/command` / `bun run --filter @ai-friendly/command typecheck` / `bunx biome check packages/command`）
+* package はビルドせず `src/index.ts` を `exports` で公開する（題材アプリの Vite がソースを直接取り込む）
 * `node_modules/` / `dist/` / `bun.lock` は読み込まない
 
 ## Documentation Rules

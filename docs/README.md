@@ -8,6 +8,7 @@
 - `commands.md` — 共通の Command 基盤の仕様（`packages/command` 実装時に作成）
 - `history/` — 設計判断の経緯（`YYYY-MM-DD-<topic>.md`）
   - [2026-10-05-initial-setup.md](history/2026-10-05-initial-setup.md) — 初期セットアップで決めたこと
+  - [2026-10-05-monorepo-scaffold.md](history/2026-10-05-monorepo-scaffold.md) — monorepo の土台（ビルドしない package・npm 公開時の検討）
 
 題材ごとの仕様は `apps/<題材>/docs/` に置く。
 
