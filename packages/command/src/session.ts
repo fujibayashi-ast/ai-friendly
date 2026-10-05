@@ -31,7 +31,7 @@ export type CommandSession<
   /** 変わらない限り同じ参照を返す */
   getState(): State;
   /**
-   * 定義済みの Command を実行する。配列は 1 バッチで、1 つでも失敗したら状態を変えない。
+   * 定義済みの Command を実行する。配列は 1 バッチで、1 つでも失敗したら状態を変えない
    * @param source 省略時は `"user"`
    */
   execute(
@@ -48,8 +48,8 @@ export type CommandSession<
   /** 実行したバッチの一覧（古い順）。Undo したものは含まない */
   getHistory(): HistoryEntry[];
   /**
-   * 状態が変わったら `listener` を呼ぶ。戻り値は解除する関数。
-   * React では `useSyncExternalStore(session.subscribe, session.getState)` で使える。
+   * 状態が変わったら `listener` を呼ぶ。戻り値は解除する関数
+   * React では `useSyncExternalStore(session.subscribe, session.getState)` で使える
    */
   subscribe(listener: () => void): () => void;
 };
@@ -57,7 +57,7 @@ export type CommandSession<
 type Entry<State> = HistoryEntry & { before: State; after: State };
 
 /**
- * Command を実行するセッションを作る。状態の変更はすべてここを通す。
+ * Command を実行するセッションを作る。状態の変更はすべてここを通す
  *
  * @example
  * const session = createCommandSession({

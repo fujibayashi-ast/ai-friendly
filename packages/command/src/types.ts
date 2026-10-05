@@ -2,8 +2,8 @@
 export type CommandSource = "user" | "ai";
 
 /**
- * 引数の定義（JSON Schema のサブセット）。
- * 同じ定義を、検証・WebMCP の `inputSchema`・AI 向けのツール説明に使う。
+ * 引数の定義（JSON Schema のサブセット）
+ * 同じ定義を、検証・WebMCP の `inputSchema`・AI 向けのツール説明に使う
  * @see docs/commands.md
  */
 export type ArgSchema =
@@ -52,9 +52,9 @@ type InferObject<P, R> = Simplify<
 type Simplify<T> = { [K in keyof T]: T[K] } & {};
 
 /**
- * `apply` の戻り値。
- * ドメイン上のエラー（存在しない ID など）は `{ ok: false, message }` で返す。
- * `message` は LLM が読んで直せる英文にする。
+ * `apply` の戻り値
+ * ドメイン上のエラー（存在しない ID など）は `{ ok: false, message }` で返す
+ * `message` は LLM が読んで直せる英文にする
  */
 export type ApplyResult<State> =
   | { ok: true; state: State }
@@ -73,8 +73,8 @@ export type CommandDefinition<
   /** `true` なら、発行元が `"ai"` のときに確認フックで承認を得てから実行する */
   requiresConfirmation?: boolean;
   /**
-   * 新しい状態を返す。`state` は書き換えない。
-   * ID などは Command 側で受け取り、ここで生成しない（同じ Command 列なら同じ結果にするため）。
+   * 新しい状態を返す。`state` は書き換えない
+   * ID などは Command 側で受け取り、ここで生成しない（同じ Command 列なら同じ結果にするため）
    */
   apply(state: State, args: Args): ApplyResult<State>;
 };

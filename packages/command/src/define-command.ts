@@ -6,8 +6,8 @@ import type {
 } from "./types";
 
 /**
- * Command を定義する。`args` から `apply` の引数の型を推論する。
- * 状態の型は `apply` の第 1 引数の注釈から決まる。
+ * Command を定義する。`args` から `apply` の引数の型を推論する
+ * 状態の型は `apply` の第 1 引数の注釈から決まる
  *
  * @example
  * const addTodo = defineCommand({
