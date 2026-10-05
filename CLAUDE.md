@@ -23,6 +23,7 @@
 
 * 言語: TypeScript
 * フレームワーク: React + Vite（SPA）
+* UI: shadcn/ui + Tailwind v4（`packages/ui`）
 * ストレージ: localStorage
 * パッケージマネージャ: bun（bun workspaces によるモノレポ）
 * lint / format: Biome
@@ -45,9 +46,10 @@ packages/
                 #   AI 向けツール（短い一覧・inputSchema）・WebMCP 登録（`@ai-friendly/command/webmcp`）
   assistant/    # サイト内の AI チャット
                 #   チャット UI（React）・LLM プロバイダの切り替え（ローカル LLM / Claude API など）
+  ui/           # 共通 UI（shadcn/ui + Tailwind v4 の配色トークン `theme.css`）
 ```
 
-* 依存の向きは `apps → packages/assistant → packages/command`。`command` は他の package に依存しない
+* 依存の向きは `apps → packages/assistant → packages/command`、`apps / assistant → packages/ui`。`command` と `ui` は他の package に依存しない
 * `command` 単体でも成立させる（チャットを使わず WebMCP だけで操作される場合も、`command` だけで AI から操作できる）
 * 題材は複数用意する <!-- 未記入: 題材は検討中 -->
 
