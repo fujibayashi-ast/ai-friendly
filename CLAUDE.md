@@ -42,12 +42,13 @@ apps/
 packages/
   command/      # 純粋なロジック（React / LLM に依存しない）
                 #   Command 定義の型・execute（バッチ・ロールバック）・Undo/Redo・検証・確認フック
-  assistant/    # AI 側一式
-                #   Command 定義から短い一覧の説明を生成・WebMCP 登録・ローカル LLM・チャット UI（React）
+                #   AI 向けツール（短い一覧・inputSchema）・WebMCP 登録（`@ai-friendly/command/webmcp`）
+  assistant/    # サイト内の AI チャット
+                #   チャット UI（React）・LLM プロバイダの切り替え（ローカル LLM / Claude API など）
 ```
 
 * 依存の向きは `apps → packages/assistant → packages/command`。`command` は他の package に依存しない
-* `command` 単体でも成立させる（チャットを使わず WebMCP だけで操作される場合を想定）
+* `command` 単体でも成立させる（チャットを使わず WebMCP だけで操作される場合も、`command` だけで AI から操作できる）
 * 題材は複数用意する <!-- 未記入: 題材は検討中 -->
 
 ## Domain Rules
