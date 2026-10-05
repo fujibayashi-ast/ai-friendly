@@ -64,6 +64,16 @@ describe("validateCommands", () => {
     );
   });
 
+  test("treats inherited property names as unknown fields", () => {
+    expect(
+      messageOf(
+        JSON.parse('{"type":"add_todo","id":"1","title":"a","toString":1}'),
+      ),
+    ).toBe(
+      'commands[0]: unknown field "toString" in add_todo (fields: id, title, tags)',
+    );
+  });
+
   test("reports a missing required field", () => {
     expect(messageOf({ type: "add_todo", id: "1" })).toBe(
       'commands[0]: missing required field "title" in add_todo',

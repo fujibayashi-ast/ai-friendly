@@ -96,7 +96,7 @@ function checkObject(
 ): string | undefined {
   const fields = Object.keys(schema.properties);
   for (const key of Object.keys(value)) {
-    if (!(key in schema.properties)) {
+    if (!Object.hasOwn(schema.properties, key)) {
       return `${path}: unknown field "${key}" in ${name} (fields: ${fields.join(", ")})`;
     }
   }
