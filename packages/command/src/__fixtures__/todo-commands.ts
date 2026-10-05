@@ -1,0 +1,81 @@
+import { z } from "zod";
+import { defineCommand } from "../define-command";
+
+export type Todo = { id: string; title: string; done: boolean; tags: string[] };
+export type TodoState = { todos: Todo[] };
+
+export const addTodo = defineCommand({
+  type: "add_todo",
+  description: "Add a todo",
+  args: z.object({
+    id: z.string(),
+    title: z.string(),
+    tags: z.array(z.string()).optional(),
+  }),
+  apply(state: TodoState, args) {
+    if (state.todos.some((t) => t.id === args.id)) {
+      return { ok: false, message: `todo "${args.id}" already exists` };
+    }
+    const todo = {
+      id: args.id,
+      title: args.title,
+      done: false,
+      tags: args.tags ?? [],
+    };
+    return { ok: true, state: { todos: [...state.todos, todo] } };
+  },
+});
+
+export const deleteTodo = defineCommand({
+  type: "delete_todo",
+  description: "Delete a todo",
+  args: z.object({ id: z.string() }),
+  apply(state: TodoState, args) {
+    if (!state.todos.some((t) => t.id === args.id)) {
+      return { ok: false, message: `todo "${args.id}" not found` };
+    }
+    return {
+      ok: true,
+      state: { todos: state.todos.filter((t) => t.id !== args.id) },
+    };
+  },
+  requiresConfirmation: (state, args) =>
+    !state.todos.find((t) => t.id === args.id)?.done,
+});
+
+export const completeTodo = defineCommand({
+  type: "complete_todo",
+  description: "Mark a todo as done",
+  args: z.object({ id: z.string() }),
+  apply(state: TodoState, args) {
+    return {
+      ok: true,
+      state: {
+        todos: state.todos.map((t) =>
+          t.id === args.id ? { ...t, done: true } : t,
+        ),
+      },
+    };
+  },
+});
+
+export const setPriority = defineCommand({
+  type: "set_priority",
+  description: "Set priority",
+  args: z.object({
+    id: z.string(),
+    level: z.enum(["low", "high"]),
+    order: z.int().optional(),
+    meta: z.object({ note: z.string() }).optional(),
+  }),
+  apply(state: TodoState) {
+    return { ok: true, state };
+  },
+});
+
+export const todoCommands = [
+  addTodo,
+  deleteTodo,
+  completeTodo,
+  setPriority,
+] as const;
