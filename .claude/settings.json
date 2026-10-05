@@ -32,16 +32,13 @@
       "Bash(gh pr diff:*)",
       "Bash(gh pr checks:*)",
       "Bash(gh pr close*)",
-      "Bash(gh release view:*)",
-      "Bash(gh release list:*)",
-      "Bash(gh release create:*)",
-      "Bash(yarn install)",
-      "Bash(yarn dev:*)",
-      "Bash(yarn build:*)",
-      "Bash(yarn test:*)",
-      "Bash(yarn lint:*)",
-      "Bash(yarn typecheck:*)",
-      "Bash(yarn format:*)",
+      "Bash(bun install)",
+      "Bash(bun run dev:*)",
+      "Bash(bun run build:*)",
+      "Bash(bun run typecheck:*)",
+      "Bash(bun test:*)",
+      "Bash(bun --filter:*)",
+      "Bash(bunx biome check:*)",
       "Edit",
       "Write"
     ],
@@ -57,7 +54,8 @@
       "Bash(git clean -f*)",
       "Bash(git branch -D*)",
       "Bash(gh repo delete*)",
-      "Bash(yarn publish*)"
+      "Bash(bun publish*)",
+      "Bash(npm publish*)"
     ]
   }
 }
