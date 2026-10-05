@@ -6,15 +6,12 @@
 
 ```ts
 import { createCommandSession, defineCommand } from "@ai-friendly/command";
+import { z } from "zod";
 
 const addTodo = defineCommand({
   type: "add_todo",
   description: "Add a todo",
-  args: {
-    type: "object",
-    properties: { id: { type: "string" }, title: { type: "string" } },
-    required: ["id", "title"],
-  },
+  args: z.object({ id: z.string(), title: z.string() }),
   apply(state: TodoState, args) {
     // args は { id: string; title: string } に推論される
     return { ok: true, state: { todos: [...state.todos, { ...args, done: false }] } };
@@ -62,19 +59,22 @@ const deleteTodo = defineCommand({
 
 ### 引数の書き方
 
-JSON Schema のサブセット。同じ定義を、検証・WebMCP の `inputSchema`・AI 向けの短い一覧に使う。
+zod（v4）のオブジェクトで書く。同じ定義を、検証・WebMCP の `inputSchema`（`z.toJSONSchema(args, { io: "input" })`。`default` のある項目を必須にしないため入力側で出す）・AI 向けの短い一覧に使う。
 
-| `type` | 追加の項目 | TS の型 |
-| --- | --- | --- |
-| `string` | `enum?` | `string`（`enum` があればその union） |
-| `number` | | `number`（`NaN` / `Infinity` は不可） |
-| `integer` | | `number`（整数のみ） |
-| `boolean` | | `boolean` |
-| `array` | `items` | 要素の型の配列 |
-| `object` | `properties`, `required?` | `required` にない項目は省略可 |
+```ts
+args: z.object({
+  id: z.string(),
+  title: z.string().describe("Shown in the list"),
+  tags: z.array(z.string()).optional(),
+  priority: z.enum(["low", "high"]).default("low"),
+}),
+```
 
-* どれにも `description?` を書ける
-* Command の `args` 自体は `object`。Command は `{ type, ...args }` の平らな形で渡す
+* `apply` の `args` は検証後の値（zod の出力の型）。`default` などはここで反映される
+* `execute` に渡す Command は zod の入力の型（`default` のある項目は省略できる）
+* 一番外側は定義にないフィールドをエラーにする（`.strict()` で検証する）。入れ子の `z.object` で同じようにしたいときは `z.strictObject` を使う
+* `.describe()` の説明は WebMCP の `inputSchema` と AI 向けの一覧に載る
+* Command は `{ type, ...args }` の平らな形で渡す
 
 ## セッション（`createCommandSession`）
 
@@ -120,10 +120,11 @@ type ExecuteResult = { ok: true } | { ok: false; code: ErrorCode; message: strin
 | `invalid_command` | 形が違う | `commands[1]: unknown command "add_itme" (available: add_todo, delete_todo)` |
 | | | `commands[0]: unknown field "name" in add_todo (fields: id, title)` |
 | | | `commands[0]: missing required field "title" in add_todo` |
-| | | `commands[0].tags[1]: expected string, got null` |
-| | | `commands[0].level: expected one of "low", "high", got "mid"` |
+| | | `commands[0].tags[1]: Invalid input: expected string, received null` |
+| | | `commands[0].level: Invalid option: expected one of "low"\|"high"` |
 | `domain_error` | `apply` が失敗した | `commands[1] (add_todo): todo "1" already exists` |
 | `rejected` | 確認で拒否された / `confirm` がない | `commands: rejected by the user` |
 | `nothing_to_undo` / `nothing_to_redo` | 戻せる / やり直せる履歴がない | `nothing to undo` |
 
 * `message` は LLM が読んで自分で直せるよう、英文で「何番目の何が違うか」を書く
+* 型の違いなどは zod のメッセージに場所（`commands[0].title`）を付けて返す。未定義の Command・フィールド、必須項目の欠けは、使える Command・フィールドを添えた独自の英文にする

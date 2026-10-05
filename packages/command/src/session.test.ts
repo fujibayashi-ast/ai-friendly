@@ -1,6 +1,6 @@
 import { describe, expect, mock, test } from "bun:test";
+import { type TodoState, todoCommands } from "./__fixtures__/todo-commands";
 import { createCommandSession } from "./session";
-import { type TodoState, todoCommands } from "./todo.fixture";
 
 const createSession = (confirm?: () => boolean | Promise<boolean>) =>
   createCommandSession({
@@ -47,7 +47,8 @@ describe("execute", () => {
     expect(result).toEqual({
       ok: false,
       code: "invalid_command",
-      message: "commands[0].id: expected string, got number",
+      message:
+        "commands[0].id: Invalid input: expected string, received number",
     });
   });
 

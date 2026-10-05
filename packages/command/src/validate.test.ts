@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { todoCommands } from "./todo.fixture";
+import { todoCommands } from "./__fixtures__/todo-commands";
 import type { CommandDefinition } from "./types";
 import { validateCommands } from "./validate";
 
@@ -82,14 +82,16 @@ describe("validateCommands", () => {
 
   test("reports type mismatches with the path", () => {
     expect(messageOf({ type: "add_todo", id: "1", title: 3 })).toBe(
-      "commands[0].title: expected string, got number",
+      "commands[0].title: Invalid input: expected string, received number",
     );
     expect(
       messageOf({ type: "add_todo", id: "1", title: "a", tags: ["x", null] }),
-    ).toBe("commands[0].tags[1]: expected string, got null");
+    ).toBe(
+      "commands[0].tags[1]: Invalid input: expected string, received null",
+    );
     expect(
       messageOf({ type: "set_priority", id: "1", level: "high", order: 1.5 }),
-    ).toBe("commands[0].order: expected integer, got 1.5");
+    ).toBe("commands[0].order: Invalid input: expected int, received number");
     expect(
       messageOf({ type: "set_priority", id: "1", level: "high", meta: {} }),
     ).toBe('commands[0].meta: missing required field "note" in object');
@@ -97,7 +99,7 @@ describe("validateCommands", () => {
 
   test("reports enum mismatches", () => {
     expect(messageOf({ type: "set_priority", id: "1", level: "mid" })).toBe(
-      'commands[0].level: expected one of "low", "high", got "mid"',
+      'commands[0].level: Invalid option: expected one of "low"|"high"',
     );
   });
 });

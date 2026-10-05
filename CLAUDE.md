@@ -27,6 +27,7 @@
 * パッケージマネージャ: bun（bun workspaces によるモノレポ）
 * lint / format: Biome
 * テスト: `bun test`
+* Command の引数の定義・検証: zod（v4）
 * i18n: UI と AI チャットの両方を多言語対応する（実装方法は Issue で判断する）
 * その他のライブラリは必要になった時点で Issue で判断して追加する
 

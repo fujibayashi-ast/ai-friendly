@@ -1,53 +1,14 @@
+import type { z } from "zod";
+
 /** Command の発行元。`"ai"` のときだけ確認フック（`requiresConfirmation`）が働く */
 export type CommandSource = "user" | "ai";
 
 /**
- * 引数の定義（JSON Schema のサブセット）
- * 同じ定義を、検証・WebMCP の `inputSchema`・AI 向けのツール説明に使う
+ * 引数の定義（zod のオブジェクト）
+ * 同じ定義を、検証・WebMCP の `inputSchema`（`z.toJSONSchema`）・AI 向けのツール説明に使う
  * @see docs/commands.md
  */
-export type ArgSchema =
-  | { type: "string"; description?: string; enum?: readonly string[] }
-  | { type: "number"; description?: string }
-  | { type: "integer"; description?: string }
-  | { type: "boolean"; description?: string }
-  | { type: "array"; description?: string; items: ArgSchema }
-  | ObjectSchema;
-
-/** `required` にない項目は省略可になる */
-export type ObjectSchema = {
-  type: "object";
-  description?: string;
-  properties: Readonly<Record<string, ArgSchema>>;
-  required?: readonly string[];
-};
-
-/** `ArgSchema` が表す値の TS の型 */
-export type InferArg<S> = S extends {
-  type: "string";
-  enum: readonly (infer E)[];
-}
-  ? E
-  : S extends { type: "string" }
-    ? string
-    : S extends { type: "number" | "integer" }
-      ? number
-      : S extends { type: "boolean" }
-        ? boolean
-        : S extends { type: "array"; items: infer I }
-          ? InferArg<I>[]
-          : S extends { type: "object"; properties: infer P }
-            ? InferObject<
-                P,
-                S extends { required: readonly (infer R)[] } ? R : never
-              >
-            : never;
-
-type InferObject<P, R> = Simplify<
-  { [K in keyof P & R]: InferArg<P[K]> } & {
-    [K in Exclude<keyof P, R>]?: InferArg<P[K]>;
-  }
->;
+export type ArgsSchema = z.ZodObject;
 
 type Simplify<T> = { [K in keyof T]: T[K] } & {};
 
@@ -73,25 +34,25 @@ export type ConfirmationRule<State, Args> =
 export type CommandDefinition<
   State,
   Type extends string = string,
-  Args = Record<string, unknown>,
+  Schema extends ArgsSchema = ArgsSchema,
 > = {
   /** snake_case の動詞始まり（`add_todo`） */
   type: Type;
   /** 何をするか（英文）。AI 向けのツール説明に使う */
   description: string;
-  args: ObjectSchema;
-  requiresConfirmation?: ConfirmationRule<State, Args>;
+  args: Schema;
+  requiresConfirmation?: ConfirmationRule<State, z.output<Schema>>;
   /**
    * 新しい状態を返す。`state` は書き換えない
    * ID などは Command 側で受け取り、ここで生成しない（同じ Command 列なら同じ結果にするため）
    */
-  apply(state: State, args: Args): ApplyResult<State>;
+  apply(state: State, args: z.output<Schema>): ApplyResult<State>;
 };
 
 /** 定義から求めた、`execute` に渡す Command の型（`{ type, ...args }`） */
 export type CommandOf<D> =
-  D extends CommandDefinition<infer _S, infer T, infer A>
-    ? Simplify<{ type: T } & A>
+  D extends CommandDefinition<infer _S, infer T, infer Schema>
+    ? Simplify<{ type: T } & z.input<Schema>>
     : never;
 
 /** 型を特定しない Command（`{ type, ...args }` の平らな形） */

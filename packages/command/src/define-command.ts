@@ -1,24 +1,20 @@
+import type { z } from "zod";
 import type {
   ApplyResult,
+  ArgsSchema,
   CommandDefinition,
   ConfirmationRule,
-  InferArg,
-  ObjectSchema,
 } from "./types";
 
 /**
- * Command を定義する。`args` から `apply` の引数の型を推論する
- * 状態の型は `apply` の第 1 引数の注釈から決まる
+ * Command を定義する。`args`（zod のオブジェクト）から `apply` の引数の型を推論する
+ * `apply` の第 1 引数の型注釈が、セッションで扱う state の型になる（`apply` が返す `state` の型も同じ）
  *
  * @example
  * const addTodo = defineCommand({
  *   type: "add_todo",
  *   description: "Add a todo",
- *   args: {
- *     type: "object",
- *     properties: { id: { type: "string" }, title: { type: "string" } },
- *     required: ["id", "title"],
- *   },
+ *   args: z.object({ id: z.string(), title: z.string() }),
  *   apply(state: TodoState, args) {
  *     return { ok: true, state: { todos: [...state.todos, { ...args, done: false }] } };
  *   },
@@ -28,13 +24,13 @@ import type {
 export function defineCommand<
   State,
   const Type extends string,
-  const Args extends ObjectSchema,
+  Schema extends ArgsSchema,
 >(definition: {
   type: Type;
   description: string;
-  args: Args;
-  requiresConfirmation?: ConfirmationRule<State, InferArg<Args>>;
-  apply(state: State, args: InferArg<Args>): ApplyResult<State>;
-}): CommandDefinition<State, Type, InferArg<Args>> {
+  args: Schema;
+  requiresConfirmation?: ConfirmationRule<State, z.output<Schema>>;
+  apply(state: State, args: z.output<Schema>): ApplyResult<State>;
+}): CommandDefinition<State, Type, Schema> {
   return definition;
 }

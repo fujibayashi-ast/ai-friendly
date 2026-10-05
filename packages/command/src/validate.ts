@@ -1,9 +1,5 @@
-import type {
-  ArgSchema,
-  Command,
-  CommandDefinition,
-  ObjectSchema,
-} from "./types";
+import type { z } from "zod";
+import type { Command, CommandDefinition } from "./types";
 
 export type ValidatedCommand<State> = {
   command: Command;
@@ -41,87 +37,48 @@ export function validateCommands<State>(
         message: `${path}: unknown command "${item.type}" (available: ${available})`,
       };
     }
-    const { type: _, ...args } = item;
-    const error = checkObject(args, definition.args, path, definition.type);
-    if (error) return { ok: false, message: error };
+    const { type: _, ...rest } = item;
+    const parsed = definition.args
+      .strict()
+      .safeParse(rest, { reportInput: true });
+    if (!parsed.success) {
+      return {
+        ok: false,
+        message: formatIssue(parsed.error.issues, path, definition),
+      };
+    }
+    const args = parsed.data;
     commands.push({ command: { ...args, type: item.type }, args, definition });
   }
   return { ok: true, commands };
 }
 
-function checkValue(
-  value: unknown,
-  schema: ArgSchema,
+function formatIssue<State>(
+  issues: readonly z.core.$ZodIssue[],
   path: string,
-): string | undefined {
-  switch (schema.type) {
-    case "string":
-      if (typeof value !== "string") return mismatch(path, "string", value);
-      if (schema.enum && !schema.enum.includes(value)) {
-        return `${path}: expected one of ${schema.enum.map((v) => `"${v}"`).join(", ")}, got "${value}"`;
-      }
-      return;
-    case "number":
-      if (typeof value !== "number" || !Number.isFinite(value)) {
-        return mismatch(path, "number", value);
-      }
-      return;
-    case "integer":
-      if (typeof value === "number" && !Number.isInteger(value)) {
-        return `${path}: expected integer, got ${value}`;
-      }
-      if (!Number.isInteger(value)) return mismatch(path, "integer", value);
-      return;
-    case "boolean":
-      if (typeof value !== "boolean") return mismatch(path, "boolean", value);
-      return;
-    case "array":
-      if (!Array.isArray(value)) return mismatch(path, "array", value);
-      for (const [index, item] of value.entries()) {
-        const error = checkValue(item, schema.items, `${path}[${index}]`);
-        if (error) return error;
-      }
-      return;
-    case "object":
-      if (!isRecord(value)) return mismatch(path, "object", value);
-      return checkObject(value, schema, path, "object");
+  definition: CommandDefinition<State>,
+): string {
+  const [issue] = issues;
+  if (!issue) return `${path}: invalid arguments for ${definition.type}`;
+  const at = path + formatPath(issue.path);
+
+  if (issue.code === "unrecognized_keys" && issue.path.length === 0) {
+    const fields = Object.keys(definition.args.shape).join(", ");
+    return `${at}: unknown field "${issue.keys[0]}" in ${definition.type} (fields: ${fields})`;
   }
+  if (issue.code === "invalid_type" && issue.input === undefined) {
+    const parent = issue.path.slice(0, -1);
+    const field = issue.path.at(-1);
+    const name = parent.length === 0 ? definition.type : "object";
+    return `${path + formatPath(parent)}: missing required field "${String(field)}" in ${name}`;
+  }
+  return `${at}: ${issue.message}`;
 }
 
-function checkObject(
-  value: Record<string, unknown>,
-  schema: ObjectSchema,
-  path: string,
-  name: string,
-): string | undefined {
-  const fields = Object.keys(schema.properties);
-  for (const key of Object.keys(value)) {
-    if (!Object.hasOwn(schema.properties, key)) {
-      return `${path}: unknown field "${key}" in ${name} (fields: ${fields.join(", ")})`;
-    }
-  }
-  for (const key of schema.required ?? []) {
-    if (value[key] === undefined) {
-      return `${path}: missing required field "${key}" in ${name}`;
-    }
-  }
-  for (const [key, propertySchema] of Object.entries(schema.properties)) {
-    if (value[key] === undefined) continue;
-    const error = checkValue(value[key], propertySchema, `${path}.${key}`);
-    if (error) return error;
-  }
-}
-
-function mismatch(path: string, expected: string, value: unknown): string {
-  return `${path}: expected ${expected}, got ${describe(value)}`;
-}
-
-function describe(value: unknown): string {
-  if (value === null) return "null";
-  if (Array.isArray(value)) return "array";
-  if (typeof value === "number" && !Number.isFinite(value))
-    return String(value);
-  return typeof value;
+function formatPath(segments: readonly PropertyKey[]): string {
+  return segments
+    .map((s) => (typeof s === "number" ? `[${s}]` : `.${String(s)}`))
+    .join("");
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

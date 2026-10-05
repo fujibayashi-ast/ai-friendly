@@ -10,11 +10,16 @@
 * 題材の作者が逆操作を書かずに済み、「Command を定義するだけ」に近づく
 * 何をしたかの記録は、履歴に Command 列と発行元を残して代わりにする
 
-## 引数を JSON Schema のサブセットで書く理由
+## 引数を zod で書く理由
 
-* 検証（このパッケージ）・WebMCP の `inputSchema`・AI 向けの短い一覧（`assistant`）の 3 つで同じ定義を使える
-* zod などを入れると、WebMCP 用に JSON Schema へ変換する手間とライブラリが増える
-* 扱う型は題材に必要な範囲（string / number / integer / boolean / enum / array / object）に絞った。足りなくなったら Issue で足す
+* プランでは JSON Schema のサブセットを自前で検証する予定だった（ライブラリを増やさないため）
+* PR #8 のレビューで「string などの判定を自前で書くより zod の方が分かりやすいのでは」と指摘があり、比べ直して zod（v4）にした
+  * 型の推論（自前の `InferArg`）と、型ごとの判定を書かずに済む
+  * `.min()` / `.max()` などの制約を、題材ごとに自前で足さなくてよい
+  * `z.toJSONSchema()` で WebMCP の `inputSchema` を出せるので、「1 つの定義を検証・WebMCP・AI 向けの一覧に使う」狙いはそのまま保てる
+  * エラーの `path` と英文の `message` が揃っており、LLM 向けのエラーに組み立てやすい
+* 未定義の Command・フィールド、必須項目の欠けは、使える Command・フィールドを添えた独自の英文のまま残した（LLM が直す手がかりになるため）
+* WebMCP 用に JSON Schema を出すときは `{ io: "input" }` を指定する。指定しないと `default` のある項目まで必須になる
 
 ## `execute` を非同期にした理由
 

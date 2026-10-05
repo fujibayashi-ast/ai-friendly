@@ -7,7 +7,7 @@ export {
 } from "./session";
 export type {
   ApplyResult,
-  ArgSchema,
+  ArgsSchema,
   Command,
   CommandDefinition,
   CommandOf,
@@ -16,6 +16,4 @@ export type {
   ErrorCode,
   ExecuteResult,
   HistoryEntry,
-  InferArg,
-  ObjectSchema,
 } from "./types";
