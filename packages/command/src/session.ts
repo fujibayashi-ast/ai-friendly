@@ -8,6 +8,7 @@ import type {
 } from "./types";
 import { validateCommands } from "./validate";
 
+/** AI のバッチを実行してよいか尋ねる。バッチにつき 1 回、検証の後に呼ばれる */
 export type ConfirmHandler = (
   commands: readonly Command[],
 ) => boolean | Promise<boolean>;
@@ -18,6 +19,7 @@ export type CommandSessionOptions<
 > = {
   initialState: State;
   commands: Defs;
+  /** 省略すると、確認が必要な AI のバッチはすべて `rejected` になる */
   confirm?: ConfirmHandler;
 };
 
@@ -26,22 +28,47 @@ export type CommandSession<
   Defs extends readonly CommandDefinition<State>[],
 > = {
   definitions: Defs;
+  /** 変わらない限り同じ参照を返す */
   getState(): State;
+  /**
+   * 定義済みの Command を実行する。配列は 1 バッチで、1 つでも失敗したら状態を変えない。
+   * @param source 省略時は `"user"`
+   */
   execute(
     commands: CommandOf<Defs[number]> | readonly CommandOf<Defs[number]>[],
     source?: CommandSource,
   ): Promise<ExecuteResult>;
+  /** 型の分からない入力（LLM の JSON など）を実行する。検証は `execute` と同じ */
   executeRaw(input: unknown, source: CommandSource): Promise<ExecuteResult>;
+  /** 直前のバッチを丸ごと戻す */
   undo(): ExecuteResult;
   redo(): ExecuteResult;
   canUndo(): boolean;
   canRedo(): boolean;
+  /** 実行したバッチの一覧（古い順）。Undo したものは含まない */
   getHistory(): HistoryEntry[];
+  /**
+   * 状態が変わったら `listener` を呼ぶ。戻り値は解除する関数。
+   * React では `useSyncExternalStore(session.subscribe, session.getState)` で使える。
+   */
   subscribe(listener: () => void): () => void;
 };
 
 type Entry<State> = HistoryEntry & { before: State; after: State };
 
+/**
+ * Command を実行するセッションを作る。状態の変更はすべてここを通す。
+ *
+ * @example
+ * const session = createCommandSession({
+ *   initialState: { todos: [] },
+ *   commands: [addTodo, deleteTodo],
+ *   confirm: (commands) => window.confirm(`Run ${commands.length} commands?`),
+ * });
+ * await session.execute({ type: "add_todo", id: crypto.randomUUID(), title: "Buy milk" });
+ * await session.executeRaw(jsonFromLlm, "ai");
+ * @see docs/commands.md
+ */
 export function createCommandSession<
   State,
   const Defs extends readonly CommandDefinition<State>[],
