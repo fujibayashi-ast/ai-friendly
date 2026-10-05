@@ -5,10 +5,11 @@
 ## プロジェクト固有（`docs/`）
 
 - [architecture.md](architecture.md) — アーキテクチャ（package 構成と依存の向き）
-- `commands.md` — 共通の Command 基盤の仕様（`packages/command` 実装時に作成）
+- [commands.md](commands.md) — 共通の Command 基盤（`@ai-friendly/command`）の仕様
 - `history/` — 設計判断の経緯（`YYYY-MM-DD-<topic>.md`）
   - [2026-10-05-initial-setup.md](history/2026-10-05-initial-setup.md) — 初期セットアップで決めたこと
   - [2026-10-05-monorepo-scaffold.md](history/2026-10-05-monorepo-scaffold.md) — monorepo の土台（ビルドしない package・npm 公開時の検討）
+  - [2026-10-05-command-core.md](history/2026-10-05-command-core.md) — Command 基盤の設計（スナップショット方式の Undo・JSON Schema の引数）
 
 題材ごとの仕様は `apps/<題材>/docs/` に置く。
 

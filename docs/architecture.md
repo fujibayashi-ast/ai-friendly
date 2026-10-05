@@ -34,7 +34,7 @@ flowchart LR
 
 | package | 責務 | 依存 |
 | --- | --- | --- |
-| `packages/command` | Command 定義の型・execute・Undo/Redo・検証（LLM が読める英文のエラー）・発行元・確認フック | なし（React / LLM に依存しない） |
+| `packages/command` | Command 定義の型・execute・Undo/Redo（スナップショット方式）・検証（LLM が読める英文のエラー）・発行元・確認フック・購読。仕様は [commands.md](commands.md) | なし（React / LLM に依存しない） |
 | `packages/assistant` | Command 定義から短い一覧の説明を生成・WebMCP への登録・ローカル LLM・チャット UI | `packages/command` |
 | `apps/<題材>` | 題材ごとの状態・Command 定義・画面 | `packages/command`, `packages/assistant` |
 
