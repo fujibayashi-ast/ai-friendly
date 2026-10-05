@@ -31,7 +31,6 @@ CLAUDE.md / docs/ 配下の既存ドキュメントを確認し、更新すべ�
 - 要件変更 → `docs/requirements.md`
 - DB スキーマ変更 → `docs/er.md`
 - 複雑な処理フロー → `docs/sequence/*.md`（シーケンス図）
-- ビルド・配布手順 → `docs/claude/build.md`
 - ワークフロー変更 → `docs/claude/workflow.md`
 
 ### 4. ドキュメントを作成 / 更新する
