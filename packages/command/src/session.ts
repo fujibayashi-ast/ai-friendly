@@ -96,7 +96,10 @@ export function createCommandSession<
 
     const needsConfirmation =
       source === "ai" &&
-      validated.commands.some((v) => v.definition.requiresConfirmation);
+      validated.commands.some(({ definition, args }) => {
+        const rule = definition.requiresConfirmation;
+        return typeof rule === "function" ? rule(state, args) : rule === true;
+      });
     if (needsConfirmation && !(await options.confirm?.(commands))) {
       return {
         ok: false,

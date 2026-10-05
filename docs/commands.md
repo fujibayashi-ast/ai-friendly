@@ -38,10 +38,27 @@ await session.executeRaw(jsonFromLlm, "ai");
 | `type` | Command 名。snake_case の動詞始まり（`add_todo`） |
 | `description` | 何をするか（英文）。AI 向けのツール説明に使う |
 | `args` | 引数の定義（下の「引数の書き方」） |
-| `requiresConfirmation` | `true` なら、AI が実行するときに確認フックで承認を得る |
+| `requiresConfirmation` | AI が実行するときに確認フックで承認を得るか。`true` / `false`、または `(state, args) => boolean`（下の「条件付きの確認」） |
 | `apply(state, args)` | 新しい状態を `{ ok: true, state }` で返す。ドメイン上のエラー（存在しない ID など）は `{ ok: false, message }` で返す。`state` は書き換えず、新しいオブジェクトを返す |
 
 * ID は Command を発行する側で決める（`apply` の中で生成しない）。同じ Command 列なら同じ状態になるようにするため
+
+### 条件付きの確認
+
+```ts
+const deleteTodo = defineCommand({
+  type: "delete_todo",
+  // ...
+  apply(state: TodoState, args) { /* ... */ },
+  // 未完了の TODO を消すときだけ確認する
+  requiresConfirmation: (state, args) => !state.todos.find((t) => t.id === args.id)?.done,
+});
+```
+
+* `state` はセッションが渡す、バッチ実行前の状態。React の state を閉じ込めないので、定義はコンポーネントの外で 1 回作ればよい
+* バッチの中で前の Command が状態を変えても、判定は実行前の状態で行う（`[complete_todo, delete_todo]` は「未完了の削除」として確認する）。確認が余分に出る方向にずれる
+* 関数で書くときは `apply` より後に書く。前に書くと、状態の型を `apply` の注釈から推論できず `unknown` になる
+* 確認するかを LLM に決めさせない。確認は AI の間違いへの守りなので、条件はコードで決める
 
 ### 引数の書き方
 
@@ -77,7 +94,7 @@ JSON Schema のサブセット。同じ定義を、検証・WebMCP の `inputSch
 flowchart TD
   A["execute / executeRaw"] --> B{"検証"}
   B -- 失敗 --> E1["invalid_command"]
-  B -- OK --> C{"source が ai で<br>requiresConfirmation を含む？"}
+  B -- OK --> C{"source が ai で<br>確認が必要な Command を含む？"}
   C -- はい --> D{"confirm で承認？"}
   D -- いいえ / confirm なし --> E2["rejected"]
   D -- はい --> F
@@ -89,6 +106,7 @@ flowchart TD
 * Command 1 つでも配列でもよい。配列は 1 バッチとして扱い、Undo 1 回で戻る。空の配列はエラー
 * バッチの途中で失敗したら、状態は実行前のまま変えない
 * 確認はバッチにつき 1 回。検証は確認の前に済ませる
+* 確認の画面（ダイアログ・チャット内での確認など）はアプリが `confirm` で決める。Command ごとに出し分けたいときは `confirm` の中で `command.type` を見る
 * `apply` は確認の後に、その時点の状態に対して行う
 
 ## 結果とエラー

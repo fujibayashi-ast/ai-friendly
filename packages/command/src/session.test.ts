@@ -103,6 +103,29 @@ describe("confirmation", () => {
     }
   });
 
+  test("uses a rule function with the state before the batch", async () => {
+    const confirm = mock(() => true);
+    const session = createSession(confirm);
+    await session.execute([
+      { type: "add_todo", id: "1", title: "done" },
+      { type: "complete_todo", id: "1" },
+      { type: "add_todo", id: "2", title: "open" },
+    ]);
+
+    await session.execute({ type: "delete_todo", id: "1" }, "ai");
+    expect(confirm).not.toHaveBeenCalled();
+
+    await session.execute(
+      [
+        { type: "complete_todo", id: "2" },
+        { type: "delete_todo", id: "2" },
+      ],
+      "ai",
+    );
+    expect(confirm).toHaveBeenCalledTimes(1);
+    expect(titles(session.getState())).toEqual([]);
+  });
+
   test("validates before asking", async () => {
     const confirm = mock(() => true);
     const session = createSession(confirm);

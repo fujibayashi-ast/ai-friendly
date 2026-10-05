@@ -52,7 +52,7 @@ describe("validateCommands", () => {
         { type: "add_itme" },
       ]),
     ).toBe(
-      'commands[1]: unknown command "add_itme" (available: add_todo, delete_todo, set_priority)',
+      'commands[1]: unknown command "add_itme" (available: add_todo, delete_todo, complete_todo, set_priority)',
     );
   });
 

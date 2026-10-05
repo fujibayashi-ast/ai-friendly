@@ -37,7 +37,6 @@ export const deleteTodo = defineCommand({
     properties: { id: { type: "string" } },
     required: ["id"],
   },
-  requiresConfirmation: true,
   apply(state: TodoState, args) {
     if (!state.todos.some((t) => t.id === args.id)) {
       return { ok: false, message: `todo "${args.id}" not found` };
@@ -45,6 +44,28 @@ export const deleteTodo = defineCommand({
     return {
       ok: true,
       state: { todos: state.todos.filter((t) => t.id !== args.id) },
+    };
+  },
+  requiresConfirmation: (state, args) =>
+    !state.todos.find((t) => t.id === args.id)?.done,
+});
+
+export const completeTodo = defineCommand({
+  type: "complete_todo",
+  description: "Mark a todo as done",
+  args: {
+    type: "object",
+    properties: { id: { type: "string" } },
+    required: ["id"],
+  },
+  apply(state: TodoState, args) {
+    return {
+      ok: true,
+      state: {
+        todos: state.todos.map((t) =>
+          t.id === args.id ? { ...t, done: true } : t,
+        ),
+      },
     };
   },
 });
@@ -71,4 +92,9 @@ export const setPriority = defineCommand({
   },
 });
 
-export const todoCommands = [addTodo, deleteTodo, setPriority] as const;
+export const todoCommands = [
+  addTodo,
+  deleteTodo,
+  completeTodo,
+  setPriority,
+] as const;

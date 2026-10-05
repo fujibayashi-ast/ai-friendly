@@ -1,6 +1,7 @@
 import type {
   ApplyResult,
   CommandDefinition,
+  ConfirmationRule,
   InferArg,
   ObjectSchema,
 } from "./types";
@@ -32,7 +33,7 @@ export function defineCommand<
   type: Type;
   description: string;
   args: Args;
-  requiresConfirmation?: boolean;
+  requiresConfirmation?: ConfirmationRule<State, InferArg<Args>>;
   apply(state: State, args: InferArg<Args>): ApplyResult<State>;
 }): CommandDefinition<State, Type, InferArg<Args>> {
   return definition;

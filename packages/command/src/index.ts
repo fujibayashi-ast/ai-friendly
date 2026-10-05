@@ -12,6 +12,7 @@ export type {
   CommandDefinition,
   CommandOf,
   CommandSource,
+  ConfirmationRule,
   ErrorCode,
   ExecuteResult,
   HistoryEntry,

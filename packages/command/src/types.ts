@@ -60,6 +60,16 @@ export type ApplyResult<State> =
   | { ok: true; state: State }
   | { ok: false; message: string };
 
+/**
+ * 発行元が `"ai"` のとき、確認フックで承認を得てから実行するか
+ * 関数なら、バッチ実行前の状態と引数で判定する（例: 未完了の TODO を消すときだけ確認する）
+ * 関数で書くときは `apply` より後に書く（状態の型を `apply` の注釈から推論するため）
+ * @see docs/commands.md
+ */
+export type ConfirmationRule<State, Args> =
+  | boolean
+  | { bivarianceHack(state: State, args: Args): boolean }["bivarianceHack"];
+
 export type CommandDefinition<
   State,
   Type extends string = string,
@@ -70,8 +80,7 @@ export type CommandDefinition<
   /** 何をするか（英文）。AI 向けのツール説明に使う */
   description: string;
   args: ObjectSchema;
-  /** `true` なら、発行元が `"ai"` のときに確認フックで承認を得てから実行する */
-  requiresConfirmation?: boolean;
+  requiresConfirmation?: ConfirmationRule<State, Args>;
   /**
    * 新しい状態を返す。`state` は書き換えない
    * ID などは Command 側で受け取り、ここで生成しない（同じ Command 列なら同じ結果にするため）
