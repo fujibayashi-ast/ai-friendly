@@ -12,8 +12,8 @@ AI が少ない手数で操作できるサイトのサンプル集。
 
 ```
 apps/<題材>/         # 各サンプルサイト（Vite + React）
-packages/command/    # Command の定義・実行・Undo・検証（React / LLM に依存しない）
-packages/assistant/  # AI 向けツール生成・WebMCP 登録・ローカル LLM・チャット UI
+packages/command/    # Command の定義・実行・Undo・検証・AI 向けツール・WebMCP 登録（React / LLM に依存しない）
+packages/assistant/  # サイト内の AI チャット（チャット UI・LLM の切り替え）
 ```
 
 詳細は [docs/architecture.md](docs/architecture.md)。
