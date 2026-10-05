@@ -20,18 +20,18 @@ packages/assistant/  # AI 向けツール生成・WebMCP 登録・ローカル L
 
 ## Getting Started
 
-> 実装前のため、以下は予定のコマンド。
-
 ```sh
 bun install
-bun --filter <題材> dev
 ```
+
+> 題材アプリは準備中。追加後は `bun run --filter <題材> dev` で起動する。
 
 ### チェック
 
 ```sh
-bunx biome check
-bun run typecheck
+bun run check      # Biome（lint / format）
+bun run format     # Biome の自動修正
+bun run typecheck  # 全 workspace の型チェック
 bun test
 bun run build
 ```
