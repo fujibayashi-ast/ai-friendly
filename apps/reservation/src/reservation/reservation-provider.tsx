@@ -1,11 +1,12 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { type ReactNode, useCallback, useMemo, useState } from "react";
 import { FormProvider, useForm, useWatch } from "react-hook-form";
-import { isDate, localToday, weekStart } from "./dates";
+import { localToday, weekError, weekStart } from "./dates";
 import { sendReservation } from "./reservation-api";
 import {
   type CompletedReservation,
   ReservationContext,
+  type WeekResult,
 } from "./reservation-context";
 import {
   emptyValues,
@@ -38,9 +39,15 @@ export function ReservationProvider({ children }: { children: ReactNode }) {
   );
   const submitting = formState.isSubmitting;
 
-  const showWeek = useCallback((date: string) => {
-    if (isDate(date)) setWeekOf(weekStart(date));
-  }, []);
+  const showWeek = useCallback(
+    (date: string): WeekResult => {
+      const reason = weekError(date, today);
+      if (reason) return { ok: false, reason };
+      setWeekOf(weekStart(date));
+      return { ok: true };
+    },
+    [today],
+  );
 
   const fill = useCallback(
     (patch: Partial<ReservationValues>) => {

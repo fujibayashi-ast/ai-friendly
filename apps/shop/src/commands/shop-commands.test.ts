@@ -3,8 +3,13 @@ import { type ConfirmHandler, createAiTools } from "@ai-friendly/command";
 import { createTranslate } from "../i18n/messages";
 import {
   addToCart,
+  addToCartError,
   initialShopState,
+  orderError,
+  removeFromCartError,
+  type ShopError,
   type ShopState,
+  setCartQuantityError,
   startOrder,
 } from "../shop/shop";
 import { createShopCommands } from "./shop-commands";
@@ -16,13 +21,27 @@ const setup = ({
   state?: ShopState;
   confirm?: ConfirmHandler;
 } = {}) => {
+  // サイトの関数と同じ判定で結果を返す
+  const result = (error: ShopError | undefined) =>
+    error ? { ok: false as const, error } : { ok: true as const };
   const actions = {
     setCategory: mock(() => {}),
     setOrder: mock(() => {}),
-    addToCart: mock((_: string, __: number) => {}),
-    setCartQuantity: mock((_: string, __: number) => {}),
-    removeFromCart: mock((_: string) => {}),
-    placeOrder: mock(async () => {}),
+    addToCart: mock((id: string, quantity: number) =>
+      result(addToCartError(state, id, quantity)),
+    ),
+    setCartQuantity: mock((id: string, quantity: number) =>
+      result(setCartQuantityError(state, id, quantity)),
+    ),
+    removeFromCart: mock((id: string) =>
+      result(removeFromCartError(state, id)),
+    ),
+    placeOrder: mock(async () => {
+      const error = orderError(state);
+      return error
+        ? { ok: false as const, error }
+        : { ok: true as const, orderNumber: "1001" };
+    }),
   };
   const confirmMock = mock(confirm ?? (async () => true));
   const tools = createAiTools({
@@ -93,7 +112,6 @@ describe("shop commands", () => {
         message,
       });
     }
-    expect(s.addToCart).not.toHaveBeenCalled();
   });
 
   test("do not set the quantity of a product that is not in the cart", async () => {
@@ -105,7 +123,6 @@ describe("shop commands", () => {
         'set_cart_quantity: product "2" is not in the cart (cart: empty)',
     });
     expect(s.addToCart).not.toHaveBeenCalled();
-    expect(s.setCartQuantity).not.toHaveBeenCalled();
   });
 
   test("change and remove only what is in the cart", async () => {
@@ -124,13 +141,14 @@ describe("shop commands", () => {
     expect(await s.run("remove_from_cart", { product_id: "6" })).toEqual({
       ok: true,
     });
-    expect(s.setCartQuantity.mock.calls).toEqual([["6", 2]]);
-    expect(s.removeFromCart.mock.calls).toEqual([["6"]]);
   });
 
   test("order after confirming the total", async () => {
     const s = setup({ state: withHoney });
-    expect(await s.run("place_order", {})).toEqual({ ok: true });
+    expect(await s.run("place_order", {})).toEqual({
+      ok: true,
+      message: "place_order: order 1001 was placed",
+    });
     expect(s.confirm.mock.calls[0]?.[1]).toMatchObject({
       description: "Your order totaling ¥1,680 will be placed.",
     });
@@ -159,8 +177,6 @@ describe("shop commands", () => {
       });
     }
     expect(s.confirm).not.toHaveBeenCalled();
-    expect(s.addToCart).not.toHaveBeenCalled();
-    expect(s.placeOrder).not.toHaveBeenCalled();
     expect(await s.run("set_category", { category: "food" })).toEqual({
       ok: true,
     });

@@ -58,6 +58,7 @@ packages/
 
 * サイトは Command がなくても成立させる。状態は普通の React（`useState` など）で持ち、画面は普通に setter を呼ぶ
 * AI の層は後から足す。Command の `run` でサイトの関数（setter など）を呼ぶ。状態が変わったら Command とツールを作り直す
+* 画面と Command は同じサイトの関数を呼ぶ。守り（処理中は受け付けない・入力のルールなど）はサイトの関数に置き、結果（だめな理由・予約番号など）は多めに返す。画面と Command はそれぞれ要るものを使い、Command は AI 向けの短い英文にする
 * サイトの機能から AI の層を参照しない
 * 実行結果は `{ ok: true }` / `{ ok: false, code, message }` で返す。`message` は LLM が読んで自分で直せる英文にする（どこの何が違うか）
 * 確認が必要な Command は定義に `requiresConfirmation` を持たせ、アプリが渡す確認フックで承認を得てから実行する。条件はコードで決める（LLM に決めさせない）

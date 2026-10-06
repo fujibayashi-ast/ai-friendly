@@ -2,7 +2,7 @@ import { Button } from "@ai-friendly/ui";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { formatDate } from "../../i18n/format";
 import { useI18n } from "../../i18n/use-i18n";
-import { addDays, weekDates, weekStart } from "../../reservation/dates";
+import { addDays, weekDates, weekError } from "../../reservation/dates";
 import { useReservation } from "../../reservation/reservation-context";
 import { DayButton } from "./day-button";
 
@@ -32,7 +32,7 @@ export function AvailabilityCalendar() {
             variant="ghost"
             size="icon-sm"
             aria-label={t("calendar.prev")}
-            disabled={weekOf <= weekStart(today)}
+            disabled={!!weekError(addDays(weekOf, -7), today)}
             onClick={handlePrev}
           >
             <ChevronLeft aria-hidden />

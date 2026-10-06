@@ -79,17 +79,78 @@ export function setOrder(state: ShopState, order: SortOrder): ShopState {
   return { ...state, order };
 }
 
-/** 販売中の商品だけ入れる。数はカートの分と合わせて在庫まで */
+/** カートと注文ができない理由。画面と AI のどちらから呼ばれても、同じ判定で断る */
+export type ShopError =
+  | { code: "ordering" }
+  | { code: "not_found" }
+  | { code: "coming_soon"; releaseDate: string }
+  | { code: "sold_out" }
+  | { code: "over_stock"; stock: number }
+  | { code: "not_in_cart" }
+  | { code: "invalid_quantity" }
+  | { code: "empty_cart" };
+
+/** 注文の送信中・売り切れなどで、その数を入れられないときの理由 */
+function stockError(
+  state: ShopState,
+  id: string,
+  quantity: number,
+): ShopError | undefined {
+  if (state.ordering) return { code: "ordering" };
+  const product = findProduct(state, id);
+  if (!product) return { code: "not_found" };
+  const status = productStatus(product);
+  if (status === "coming_soon") {
+    return { code: "coming_soon", releaseDate: product.releaseDate ?? "" };
+  }
+  if (status === "sold_out") return { code: "sold_out" };
+  if (quantity < 1) return { code: "invalid_quantity" };
+  if (quantity > product.stock) {
+    return { code: "over_stock", stock: product.stock };
+  }
+}
+
+/** 販売中の商品だけ、カートの分と合わせて在庫まで入れられる */
+export function addToCartError(
+  state: ShopState,
+  id: string,
+  quantity: number,
+): ShopError | undefined {
+  if (quantity < 1) return { code: "invalid_quantity" };
+  return stockError(state, id, cartQuantity(state, id) + quantity);
+}
+
+/** カートにある商品だけ、1 から在庫までにできる */
+export function setCartQuantityError(
+  state: ShopState,
+  id: string,
+  quantity: number,
+): ShopError | undefined {
+  if (state.ordering) return { code: "ordering" };
+  if (cartQuantity(state, id) === 0) return { code: "not_in_cart" };
+  return stockError(state, id, quantity);
+}
+
+export function removeFromCartError(
+  state: ShopState,
+  id: string,
+): ShopError | undefined {
+  if (state.ordering) return { code: "ordering" };
+  if (cartQuantity(state, id) === 0) return { code: "not_in_cart" };
+}
+
+export function orderError(state: ShopState): ShopError | undefined {
+  if (state.ordering) return { code: "ordering" };
+  if (state.cart.length === 0) return { code: "empty_cart" };
+}
+
 export function addToCart(
   state: ShopState,
   id: string,
   quantity: number,
 ): ShopState {
-  if (state.ordering) return state;
-  const product = findProduct(state, id);
-  if (!product || productStatus(product) !== "available") return state;
-  const next = Math.min(cartQuantity(state, id) + quantity, product.stock);
-  if (next <= 0) return state;
+  if (addToCartError(state, id, quantity)) return state;
+  const next = cartQuantity(state, id) + quantity;
   const exists = state.cart.some((item) => item.productId === id);
   return {
     ...state,
@@ -101,26 +162,22 @@ export function addToCart(
   };
 }
 
-/** 1 から在庫までにそろえる */
 export function setCartQuantity(
   state: ShopState,
   id: string,
   quantity: number,
 ): ShopState {
-  if (state.ordering) return state;
-  const product = findProduct(state, id);
-  if (!product) return state;
-  const next = Math.max(1, Math.min(quantity, product.stock));
+  if (setCartQuantityError(state, id, quantity)) return state;
   return {
     ...state,
     cart: state.cart.map((item) =>
-      item.productId === id ? { ...item, quantity: next } : item,
+      item.productId === id ? { ...item, quantity } : item,
     ),
   };
 }
 
 export function removeFromCart(state: ShopState, id: string): ShopState {
-  if (state.ordering) return state;
+  if (removeFromCartError(state, id)) return state;
   return {
     ...state,
     cart: state.cart.filter((item) => item.productId !== id),

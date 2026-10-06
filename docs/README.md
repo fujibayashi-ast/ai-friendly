@@ -28,6 +28,7 @@
   - [2026-10-06-shop-app.md](history/2026-10-06-shop-app.md) — ネットショップ（表示を変える Command・在庫の状態による失敗・非同期の注文）
   - [2026-10-06-reservation-app.md](history/2026-10-06-reservation-app.md) — 予約フォーム（フォームを埋める Command・入力のエラーを直す・小さいモデルの対話の限界）
   - [2026-10-07-run-success-message.md](history/2026-10-07-run-success-message.md) — 成功したときにも AI 向けの英文を返す（`{ ok: true, message }`）
+  - [2026-10-07-guards-in-site.md](history/2026-10-07-guards-in-site.md) — 守りをサイトの関数に置き、結果を多めに返す（画面と AI で同じ挙動）
 
 題材ごとの仕様は `apps/<題材>/docs/` に置く。
 

@@ -27,9 +27,9 @@ src/
   main.tsx / app.tsx      # I18nProvider > ShopProvider > ConfirmProvider > レイアウト + ページ、<Ai />
   shop/                   # 普通のサイトの機能
     products.ts           #   商品の型とダミーのデータ
-    shop.ts               #   状態の型と、状態を変える純粋な関数（絞り込み・並べ替え・カート・注文後の在庫）
+    shop.ts               #   状態の型と、状態を変える純粋な関数（絞り込み・並べ替え・カート・注文後の在庫）・だめな理由（addToCartError など）
     order-api.ts          #   ダミーの注文 API
-    shop-provider.tsx     #   useState で持ち、関数を出す（useShop）
+    shop-provider.tsx     #   useState で持ち、関数を出す（useShop）。カートの操作と注文は結果を返す
   i18n/                   # 文言（ja / en）・言語の state・金額と日付の形（format.ts）
   layout/                 # ヘッダー（サイト名・言語の切り替え）
   pages/home/             # 絞り込み・並べ替え（product-filters）・商品（product-list / product-card）・カート（cart / cart-line）
@@ -40,7 +40,10 @@ src/
 
 * `app.tsx` から `<Ai />` を外しても、サイトはそのまま動く
 
-* `shop.ts` の関数は、販売中でない商品や在庫を超える数を黙ってそろえる（画面ではそもそも押せない）
+* カートの操作と注文ができないときの理由は、`shop.ts` の `addToCartError` / `setCartQuantityError` / `removeFromCartError` / `orderError` が決める（`ordering` / `not_found` / `coming_soon` / `sold_out` / `over_stock` / `not_in_cart` / `invalid_quantity` / `empty_cart`）
+  * 状態を変える関数（`addToCart` など）は、この理由があれば何もしない。在庫を超える数は、在庫までにそろえずに断る
+  * `useShop` の `addToCart` などは `{ ok: true } | { ok: false, error }` を、`placeOrder` は `{ ok: true, orderNumber } | { ok: false, error }` を返す。画面は返り値を使わない（ボタンはそもそも押せない）
+  * 理由は今の描画の state で決め、変更は `setState(s => …)` で最新の state に重ねる（続けて呼ばれても片方が消えないように）
 
 ## Command
 
@@ -77,13 +80,15 @@ src/
   | 空のカートで注文 | `place_order: the cart is empty` |
   | 注文の送信中にカートの操作・注文 | `add_to_cart: an order is being placed; try again after it finishes` |
 
-* サイトの関数（`shop.ts`）は、売り切れや在庫を超える数を黙ってそろえる。Command は呼ぶ前に確かめて、そろえずに理由を返す（AI がユーザーに伝えられるように）
-* 注文の送信中は、画面のボタンと同じく、カートの操作と注文を受け付けない。サイトの関数（`shop.ts`）も送信中は何もしないので、Command は呼ぶ前に確かめて理由を返す（`place_order` は確認も出さない）。絞り込み・並べ替えは止めない
+* 注文できたら、成功でも注文番号を返す: `place_order: order 1001 was placed`
+
+* Command は画面と同じ `useShop` の関数を呼び、返った理由を英文にするだけ（判定はサイトの関数にある）
+* 注文の送信中は、画面のボタンと同じく、カートの操作と注文を受け付けない（`place_order` は確認も出さない）。絞り込み・並べ替えは止めない
 * `set_cart_quantity` はカートにある商品だけ。カートにない商品で呼ぶと `not in the cart` を返し、AI はそれを見て `add_to_cart` で入れ直すか、入っていないことを伝える（#69）
 * `add_to_cart` の `quantity` は省略させない。小さいモデルは呼び直すときに数を落とすことがあるため（#69）
 * `place_order` の `run` は Promise を返す（ダミーの API を待つ）。AI への結果は注文が終わってから返る
 * 確認の文言は Command の定義（`confirmation`）が持つ。合計金額は `Intl` で表示中の言語に合わせる
-* 状態が変わるたびに Command と AI 向けツールを作り直す（`get_state` と在庫の確認が今の状態を使うように）
+* 状態が変わるたびに Command と AI 向けツールを作り直す（`get_state` と英文の ID の一覧が今の状態を使うように）
 
 ## AI から操作する
 

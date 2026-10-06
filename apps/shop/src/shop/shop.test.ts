@@ -1,12 +1,16 @@
 import { describe, expect, test } from "bun:test";
 import {
   addToCart,
+  addToCartError,
   cartTotal,
   completeOrder,
   initialShopState,
+  orderError,
   productStatus,
   removeFromCart,
+  removeFromCartError,
   setCartQuantity,
+  setCartQuantityError,
   setCategory,
   setOrder,
   startOrder,
@@ -34,23 +38,49 @@ describe("products", () => {
 });
 
 describe("cart", () => {
-  test("add up to the stock", () => {
-    let state = addToCart(initialShopState, "6", 1);
-    state = addToCart(state, "6", 5);
-    expect(state.cart).toEqual([{ productId: "6", quantity: 2 }]);
+  test("add up to the stock, and refuse more", () => {
+    const state = addToCart(initialShopState, "6", 1);
+    expect(addToCartError(state, "6", 2)).toEqual({
+      code: "over_stock",
+      stock: 2,
+    });
+    expect(addToCart(state, "6", 2)).toBe(state);
+    expect(addToCart(state, "6", 1).cart).toEqual([
+      { productId: "6", quantity: 2 },
+    ]);
   });
 
-  test("ignore products that are not on sale", () => {
-    const state = addToCart(addToCart(initialShopState, "3", 1), "5", 1);
-    expect(state.cart).toEqual([]);
+  test("refuse products that are not on sale", () => {
+    expect(addToCartError(initialShopState, "3", 1)).toEqual({
+      code: "sold_out",
+    });
+    expect(addToCartError(initialShopState, "5", 1)).toEqual({
+      code: "coming_soon",
+      releaseDate: "2026-11-20",
+    });
+    expect(addToCartError(initialShopState, "9", 1)).toEqual({
+      code: "not_found",
+    });
+    expect(addToCart(initialShopState, "3", 1)).toBe(initialShopState);
   });
 
   test("set the quantity between 1 and the stock, and remove", () => {
     let state = addToCart(initialShopState, "6", 1);
-    expect(setCartQuantity(state, "6", 9).cart[0]?.quantity).toBe(2);
-    expect(setCartQuantity(state, "6", 0).cart[0]?.quantity).toBe(1);
+    expect(setCartQuantity(state, "6", 2).cart[0]?.quantity).toBe(2);
+    expect(setCartQuantityError(state, "6", 9)).toEqual({
+      code: "over_stock",
+      stock: 2,
+    });
+    expect(setCartQuantityError(state, "6", 0)).toEqual({
+      code: "invalid_quantity",
+    });
+    expect(setCartQuantityError(state, "1", 1)).toEqual({
+      code: "not_in_cart",
+    });
+    expect(removeFromCartError(state, "1")).toEqual({ code: "not_in_cart" });
     state = removeFromCart(state, "6");
     expect(state.cart).toEqual([]);
+    expect(orderError(state)).toEqual({ code: "empty_cart" });
   });
 
   test("keep the cart while an order is being placed", () => {
@@ -58,6 +88,7 @@ describe("cart", () => {
     expect(addToCart(state, "1", 1)).toBe(state);
     expect(setCartQuantity(state, "6", 2)).toBe(state);
     expect(removeFromCart(state, "6")).toBe(state);
+    expect(orderError(state)).toEqual({ code: "ordering" });
   });
 
   test("total and order", () => {

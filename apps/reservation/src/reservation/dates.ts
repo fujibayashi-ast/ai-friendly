@@ -41,6 +41,15 @@ export function weekStart(date: string): string {
   return day.subtract((day.day() + 6) % 7, "day").format(format);
 }
 
+/** カレンダーに出せない週の理由。今週より前には戻らない */
+export function weekError(
+  date: string,
+  today: string,
+): "invalid" | "past" | undefined {
+  if (!isDate(date)) return "invalid";
+  if (weekStart(date) < weekStart(today)) return "past";
+}
+
 export function weekDates(start: string): string[] {
   return Array.from({ length: 7 }, (_, i) => addDays(start, i));
 }
