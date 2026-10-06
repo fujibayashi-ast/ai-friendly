@@ -1,6 +1,8 @@
 # Command 基盤（`@ai-friendly/command`）
 
-状態を変更する唯一の入口。画面の操作・AI チャット・WebMCP はすべてここを通す。React / LLM には依存しない。
+Command を検証・実行し、Undo / Redo できるようにする。AI チャット・WebMCP（画面の操作も、望むなら）はここを通す。React / LLM には依存しない。
+
+状態はセッションが持つ（`initialState`）か、アプリが持つものを読み書きする（`store`。下の「アプリの状態につなぐ」）。
 
 ## 使い方
 
@@ -83,11 +85,39 @@ args: z.object({
 | --- | --- |
 | `execute(commands, source = "user")` | 定義済みの Command だけを受け取る（型で検査）。戻り値は `Promise<ExecuteResult>` |
 | `executeRaw(input, source)` | 型の分からない入力（LLM の JSON など）を受け取る。検証は `execute` と同じ |
-| `undo()` / `redo()` | バッチ単位で戻す / やり直す |
+| `undo()` / `redo()` | バッチ単位で戻す / やり直す。その後に状態が外で変わっていたら戻さない（`state_changed`） |
 | `canUndo()` / `canRedo()` | 戻せるか / やり直せるか |
-| `getState()` | 今の状態。変わらない限り同じ参照を返す |
+| `getState()` | 今の状態。`initialState` のときは変わらない限り同じ参照を返す。`store` のときは `store.getState()` |
 | `getHistory()` | 実行したバッチ（`{ commands, source }`）の一覧。Undo したものは含まない |
-| `subscribe(listener)` | 状態が変わったら呼ぶ。戻り値は解除する関数（`useSyncExternalStore` で使える） |
+| `subscribe(listener)` | Command の実行・Undo / Redo で状態が変わったら呼ぶ。戻り値は解除する関数。`store` の外での変更は通知しない |
+
+## アプリの状態につなぐ（`store`）
+
+すでに状態を持っているサイトに、AI からの操作を足すときに使う。サイトの状態の持ち主はアプリのままで、セッションは読み書きするだけ。セッションを外してもサイトは動く。
+
+```ts
+const session = createCommandSession({
+  store: {
+    getState: () => current, // アプリの今の状態
+    setState: (next) => apply(next), // アプリの setter に書く
+  },
+  commands: [setTheme, setLanguage],
+  confirm,
+});
+```
+
+* `initialState` と `store` はどちらか一方だけ渡す
+* セッションは実行のたびに `store.getState()` を読む（確認の判定・`apply` の起点）。成功したら `store.setState(next)` を 1 回呼ぶ
+* `getState()` は、`setState` の直後に呼ばれても新しい状態を返すようにする（React の state の反映を待つと、続けて実行したバッチが古い状態から始まるため。ref などで持つ）
+* 画面の操作は Command を通さず、アプリの setter を直接呼んでよい。その操作は履歴に残らず、Undo の対象にもならない
+
+### 外での変更と Undo / Redo
+
+バッチの後に状態が外（画面の操作など）で変わっていたら、Undo / Redo は戻さずに `state_changed` を返す。人の変更を AI の Undo で上書きしないため。
+
+* Undo は、今の状態がそのバッチの後の状態と等しいときだけ戻す。Redo は、バッチの前の状態と等しいときだけやり直す
+* 比較は参照ではなく中身で行う。状態は JSON で表せる値（オブジェクト・配列・文字列・数値・真偽値・`null`）にする
+* 戻せなかったバッチは履歴に残る（`canUndo()` は `true` のまま）。状態が元に戻れば Undo できる
 
 ## 実行の流れ
 
@@ -126,6 +156,7 @@ type ExecuteResult = { ok: true } | { ok: false; code: ErrorCode; message: strin
 | `domain_error` | `apply` が失敗した | `commands[1] (add_todo): todo "1" already exists` |
 | `rejected` | 確認で拒否された / `confirm` がない | `commands: rejected by the user` |
 | `nothing_to_undo` / `nothing_to_redo` | 戻せる / やり直せる履歴がない | `nothing to undo` |
+| `state_changed` | バッチの後に状態が外で変わっていて、戻さなかった | `cannot undo: the state was changed after this batch (for example on the page). Read the current state and run new commands instead` |
 
 * `message` は LLM が読んで自分で直せるよう、英文で「何番目の何が違うか」を書く
 * 型の違いなどは zod のメッセージに場所（`commands[0].title`）を付けて返す。未定義の Command・フィールド、必須項目の欠けは、使える Command・フィールドを添えた独自の英文にする

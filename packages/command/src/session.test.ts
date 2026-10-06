@@ -194,6 +194,87 @@ describe("subscribe", () => {
   });
 });
 
+describe("store", () => {
+  const createStore = () => {
+    let state: TodoState = { todos: [] };
+    const setState = mock((next: TodoState) => {
+      state = next;
+    });
+    return {
+      store: { getState: () => state, setState },
+      changeOutside: (next: TodoState) => {
+        state = next;
+      },
+    };
+  };
+
+  test("reads from and writes to the store", async () => {
+    const { store, changeOutside } = createStore();
+    const session = createCommandSession({ store, commands: todoCommands });
+    changeOutside({ todos: [{ id: "1", title: "a", done: false, tags: [] }] });
+
+    await session.execute({ type: "add_todo", id: "2", title: "b" });
+    expect(titles(store.getState())).toEqual(["a", "b"]);
+    expect(session.getState()).toBe(store.getState());
+
+    await session.execute({ type: "add_todo", id: "1", title: "dup" });
+    expect(store.setState).toHaveBeenCalledTimes(1);
+  });
+
+  test("undoes and redoes while the state is unchanged", async () => {
+    const { store } = createStore();
+    const session = createCommandSession({ store, commands: todoCommands });
+    await session.execute({ type: "add_todo", id: "1", title: "a" });
+    expect(session.undo()).toEqual({ ok: true });
+    expect(titles(store.getState())).toEqual([]);
+    expect(session.redo()).toEqual({ ok: true });
+    expect(titles(store.getState())).toEqual(["a"]);
+  });
+
+  test("compares by content, not by reference", async () => {
+    const { store, changeOutside } = createStore();
+    const session = createCommandSession({ store, commands: todoCommands });
+    await session.execute({ type: "add_todo", id: "1", title: "a" });
+    changeOutside(structuredClone(store.getState()));
+    expect(session.undo()).toEqual({ ok: true });
+  });
+
+  test("refuses to undo or redo over a change made outside", async () => {
+    const { store, changeOutside } = createStore();
+    const session = createCommandSession({ store, commands: todoCommands });
+    await session.execute({ type: "add_todo", id: "1", title: "a" });
+    changeOutside({ todos: [] });
+
+    expect(session.undo()).toEqual({
+      ok: false,
+      code: "state_changed",
+      message:
+        "cannot undo: the state was changed after this batch (for example on the page). Read the current state and run new commands instead",
+    });
+    expect(session.canUndo()).toBe(true);
+
+    await session.execute({ type: "add_todo", id: "2", title: "b" });
+    session.undo();
+    changeOutside({ todos: [{ id: "3", title: "c", done: false, tags: [] }] });
+    expect(session.redo()).toMatchObject({ ok: false, code: "state_changed" });
+    expect(session.canRedo()).toBe(true);
+  });
+
+  test("passes the current state of the store to a confirmation rule", async () => {
+    const { store, changeOutside } = createStore();
+    const confirm = mock(() => true);
+    const session = createCommandSession({
+      store,
+      commands: todoCommands,
+      confirm,
+    });
+    changeOutside({ todos: [{ id: "1", title: "a", done: true, tags: [] }] });
+    await session.execute({ type: "delete_todo", id: "1" }, "ai");
+    expect(confirm).not.toHaveBeenCalled();
+    expect(store.getState().todos).toEqual([]);
+  });
+});
+
 describe("types", () => {
   test("execute only accepts defined commands", async () => {
     const session = createSession();
@@ -203,6 +284,18 @@ describe("types", () => {
     await session.execute({ type: "add_todo", id: "1", title: 1 });
     // @ts-expect-error level must be "low" | "high"
     await session.execute({ type: "set_priority", id: "1", level: "mid" });
+  });
+
+  test("takes either initialState or store", () => {
+    const store = { getState: (): TodoState => ({ todos: [] }), setState() {} };
+    // @ts-expect-error initialState and store are exclusive
+    createCommandSession({
+      initialState: { todos: [] },
+      store,
+      commands: todoCommands,
+    });
+    // @ts-expect-error one of them is required
+    createCommandSession({ commands: todoCommands });
   });
 
   test("accepts a command without arguments", async () => {

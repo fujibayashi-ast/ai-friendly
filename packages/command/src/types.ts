@@ -72,13 +72,15 @@ export type Command = { type: string } & Record<string, unknown>;
  * - `domain_error`: `apply` が失敗した
  * - `rejected`: 確認で拒否された、または確認フックがない
  * - `nothing_to_undo` / `nothing_to_redo`: 戻せる / やり直せる履歴がない
+ * - `state_changed`: バッチの後に状態が外（画面の操作など）で変わったため、戻さなかった
  */
 export type ErrorCode =
   | "invalid_command"
   | "domain_error"
   | "rejected"
   | "nothing_to_undo"
-  | "nothing_to_redo";
+  | "nothing_to_redo"
+  | "state_changed";
 
 export type ExecuteResult =
   | { ok: true }
