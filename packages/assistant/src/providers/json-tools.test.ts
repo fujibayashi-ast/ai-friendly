@@ -125,6 +125,70 @@ describe("toJsonToolsMessages", () => {
         'Result of set_theme: {"ok":true}\nNow reply to the user in their language, unless another tool is still needed.',
     });
   });
+
+  const lastAfter = (...results: unknown[]) =>
+    toJsonToolsMessages([
+      { role: "user", content: "add honey" },
+      {
+        role: "assistant",
+        content: "",
+        toolCalls: results.map((_, i) => ({
+          id: String(i),
+          name: "add_to_cart",
+          input: {},
+        })),
+      },
+      ...results.map((result, i) => ({
+        role: "tool" as const,
+        toolCallId: String(i),
+        result,
+      })),
+    ])
+      .at(-1)
+      ?.content.split("\n")
+      .at(-1);
+
+  test("tells not to say a failed tool succeeded", () => {
+    expect(
+      lastAfter(
+        { ok: true },
+        { ok: false, code: "domain_error", message: "m" },
+      ),
+    ).toBe(
+      'A tool failed (see "ok": false). Do not say it succeeded. Tell the user in their language what could not be done and why.',
+    );
+  });
+
+  test("tells not to call a declined tool again", () => {
+    expect(lastAfter({ ok: false, code: "rejected", message: "m" })).toBe(
+      "The user declined. Do not call it again; tell the user in their language that it was not done.",
+    );
+  });
+
+  test("looks only at the results after the last call", () => {
+    const messages = toJsonToolsMessages([
+      { role: "user", content: "a" },
+      {
+        role: "assistant",
+        content: "",
+        toolCalls: [{ id: "a", name: "add_to_cart", input: {} }],
+      },
+      {
+        role: "tool",
+        toolCallId: "a",
+        result: { ok: false, code: "domain_error", message: "m" },
+      },
+      {
+        role: "assistant",
+        content: "",
+        toolCalls: [{ id: "b", name: "add_to_cart", input: {} }],
+      },
+      { role: "tool", toolCallId: "b", result: { ok: true } },
+    ]);
+    expect(messages.at(-1)?.content.split("\n").at(-1)).toBe(
+      "Now reply to the user in their language, unless another tool is still needed.",
+    );
+  });
 });
 
 describe("fromJsonToolsReply", () => {
