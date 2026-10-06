@@ -14,16 +14,25 @@ export type RegisterWebMcpToolsOptions = {
 
 /**
  * ツールを WebMCP に登録する。WebMCP が使えないブラウザでは何もせず `false` を返す
+ * 登録の途中で `signal` が abort されたときも、投げずに `false` を返す
  * @see docs/ai-tools.md
  */
 export async function registerWebMcpTools(
   tools: readonly AiTool[],
   options: RegisterWebMcpToolsOptions = {},
 ): Promise<boolean> {
+  const { signal } = options;
   const modelContext = options.modelContext ?? findModelContext();
   if (!modelContext) return false;
   for (const tool of tools) {
-    await modelContext.registerTool(tool, { signal: options.signal });
+    if (signal?.aborted) return false;
+    try {
+      await modelContext.registerTool(tool, { signal });
+    } catch (error) {
+      // 解除（abort）は意図した動きなので、その失敗は受け止める
+      if (signal?.aborted) return false;
+      throw error;
+    }
   }
   return true;
 }

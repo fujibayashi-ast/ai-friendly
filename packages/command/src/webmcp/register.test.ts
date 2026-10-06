@@ -47,3 +47,39 @@ test("does nothing without WebMCP", async () => {
   globals.document = { modelContext: {} };
   expect(await registerWebMcpTools([tool("a")])).toBe(false);
 });
+
+test("stops without throwing when aborted while registering", async () => {
+  const controller = new AbortController();
+  const registerTool = mock<ModelContext["registerTool"]>(async () => {
+    controller.abort();
+    throw new DOMException("signal is aborted without reason", "AbortError");
+  });
+
+  expect(
+    await registerWebMcpTools([tool("a"), tool("b")], {
+      signal: controller.signal,
+      modelContext: { registerTool },
+    }),
+  ).toBe(false);
+  expect(registerTool).toHaveBeenCalledTimes(1);
+});
+
+test("registers nothing when already aborted", async () => {
+  const modelContext = mockModelContext();
+  expect(
+    await registerWebMcpTools([tool("a")], {
+      signal: AbortSignal.abort(),
+      modelContext,
+    }),
+  ).toBe(false);
+  expect(modelContext.registerTool).not.toHaveBeenCalled();
+});
+
+test("throws errors other than abort", async () => {
+  const registerTool = mock<ModelContext["registerTool"]>(async () => {
+    throw new Error("duplicate tool name");
+  });
+  await expect(
+    registerWebMcpTools([tool("a")], { modelContext: { registerTool } }),
+  ).rejects.toThrow("duplicate tool name");
+});

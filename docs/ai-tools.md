@@ -60,4 +60,5 @@ set_priority(id: string, level: "low"|"high", order?: integer, meta?: { note: st
 * `document.modelContext` を使い、なければ `navigator.modelContext`（Chromium 150 で deprecated）を使う
 * WebMCP が使えないブラウザでは何もせず `false` を返す
 * 解除は `signal` を abort する（WebMCP には `unregisterTool` がない）
+* 登録の途中で abort されたとき（React の StrictMode・ツールの作り直し）は、残りの登録をやめて `false` を返す。abort による失敗は投げない（abort 以外の失敗は投げる）
 * WebMCP の仕様はまだ変わるため、登録まわりはこのサブパスに閉じ込めている
