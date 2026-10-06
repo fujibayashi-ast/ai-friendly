@@ -40,6 +40,7 @@ src/
 * `get_state` は `{ tasks: [{ id, title, done }] }` を返す。AI はここで名前から ID を探してから操作する
 * 存在しない ID は `domain_error`: `set_task_done: task "9" not found (ids: 1, 2, 3)`（今ある ID を添えて、AI が自分で直せるように）
 * `clear_completed` はサイトにない機能を、サイトの関数（`deleteTask`）の組み合わせで AI に足したもの。完了したものの数だけ `deleteTask` を呼ぶ
+* 使い分け: 「牛乳と掃除を消して」のような個別の頼みは、AI が `delete_task` を件数分呼ぶ（確認も件数分）。「完了したものを消して」は `clear_completed` 1 回で済み、確認も 1 回にまとまる
 * 削除の確認は AI からだけ。画面からの削除は確認しない（`requiresConfirmation` は Command の定義に持つので、人の操作には関係しない）
 * `clear_completed` の確認は条件付き（`requiresConfirmation: () => 完了したものがある`）
 * 状態が変わるたびに Command と AI 向けツールを作り直す（`get_state` と ID の確認が今のやることを使うように）
