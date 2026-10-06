@@ -2,6 +2,7 @@
 // 返事は `{ calls }` か `{ reply }` のどちらか。形は JSON Schema で縛る
 
 import type { AiTool } from "@ai-friendly/command";
+import { isFailure, isRejected } from "../conversation/tool-result";
 import type { ChatMessage, ProviderReply } from "./provider";
 
 export type JsonToolsMessage = {
@@ -68,8 +69,16 @@ export function toJsonToolsSchema(
 }
 
 // 結果を見た後に同じツールを呼び直さないよう、結果のすぐ後で返事を促す
-const afterResults =
-  "Now reply to the user in their language, unless another tool is still needed.";
+// 失敗があると、小さいモデルは結果を読まずに「できました」と返事をしがちなので、失敗のときは別に伝える
+function afterResults(results: readonly unknown[]): string {
+  if (results.some(isRejected)) {
+    return "The user declined. Do not call it again; tell the user in their language that it was not done.";
+  }
+  if (results.some(isFailure)) {
+    return 'A tool failed (see "ok": false). Do not say it succeeded. Tell the user in their language what could not be done and why.';
+  }
+  return "Now reply to the user in their language, unless another tool is still needed.";
+}
 
 /** ツールの役がない LLM 向けに、呼び出しは返事の JSON に、結果は user の発言にする */
 export function toJsonToolsMessages(
@@ -105,9 +114,20 @@ export function toJsonToolsMessages(
   }
   const last = result.at(-1);
   if (last && messages.at(-1)?.role === "tool") {
-    last.content += `\n${afterResults}`;
+    last.content += `\n${afterResults(latestResults(messages))}`;
   }
   return result;
+}
+
+/** 最後の assistant の発言より後のツールの結果 */
+function latestResults(messages: readonly ChatMessage[]): unknown[] {
+  const results: unknown[] = [];
+  for (let i = messages.length - 1; i >= 0; i--) {
+    const message = messages[i];
+    if (message?.role !== "tool") break;
+    results.push(message.result);
+  }
+  return results;
 }
 
 export function fromJsonToolsReply(text: string): ProviderReply {
