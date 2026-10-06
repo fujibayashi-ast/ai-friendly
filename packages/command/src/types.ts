@@ -33,7 +33,9 @@ export type CommandDefinition<
   args: Schema;
   requiresConfirmation?: ConfirmationRule<z.output<Schema>>;
   /** サイトの関数（setter など）を呼ぶ。`args` は検証済み */
-  run(args: z.output<Schema>): RunResult | Promise<RunResult>;
+  run(
+    args: z.output<Schema>,
+  ): void | RunResult | Promise<RunResult> | Promise<void>;
 };
 
 /** 確認フックに渡す Command（`{ type, ...args }` の平らな形） */

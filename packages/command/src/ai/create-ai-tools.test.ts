@@ -150,4 +150,29 @@ describe("types", () => {
       requiresConfirmation: (args) => args.name === "",
     });
   });
+
+  test("accepts a run that only calls a void function", () => {
+    const setName = (_: string): void => {};
+    const save = async (_: string): Promise<void> => {};
+    const args = z.object({ name: z.string() });
+    defineCommand({
+      type: "a",
+      description: "A",
+      args,
+      run: ({ name }) => setName(name),
+    });
+    defineCommand({
+      type: "b",
+      description: "B",
+      args,
+      run: ({ name }) => save(name),
+    });
+    defineCommand({
+      type: "c",
+      description: "C",
+      args,
+      // @ts-expect-error only failures are returned
+      run: () => ({ ok: true }),
+    });
+  });
 });
