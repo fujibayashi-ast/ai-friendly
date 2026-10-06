@@ -1,6 +1,6 @@
 # テーマ・言語の切り替えサイト
 
-テーマ（ライト / ダーク / システム）と言語（日本語 / English）を切り替えるだけの、一般的なサイト。普通の React のサイトに Command の層を足し、AI からも同じ設定を変えられるようにしている。
+テーマ（ライト / ダーク / システム）と言語（日本語 / English）を切り替えるだけの、一般的なサイト。普通の React のサイトに AI の層を足し、AI からもサイトの関数（`setTheme` / `setLanguage`）で設定を変えられるようにしている。
 
 ## しくみ
 
@@ -12,15 +12,15 @@ flowchart LR
     State --> Screen["画面（.dark・lang・文言）"]
   end
   subgraph ai["足した層（ai/・commands/）"]
-    AI["AI（チャット / WebMCP）"] -- "AI 向けツール" --> Session["Command のセッション"]
+    AI["AI（チャット / WebMCP）"] -- "AI 向けツール" --> Commands["Command<br>（検証 → 確認 → run）"]
   end
-  Session -- "store（getState / setState）" --> State
-  Session -- "確認が要るとき" --> Confirm["確認ダイアログ<br>（useConfirm）"]
+  Commands -- "setTheme / setLanguage" --> State
+  Commands -- "確認が要るとき" --> Confirm["確認ダイアログ<br>（useConfirm）"]
 ```
 
 * 画面のボタンは、普通のサイトと同じく `setTheme` / `setLanguage` を呼ぶ。Command は通らない
-* AI の操作は Command を通る。セッションは `store` でサイトの設定を読み、結果を `setTheme` / `setLanguage` に書き込む
-* 複数の Command（「英語にしてダークにして」）は 1 回の実行（バッチ）にまとめられ、1 つでも失敗したら何も変えない
+* AI の操作は Command を通る。Command は引数を検証し、ボタンと同じ `setTheme` / `setLanguage` を呼ぶ
+* 状態が変わるたびに、Command と AI 向けツールを作り直して登録し直す（`get_state` が今の設定を返すように）
 * 確認が要る Command（`reset_settings`）は、サイトの確認ダイアログ（`useConfirm`）で承認を得てから実行する
 * `app.tsx` から `<Ai />` を外しても、サイトはそのまま動く（AI から操作できなくなるだけ）
 
@@ -32,17 +32,15 @@ flowchart LR
 | `set_language` | `language: "ja" \| "en"` | 表示の言語を変える | そのまま実行 |
 | `reset_settings` | なし | テーマと言語を初期値に戻す。画面にボタンはなく、AI からだけ実行する | 確認ダイアログを出す |
 
-定義は `src/commands/settings-commands.ts`。1 つの Command は次のように書く:
+定義は `src/commands/settings-commands.ts`。1 つの Command は、サイトの関数を包むだけ:
 
 ```ts
-export const setTheme = defineCommand({
+defineCommand({
   type: "set_theme",
   description: 'Change the color theme. "system" follows the OS setting.', // AI 向けの説明
-  args: z.object({ theme: z.enum(themes) }), // 引数（zod）。AI からの入力もここで検証される
-  apply(state: Settings, args) {
-    return { ok: true, state: { ...state, theme: args.theme } };
-  },
-});
+  args: z.object({ theme: z.enum(themes) }), // 引数（zod）。AI からの入力はここで検証される
+  run: ({ theme }) => setTheme(theme), // ボタンと同じ setter を呼ぶ
+}),
 ```
 
 ## 設定
@@ -71,7 +69,7 @@ src/
   i18n/                 # 文言の辞書と useI18n
   confirm/              # 確認ダイアログ（useConfirm）
   commands/             # AI が実行できる Command（機能ごとにファイル）
-  ai/                   # <Ai />: Command をサイトにつなぎ、AI 向けツールを登録する
+  ai/                   # <Ai />: Command を AI 向けツールにして登録する
 ```
 
 | ファイル | 役割 |
@@ -82,35 +80,26 @@ src/
 | `i18n/messages.ts` | 文言の辞書（ja / en）。日本語のキーから型を作り、英語の訳し忘れを型エラーにする |
 | `i18n/language-names.ts` | 言語名（JA / 日本語）。表示中の言語に関係なくその言語で書くので、辞書に入れない |
 | `confirm/confirm-provider.tsx` / `use-confirm.ts` | `await confirm({ title, description, confirmLabel })` で確認ダイアログを出し、承認されたら `true`。文言は辞書のキーで渡す |
-| `commands/settings-commands.ts` | 設定の Command |
-| `commands/site-commands.ts` | AI が扱う状態の型と、サイト全体の Command を集める（今は設定だけ） |
-| `ai/use-site-store.ts` | `useTheme` / `useI18n` の値と setter を、セッションが読み書きできる `store` にする |
-| `ai/ai.tsx` | `<Ai />`。セッションを作り、確認を `useConfirm` につなぎ、AI 向けツールを WebMCP に登録する。描画はしない |
+| `commands/settings-commands.ts` | 設定の Command。`useTheme` / `useI18n` の setter を呼ぶ（`useSettingsCommands`） |
+| `ai/ai.tsx` | `<Ai />`。Command を AI 向けツールにし、確認を `useConfirm` につなぎ、WebMCP に登録する。描画はしない |
 
-* 機能やページを増やすときは、まず普通のサイトとして作る。AI から操作したいものだけ、Command を `commands/` に足し、`ai/use-site-store.ts` でその状態と setter をつなぐ
-* `store.setState` は、React の再描画を待たずに次の `getState` が新しい状態を返すようにしている（続けて届いた AI のバッチが古い状態から始まらないように）
+* 機能やページを増やすときは、まず普通のサイトとして作る。AI から操作したいものだけ、その機能の setter を呼ぶ Command を `commands/` に足し、`<Ai />` に渡す
 * 確認待ちの間に次の確認が来たら、前のものは拒否する
 
 ## AI から操作する
 
-AI 向けツールは 3 種類ある。
-
 | ツール | 内容 |
 | --- | --- |
-| `execute_commands` | 複数の Command を 1 回で実行する |
 | `set_theme` / `set_language` / `reset_settings` | Command を 1 つ実行する |
 | `get_state` | 今の設定を返す |
 
-* WebMCP が使えるブラウザでは、起動時にこれらを登録する
+* WebMCP が使えるブラウザでは、これらを登録する
 * 開発中（`bun run dev`）は、devtools のコンソールで `window.__aiTools` から同じツールを呼べる
 
 ```js
-await window.__aiTools.batch.execute({
-  commands: [
-    { type: "set_language", language: "en" },
-    { type: "set_theme", theme: "dark" },
-  ],
-});
+const tool = (name) => window.__aiTools.find((t) => t.name === name);
+await tool("set_language").execute({ language: "en" });
+await tool("get_state").execute();
 ```
 
 ## 画面

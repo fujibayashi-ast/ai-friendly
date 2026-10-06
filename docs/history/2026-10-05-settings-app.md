@@ -68,3 +68,11 @@
 * 残りを `ai/` にまとめ、`<Ai />`（描画しない部品）と `use-site-store.ts` の 2 ファイルにした。`useSession()` は使う画面がないので消した（チャット #11 で必要になったら足す）
 * 名前は「session」より、何のためのものかがすぐわかる「Ai」にした。`app.tsx` の `<Ai />` を外せば、AI から操作できなくなるだけでサイトは動く
 * 言語名（JA / 日本語）は、表示中の言語に関係なくその言語で書くので、辞書ではなく `i18n/language-names.ts` に置いた
+
+## Command をサイトの setter を呼ぶ形にした（2026-10-06・PR #18 のレビュー）
+
+* `store` でつないだ形でも、Command の `apply`（`{ ...state, language }`）とサイトの `setLanguage` に同じ処理が 2 か所にあった
+* 「Command は `setLanguage` を使うイメージ」「状態が変わったら Command を作り直せばよい」「バッチは凝りすぎ」というレビューを受け、基盤を #23 で `run(args)` の形にした
+* settings では、Command の `run` がボタンと同じ `setTheme` / `setLanguage` を呼ぶだけになった。`use-site-store.ts`（ref の受け渡し）はなくなった
+* `<Ai />` は状態が変わるたびにツールを作り直し、WebMCP に登録し直す（`get_state` が今の設定を返すように）
+* 1 行で setter を呼ぶ `run` が型エラーになる不具合を見つけ、#25 で直した
