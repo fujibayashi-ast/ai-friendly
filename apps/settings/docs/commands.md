@@ -28,7 +28,7 @@ flowchart LR
 
 | Command | 引数 | 内容 | AI が実行するとき |
 | --- | --- | --- | --- |
-| `set_theme` | `theme: "light" \| "dark" \| "system"` | テーマを変える。`system` は OS の設定に追従する | そのまま実行 |
+| `set_theme` | `theme: "light" \| "dark"` | テーマを変える | そのまま実行 |
 | `set_language` | `language: "ja" \| "en"` | 表示の言語を変える | そのまま実行 |
 | `reset_settings` | なし | テーマと言語を初期値に戻す。画面にボタンはなく、AI からだけ実行する | 確認ダイアログを出す |
 
@@ -37,7 +37,7 @@ flowchart LR
 ```ts
 defineCommand({
   type: "set_theme",
-  description: 'Change the color theme. "system" follows the OS setting.', // AI 向けの説明
+  description: "Change the color theme.", // AI 向けの説明
   args: z.object({ theme: z.enum(themes) }), // 引数（zod）。AI からの入力はここで検証される
   run: ({ theme }) => setTheme(theme), // ボタンと同じ setter を呼ぶ
 }),
@@ -47,12 +47,12 @@ defineCommand({
 
 ```ts
 type Settings = {
-  theme: "light" | "dark" | "system";
+  theme: "light" | "dark";
   language: "ja" | "en";
 };
 ```
 
-* 初期値は `theme: "system"`、`language` はブラウザの言語（`ja` で始まれば `ja`、それ以外は `en`）
+* 初期値は `theme: "light"`、`language` はブラウザの言語（`ja` で始まれば `ja`、それ以外は `en`）
 * localStorage（`ai-friendly:settings`）に保存する。読み込むときに検証し、壊れていれば初期値に戻す
 
 ## コードの構成
@@ -85,6 +85,7 @@ src/
 
 * 機能やページを増やすときは、まず普通のサイトとして作る。AI から操作したいものだけ、その機能の setter を呼ぶ Command を `commands/` に足し、`<Ai />` に渡す
 * 確認待ちの間に次の確認が来たら、前のものは拒否する
+* `<Ai />` は `get_state` が今の設定を返すよう、設定が変わるたびにツールを作り直す。設定の切り替えは時々なので軽い。入力のたびに状態が変わるような題材で作り直しが気になるときは、`get_state` だけ ref から読む形にする
 
 ## AI から操作する
 

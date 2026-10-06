@@ -1,10 +1,10 @@
 import { ToggleGroup, ToggleGroupItem } from "@ai-friendly/ui";
-import { Monitor, Moon, Sun } from "lucide-react";
+import { Moon, Sun } from "lucide-react";
 import { useI18n } from "../i18n/use-i18n";
 import { themes } from "../settings/settings";
 import { useTheme } from "../settings/use-theme";
 
-const icons = { light: Sun, dark: Moon, system: Monitor } as const;
+const icons = { light: Sun, dark: Moon } as const;
 
 export function ThemeSwitcher() {
   const { theme, setTheme } = useTheme();

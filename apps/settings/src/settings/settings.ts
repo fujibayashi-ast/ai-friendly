@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const themes = ["light", "dark", "system"] as const;
+export const themes = ["light", "dark"] as const;
 export const languages = ["ja", "en"] as const;
 
 export const settingsSchema = z.object({
@@ -13,7 +13,7 @@ export type Theme = Settings["theme"];
 export type Language = Settings["language"];
 
 export const defaultSettings: Settings = {
-  theme: "system",
+  theme: "light",
   language: detectLanguage(),
 };
 

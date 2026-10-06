@@ -23,7 +23,7 @@ export function createSettingsCommands({
   return [
     defineCommand({
       type: "set_theme",
-      description: 'Change the color theme. "system" follows the OS setting.',
+      description: "Change the color theme.",
       args: z.object({ theme: z.enum(themes) }),
       run: ({ theme }) => setTheme(theme),
     }),

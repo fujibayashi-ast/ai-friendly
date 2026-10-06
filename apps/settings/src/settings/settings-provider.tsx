@@ -25,7 +25,9 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   );
 
   useEffect(() => saveSettings(settings), [settings]);
-  useEffect(() => applyTheme(settings.theme), [settings.theme]);
+  useEffect(() => {
+    applyTheme(settings.theme);
+  }, [settings.theme]);
   useEffect(() => {
     document.documentElement.lang = settings.language;
     document.title = createTranslate(settings.language)("siteName");
