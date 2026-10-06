@@ -32,6 +32,7 @@
 - [apps/settings/docs/commands.md](../apps/settings/docs/commands.md) — テーマ・言語の切り替えサイトの Command
 - [apps/tasks/docs/commands.md](../apps/tasks/docs/commands.md) — やることリストのサイトと Command
 - [apps/shop/docs/commands.md](../apps/shop/docs/commands.md) — ネットショップのサイトと Command
+- [apps/reservation/docs/commands.md](../apps/reservation/docs/commands.md) — 予約フォームのサイトと Command
 
 ## Claude / 運用向け（`docs/claude/`）
 

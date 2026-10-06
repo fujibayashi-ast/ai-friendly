@@ -19,6 +19,11 @@ export const samples = [
     port: 5176,
     example: { name: "sort_products", input: { order: "price_asc" } },
   },
+  {
+    id: "reservation",
+    port: 5177,
+    example: { name: "fill_reservation_form", input: { party_size: 2 } },
+  },
 ] as const;
 
 export type SampleId = (typeof samples)[number]["id"];
