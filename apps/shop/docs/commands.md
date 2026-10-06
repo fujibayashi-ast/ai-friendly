@@ -24,7 +24,7 @@
 
 ```
 src/
-  main.tsx / app.tsx      # I18nProvider > ShopProvider > レイアウト + ページ
+  main.tsx / app.tsx      # I18nProvider > ShopProvider > ConfirmProvider > レイアウト + ページ、<Ai />
   shop/                   # 普通のサイトの機能
     products.ts           #   商品の型とダミーのデータ
     shop.ts               #   状態の型と、状態を変える純粋な関数（絞り込み・並べ替え・カート・注文後の在庫）
@@ -33,8 +33,62 @@ src/
   i18n/                   # 文言（ja / en）・言語の state・金額と日付の形（format.ts）
   layout/                 # ヘッダー（サイト名・言語の切り替え）
   pages/home/             # 絞り込み・並べ替え（product-filters）・商品（product-list / product-card）・カート（cart / cart-line）
+  commands/               # 足した層: ネットショップの Command（useShop の関数を呼ぶ）
+  confirm/                # 足した層: 確認ダイアログ（useConfirm）
+  ai/ai.tsx               # 足した層: <Ai />。AI 向けツール・WebMCP・右下のチャット
 ```
 
+* `app.tsx` から `<Ai />` を外しても、サイトはそのまま動く
+
 * `shop.ts` の関数は、販売中でない商品や在庫を超える数を黙ってそろえる（画面ではそもそも押せない）
+
+## Command
+
+| Command | 引数 | 内容 | AI が実行するとき |
+| --- | --- | --- | --- |
+| `set_category` | `category: "all" \| "food" \| "kitchen" \| "stationery"` | 一覧をカテゴリで絞り込む | そのまま実行 |
+| `sort_products` | `order: "recommended" \| "price_asc" \| "price_desc"` | 一覧を並べ替える | そのまま実行 |
+| `add_to_cart` | `product_id: string`・`quantity: number`（1 以上の整数。省略すると 1） | カートに入れる | そのまま実行 |
+| `set_cart_quantity` | `product_id: string`・`quantity: number`（1 以上の整数） | カートの数量を変える | そのまま実行 |
+| `remove_from_cart` | `product_id: string` | カートから削除する | そのまま実行 |
+| `place_order` | なし | カートの中身を注文する（ダミーの API を待つ） | 確認ダイアログ（「合計 ￥3,480 の注文を確定します。」）。カートが空なら確認せずに失敗を返す |
+
+* `get_state` は次を返す。商品は絞り込みに関係なく全部返す（ほかのカテゴリの商品もカートに入れられるように）
+
+  ```ts
+  {
+    category, order,                     // 今の表示
+    products: [{ id, name, category, price, stock, status, release_date? }],
+    cart: [{ product_id, name, quantity }],
+    total,
+  }
+  ```
+
+  * `name` は表示中の言語。`status` は `"available"` / `"sold_out"` / `"coming_soon"`
+* 失敗は `domain_error` で、AI が読んで直せる英文を返す
+
+  | 場面 | message |
+  | --- | --- |
+  | 売り切れ | `add_to_cart: product "3" is sold out` |
+  | 発売前 | `add_to_cart: product "5" is not on sale yet (release date: 2026-11-20)` |
+  | 在庫を超える（カートの分と合わせて） | `add_to_cart: only 2 left for product "6"` |
+  | 存在しない ID | `add_to_cart: product "9" not found (ids: 1, 2, …, 8)` |
+  | カートにない | `remove_from_cart: product "1" is not in the cart (cart: 6)` |
+  | 空のカートで注文 | `place_order: the cart is empty` |
+
+* サイトの関数（`shop.ts`）は、売り切れや在庫を超える数を黙ってそろえる。Command は呼ぶ前に確かめて、そろえずに理由を返す（AI がユーザーに伝えられるように）
+* `place_order` の `run` は Promise を返す（ダミーの API を待つ）。AI への結果は注文が終わってから返る
+* 確認の文言は Command の定義（`confirmation`）が持つ。合計金額は `Intl` で表示中の言語に合わせる
+* 状態が変わるたびに Command と AI 向けツールを作り直す（`get_state` と在庫の確認が今の状態を使うように）
+
+## AI から操作する
+
+settings・やることリストと同じ。右下のボタンからチャットを開き、Claude / Gemini Nano / Qwen3.5 4B を選んで話しかける。
+
+* システムプロンプト: このネットショップを操作する・カートを変える前に `get_state` で ID・在庫・状態を見る・売り切れや発売前なら入れずに伝える・ショップと関係のない頼みは短く断る・ユーザーの言語で短く返事する
+* 話しかけ方の例: 「はちみつを 2 つカートに入れて」「キッチン用品を安い順に見せて」「注文して」
+* 開発中（`bun run dev`）は、devtools のコンソールで `window.__aiTools` から同じツールを呼べる
+
+## 開発
 
 * 開発: `bun run dev` → http://localhost:5173/shop/（直接は http://localhost:5176/shop/）
