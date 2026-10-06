@@ -20,7 +20,8 @@ const ja = {
   "apiKey.description":
     "Claude の API キーを入れると、AI に頼めるようになります。",
   "apiKey.label": "Claude の API キー",
-  "apiKey.note": "キーはこのタブの中だけに保存され、閉じると消えます。",
+  "apiKey.note":
+    "キーはサーバーを通さず、このブラウザから Claude API に直接送られます。",
   "apiKey.save": "保存",
 };
 
@@ -47,7 +48,7 @@ const en: Record<MessageKey, string> = {
   "apiKey.description": "Enter your Claude API key to ask the AI.",
   "apiKey.label": "Claude API key",
   "apiKey.note":
-    "The key is kept only in this tab and is removed when you close it.",
+    "The key is sent directly from this browser to the Claude API, not through a server.",
   "apiKey.save": "Save",
 };
 
