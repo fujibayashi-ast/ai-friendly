@@ -9,6 +9,11 @@ export const samples = [
     /** カードに載せる例（話しかける文は i18n、呼ばれる Command はそのまま） */
     example: { name: "set_theme", input: { theme: "dark" } },
   },
+  {
+    id: "tasks",
+    port: 5175,
+    example: { name: "set_filter", input: { filter: "done" } },
+  },
 ] as const;
 
 export type SampleId = (typeof samples)[number]["id"];
