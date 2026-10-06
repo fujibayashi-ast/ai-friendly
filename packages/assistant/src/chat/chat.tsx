@@ -1,44 +1,58 @@
-import { Button, Textarea } from "@ai-friendly/ui";
-import { ArrowUp } from "lucide-react";
+import type { AiTool } from "@ai-friendly/command";
+import { type ComponentType, type RefObject, useEffect, useRef } from "react";
 import {
-  type ComponentType,
-  type KeyboardEvent,
-  type Ref,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
-import type { Translate } from "../i18n/messages";
-import type { ToolCall } from "../providers/provider";
-import { ToolCallLine, type ToolCallView } from "./tool-call-line";
-import type { ChatEntry, ChatState } from "./use-chat";
+  failureMessage,
+  isFailure,
+  isRejected,
+} from "../conversation/tool-result";
+import { useChat } from "../conversation/use-chat";
+import { type ChatLanguage, createTranslate } from "../i18n/messages";
+import type { ChatProvider, ToolCall } from "../providers/provider";
+import { AssistantMessage } from "../ui/assistant-message";
+import { Composer } from "../ui/composer";
+import { Notice } from "../ui/notice";
+import { Suggestions } from "../ui/suggestions";
+import { ToolCallLine, type ToolCallLineProps } from "../ui/tool-call-line";
+import { UserMessage } from "../ui/user-message";
 
 export type ChatProps = {
-  chat: ChatState;
-  t: Translate;
+  provider: ChatProvider;
+  /** `createAiTools` の結果。作り直されてよい（会話のループは毎回最新を使う） */
+  tools: readonly AiTool[];
+  language: ChatLanguage;
   /** 何も話していないときに出す話しかけ方の例。押すとそのまま送る */
   suggestions?: readonly string[];
-  /** ツールの実行の見せ方。既定は Command 名の小さな行 */
-  renderToolCall?: ComponentType<ToolCallView>;
-  /** 失敗の理由に、LLM 向けの英文のメッセージも出す */
+  /** 失敗の理由に、LLM 向けの英文のメッセージも出す（開発中など） */
   debug?: boolean;
-  inputRef?: Ref<HTMLTextAreaElement>;
+  /** ツールの実行の見せ方。既定は `ToolCallLine` */
+  renderToolCall?: ComponentType<ToolCallLineProps>;
+  inputRef?: RefObject<HTMLTextAreaElement | null>;
 };
 
-/** メッセージの一覧と入力欄。置き場所（浮いたパネル・ドロワーなど）には依存しない */
+/**
+ * チャット（メッセージの一覧と入力欄）。会話の状態を自分で持ち、単体でも使える
+ * 置き場所には依存しないので、ページの中・ドロワー・浮いたパネル（`FloatingChat`）などに入れる
+ *
+ * @example
+ * <Chat provider={provider} tools={tools} language="ja" suggestions={["ダークにして"]} />
+ * @see docs/assistant.md
+ */
 export function Chat({
-  chat,
-  t,
+  provider,
+  tools,
+  language,
   suggestions = [],
-  renderToolCall: ToolCallView = ToolCallLine,
   debug = false,
+  renderToolCall: ToolCallView = ToolCallLine,
   inputRef,
 }: ChatProps) {
-  const [draft, setDraft] = useState("");
+  const t = createTranslate(language);
+  const { entries, running, send } = useChat({ provider, tools });
   const listRef = useRef<HTMLDivElement>(null);
-  const { running } = chat;
+  const ownInputRef = useRef<HTMLTextAreaElement>(null);
+  const input = inputRef ?? ownInputRef;
   const results = new Map(
-    chat.entries.flatMap((entry) =>
+    entries.flatMap((entry) =>
       entry.role === "tool" ? [[entry.toolCallId, entry.result] as const] : [],
     ),
   );
@@ -47,24 +61,23 @@ export function Chat({
   useEffect(() => {
     const list = listRef.current;
     if (list) list.scrollTop = list.scrollHeight;
-  }, [chat.entries, running]);
+  }, [entries, running]);
 
-  const submit = (text: string) => {
-    if (running || !text.trim()) return;
-    setDraft("");
-    void chat.send(text);
-  };
-
-  const onKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
-    // 日本語の変換を確定する Enter では送らない
-    if (
-      event.key !== "Enter" ||
-      event.shiftKey ||
-      event.nativeEvent.isComposing
-    )
-      return;
-    event.preventDefault();
-    submit(draft);
+  const toolCallProps = (call: ToolCall): ToolCallLineProps => {
+    const result = results.get(call.id);
+    if (result === undefined) {
+      return { ...call, status: "running", statusLabel: t("tool.running") };
+    }
+    if (!isFailure(result)) {
+      return { ...call, status: "done", statusLabel: t("tool.done") };
+    }
+    return {
+      ...call,
+      status: "failed",
+      statusLabel: t("tool.failed"),
+      error: t(isRejected(result) ? "tool.rejected" : "tool.error"),
+      detail: debug ? failureMessage(result) : undefined,
+    };
   };
 
   return (
@@ -75,121 +88,68 @@ export function Chat({
         aria-live="polite"
         className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-4 py-4"
       >
-        {chat.entries.length === 0 && (
+        {entries.length === 0 && (
           <div className="flex flex-col gap-3">
             <p className="text-sm text-muted-foreground">{t("empty")}</p>
             {suggestions.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {suggestions.map((text) => (
-                  <Button
-                    key={text}
-                    variant="outline"
-                    size="sm"
-                    className="rounded-full font-normal"
-                    onClick={() => submit(text)}
-                  >
-                    {text}
-                  </Button>
-                ))}
-              </div>
+              <Suggestions
+                items={suggestions}
+                onSelect={(text) => {
+                  void send(text);
+                  // 押した例は消えるので、入力欄にフォーカスを移す
+                  input.current?.focus();
+                }}
+              />
             )}
           </div>
         )}
-        {chat.entries.map((entry, index) => (
-          <EntryView
-            // biome-ignore lint/suspicious/noArrayIndexKey: 追記だけで並びが変わらない
-            key={index}
-            entry={entry}
-            results={results}
-            t={t}
-            debug={debug}
-            ToolCallView={ToolCallView}
-          />
-        ))}
+        {entries.map((entry, index) => {
+          const key = index;
+          switch (entry.role) {
+            case "user":
+              return (
+                <UserMessage key={key} label={t("you")}>
+                  {entry.content}
+                </UserMessage>
+              );
+            case "assistant":
+              return (
+                <div key={key} className="flex flex-col gap-2">
+                  {entry.toolCalls?.map((call) => (
+                    <ToolCallView key={call.id} {...toolCallProps(call)} />
+                  ))}
+                  {entry.content && (
+                    <AssistantMessage>{entry.content}</AssistantMessage>
+                  )}
+                </div>
+              );
+            case "notice":
+              return (
+                <Notice key={key}>
+                  {t(
+                    entry.kind === "failed"
+                      ? "error.failed"
+                      : "error.tooManySteps",
+                  )}
+                </Notice>
+              );
+            default:
+              return null;
+          }
+        })}
         {running && (
           <p className="text-sm text-muted-foreground motion-safe:animate-pulse">
             {t("thinking")}
           </p>
         )}
       </div>
-      <form
-        className="flex items-end gap-2 border-t p-3"
-        onSubmit={(event) => {
-          event.preventDefault();
-          submit(draft);
-        }}
-      >
-        <Textarea
-          ref={inputRef}
-          value={draft}
-          onChange={(event) => setDraft(event.target.value)}
-          onKeyDown={onKeyDown}
-          placeholder={t("placeholder")}
-          aria-label={t("placeholder")}
-          rows={1}
-          className="max-h-32 min-h-10 resize-none"
-        />
-        <Button
-          type="submit"
-          size="icon"
-          aria-label={t("send")}
-          disabled={running || !draft.trim()}
-          className="size-10 shrink-0"
-        >
-          <ArrowUp aria-hidden />
-        </Button>
-      </form>
-    </div>
-  );
-}
-
-function EntryView({
-  entry: message,
-  results,
-  t,
-  debug,
-  ToolCallView,
-}: {
-  entry: ChatEntry;
-  results: ReadonlyMap<string, unknown>;
-  t: Translate;
-  debug: boolean;
-  ToolCallView: ComponentType<ToolCallView>;
-}) {
-  if (message.role === "tool") return null;
-  if (message.role === "notice") {
-    return (
-      <p className="text-sm text-destructive">
-        {t(message.kind === "failed" ? "error.failed" : "error.tooManySteps")}
-      </p>
-    );
-  }
-  if (message.role === "user") {
-    return (
-      <div className="flex justify-end">
-        <p className="max-w-[85%] rounded-lg bg-muted px-3 py-2 text-sm whitespace-pre-wrap break-words">
-          <span className="sr-only">{t("you")}: </span>
-          {message.content}
-        </p>
-      </div>
-    );
-  }
-  return (
-    <div className="flex flex-col gap-2">
-      {message.toolCalls?.map((call: ToolCall) => (
-        <ToolCallView
-          key={call.id}
-          call={call}
-          result={results.get(call.id)}
-          t={t}
-          debug={debug}
-        />
-      ))}
-      {message.content && (
-        <p className="text-sm whitespace-pre-wrap break-words">
-          {message.content}
-        </p>
-      )}
+      <Composer
+        placeholder={t("placeholder")}
+        sendLabel={t("send")}
+        disabled={running}
+        onSubmit={(text) => void send(text)}
+        inputRef={input}
+      />
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { isFailure } from "../chat/tool-result";
+import { isFailure } from "../conversation/tool-result";
 import { type ChatLanguage, createTranslate } from "../i18n/messages";
 import type { ChatProvider, ToolCall } from "./provider";
 

@@ -3,14 +3,13 @@ export {
   type RunChatOptions,
   type RunChatResult,
   runChat,
-} from "./chat/run-chat";
-export { ToolCallLine, type ToolCallView } from "./chat/tool-call-line";
+} from "./conversation/run-chat";
 export {
   type ChatEntry,
   type ChatNotice,
   type ChatState,
   useChat,
-} from "./chat/use-chat";
+} from "./conversation/use-chat";
 export type { ChatLanguage } from "./i18n/messages";
 export {
   FloatingChat,
@@ -27,3 +26,8 @@ export {
   type ScriptedProviderOptions,
   type ScriptedRule,
 } from "./providers/scripted-provider";
+export {
+  ToolCallLine,
+  type ToolCallLineProps,
+  type ToolCallStatus,
+} from "./ui/tool-call-line";
