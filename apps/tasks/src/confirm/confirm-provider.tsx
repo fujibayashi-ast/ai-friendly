@@ -42,16 +42,20 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
     pending.current = null;
     setOpen(false);
   };
+  const handleOpenChange = (next: boolean) => {
+    if (!next) answer(false);
+  };
+  const handleCancel = () => {
+    answer(false);
+  };
+  const handleConfirm = () => {
+    answer(true);
+  };
 
   return (
     <ConfirmContext value={confirm}>
       {children}
-      <AlertDialog
-        open={open}
-        onOpenChange={(next) => {
-          if (!next) answer(false);
-        }}
-      >
+      <AlertDialog open={open} onOpenChange={handleOpenChange}>
         {request && (
           <AlertDialogContent>
             <AlertDialogHeader>
@@ -61,10 +65,10 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel onClick={() => answer(false)}>
+              <AlertDialogCancel onClick={handleCancel}>
                 {t("confirm.cancel")}
               </AlertDialogCancel>
-              <AlertDialogAction onClick={() => answer(true)}>
+              <AlertDialogAction onClick={handleConfirm}>
                 {request.confirmation.confirmLabel}
               </AlertDialogAction>
             </AlertDialogFooter>

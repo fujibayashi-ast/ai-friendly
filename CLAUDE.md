@@ -71,6 +71,8 @@ packages/
 * 命名
   * ファイル名は kebab-case（`chat-widget.tsx`）。コンポーネント名は PascalCase
   * Command 名は snake_case の動詞始まり（`add_item`）
+* React のイベント処理は JSX に直接書かず、`handleXxx` の関数として定義して渡す（`onSubmit={handleSubmit}`）
+  * 項目ごとの値（ID など）が要るときは、1 項目分を部品に分けてその中で定義する
 * 共通処理の置き場
   * 題材に依存しない処理は `packages/` の責務に応じた package に置く
   * `utils/` のような何でも置き場は作らない

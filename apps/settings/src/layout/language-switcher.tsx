@@ -5,6 +5,12 @@ import { languages } from "../settings/settings";
 
 export function LanguageSwitcher() {
   const { language, setLanguage, t } = useI18n();
+
+  const handleValueChange = (value: string) => {
+    const next = languages.find((v) => v === value);
+    if (next) setLanguage(next);
+  };
+
   return (
     <ToggleGroup
       type="single"
@@ -12,10 +18,7 @@ export function LanguageSwitcher() {
       spacing={1}
       aria-label={t("language.label")}
       value={language}
-      onValueChange={(value) => {
-        const next = languages.find((v) => v === value);
-        if (next) setLanguage(next);
-      }}
+      onValueChange={handleValueChange}
     >
       {languages.map((item) => (
         <ToggleGroupItem

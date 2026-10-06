@@ -1,5 +1,5 @@
 import { Button, Input } from "@ai-friendly/ui";
-import { useId, useState } from "react";
+import { type ChangeEvent, type FormEvent, useId, useState } from "react";
 import { type ChatLanguage, createTranslate } from "../i18n/messages";
 
 /** Claude の API キーを入れるフォーム。`Chat` の `setup` に置く */
@@ -14,14 +14,17 @@ export function ApiKeyForm({
   const [value, setValue] = useState("");
   const inputId = useId();
 
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (value.trim()) onSubmit(value.trim());
+  };
+
+  const handleValueChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setValue(event.target.value);
+  };
+
   return (
-    <form
-      className="flex flex-col gap-3 p-4"
-      onSubmit={(event) => {
-        event.preventDefault();
-        if (value.trim()) onSubmit(value.trim());
-      }}
-    >
+    <form className="flex flex-col gap-3 p-4" onSubmit={handleSubmit}>
       <p className="text-sm">{t("apiKey.description")}</p>
       <label htmlFor={inputId} className="text-sm font-medium">
         {t("apiKey.label")}
@@ -32,7 +35,7 @@ export function ApiKeyForm({
           type="password"
           autoComplete="off"
           value={value}
-          onChange={(event) => setValue(event.target.value)}
+          onChange={handleValueChange}
           placeholder="sk-ant-…"
         />
         <Button type="submit" disabled={!value.trim()}>
