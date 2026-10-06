@@ -8,7 +8,7 @@ import { type AiTool, createAiTools } from "@ai-friendly/command";
 import { registerWebMcpTools } from "@ai-friendly/command/webmcp";
 import { useEffect, useMemo, useState } from "react";
 import { useTasksCommands } from "../commands/tasks-commands";
-import { type ConfirmOptions, useConfirm } from "../confirm/use-confirm";
+import { useConfirm } from "../confirm/use-confirm";
 import { useI18n } from "../i18n/use-i18n";
 import { useTasks } from "../tasks/tasks-context";
 
@@ -31,26 +31,9 @@ export function Ai() {
     () =>
       createAiTools({
         commands,
-        confirm: (command) => {
-          const options: ConfirmOptions =
-            command.type === "delete_task"
-              ? {
-                  title: "delete.title",
-                  description: "delete.description",
-                  confirmLabel: "delete.confirm",
-                  values: {
-                    title:
-                      tasks.find((task) => task.id === command.id)?.title ?? "",
-                  },
-                }
-              : {
-                  title: "clear.title",
-                  description: "clear.description",
-                  confirmLabel: "clear.confirm",
-                  values: { count: tasks.filter((task) => task.done).length },
-                };
-          return confirm(options);
-        },
+        // 文言は Command の定義が持つ。文言のない確認は出さずに拒否する
+        confirm: (_, confirmation) =>
+          confirmation ? confirm(confirmation) : false,
         getState: () => ({ tasks }),
       }),
     [commands, confirm, tasks],

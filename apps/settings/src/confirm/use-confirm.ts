@@ -1,14 +1,8 @@
+import type { Confirmation } from "@ai-friendly/command";
 import { createContext, useContext } from "react";
-import type { MessageKey } from "../i18n/messages";
 
-/** 文言は辞書のキーで渡す（確認中に言語が変わっても追従する） */
-export type ConfirmOptions = {
-  title: MessageKey;
-  description: MessageKey;
-  confirmLabel: MessageKey;
-};
-
-export type Confirm = (options: ConfirmOptions) => Promise<boolean>;
+/** 文言は Command の `confirmation` が訳したものを受け取る */
+export type Confirm = (confirmation: Confirmation) => Promise<boolean>;
 
 export const ConfirmContext = createContext<Confirm | null>(null);
 

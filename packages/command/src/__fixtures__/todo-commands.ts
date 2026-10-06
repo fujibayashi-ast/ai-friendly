@@ -28,6 +28,11 @@ export function createTodoCommands(todos: Todo[] = []) {
     description: "Delete a todo",
     args: z.object({ id: z.string() }),
     requiresConfirmation: (args) => !find(args.id)?.done,
+    confirmation: (args) => ({
+      title: "Delete the todo?",
+      description: `"${find(args.id)?.title}" is not done yet.`,
+      confirmLabel: "Delete",
+    }),
     run(args) {
       const index = todos.findIndex((t) => t.id === args.id);
       if (index < 0)

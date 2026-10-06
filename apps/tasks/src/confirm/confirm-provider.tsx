@@ -1,3 +1,4 @@
+import type { Confirmation } from "@ai-friendly/command";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -10,14 +11,10 @@ import {
 } from "@ai-friendly/ui";
 import { type ReactNode, useCallback, useRef, useState } from "react";
 import { useI18n } from "../i18n/use-i18n";
-import {
-  type Confirm,
-  ConfirmContext,
-  type ConfirmOptions,
-} from "./use-confirm";
+import { type Confirm, ConfirmContext } from "./use-confirm";
 
 type Request = {
-  options: ConfirmOptions;
+  confirmation: Confirmation;
   resolve(approved: boolean): void;
 };
 
@@ -29,10 +26,10 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
 
   const confirm = useCallback<Confirm>(
-    (options) =>
+    (confirmation) =>
       new Promise((resolve) => {
         pending.current?.resolve(false);
-        const next = { options, resolve };
+        const next = { confirmation, resolve };
         pending.current = next;
         setRequest(next);
         setOpen(true);
@@ -58,9 +55,9 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
         {request && (
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>{t(request.options.title)}</AlertDialogTitle>
+              <AlertDialogTitle>{request.confirmation.title}</AlertDialogTitle>
               <AlertDialogDescription>
-                {t(request.options.description, request.options.values)}
+                {request.confirmation.description}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
@@ -68,7 +65,7 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
                 {t("confirm.cancel")}
               </AlertDialogCancel>
               <AlertDialogAction onClick={() => answer(true)}>
-                {t(request.options.confirmLabel)}
+                {request.confirmation.confirmLabel}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

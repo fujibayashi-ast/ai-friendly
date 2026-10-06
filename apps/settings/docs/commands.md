@@ -78,9 +78,9 @@ src/
 | `settings/use-theme.ts` / `i18n/use-i18n.ts` | 画面から使うフック（`{ theme, setTheme }` / `{ language, setLanguage, t }`） |
 | `i18n/messages.ts` | 文言の辞書（ja / en）。日本語のキーから型を作り、英語の訳し忘れを型エラーにする |
 | `i18n/language-names.ts` | 言語名（JA / 日本語）。表示中の言語に関係なくその言語で書くので、辞書に入れない |
-| `confirm/confirm-provider.tsx` / `use-confirm.ts` | `await confirm({ title, description, confirmLabel })` で確認ダイアログを出し、承認されたら `true`。文言は辞書のキーで渡す |
-| `commands/settings-commands.ts` | 設定の Command。`useTheme` / `useI18n` の setter を呼ぶ（`useSettingsCommands`） |
-| `ai/ai.tsx` | `<Ai />`。Command を AI 向けツールにし、確認を `useConfirm` につなぎ、WebMCP に登録し、右下のチャット（`FloatingChat`・Claude / Gemini Nano / Qwen3.5 4B）を置く |
+| `confirm/confirm-provider.tsx` / `use-confirm.ts` | `await confirm({ title, description, confirmLabel })` で確認ダイアログを出し、承認されたら `true`。文言は Command の `confirmation` が訳したもの |
+| `commands/settings-commands.ts` | 設定の Command。`useTheme` / `useI18n` の setter を呼ぶ（`useSettingsCommands`）。確認の文言（`confirmation`）も `t` で訳して持つ |
+| `ai/ai.tsx` | `<Ai />`。Command を AI 向けツールにし、確認を `useConfirm` につなぎ（文言のない確認は拒否）、WebMCP に登録し、右下のチャット（`FloatingChat`・Claude / Gemini Nano / Qwen3.5 4B）を置く |
 
 * 機能やページを増やすときは、まず普通のサイトとして作る。AI から操作したいものだけ、その機能の setter を呼ぶ Command を `commands/` に足し、`<Ai />` に渡す
 * 確認待ちの間に次の確認が来たら、前のものは拒否する

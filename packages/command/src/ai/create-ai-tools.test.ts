@@ -73,15 +73,40 @@ describe("command tools", () => {
 });
 
 describe("confirmation", () => {
-  test("asks with the command before running", async () => {
+  test("asks with the command and its confirmation before running", async () => {
     const confirm = mock(() => true);
     const { todos, byName } = setup(confirm);
     await byName("add_todo").execute({ id: "1", title: "a" });
     expect(await byName("delete_todo").execute({ id: "1" })).toEqual({
       ok: true,
     });
-    expect(confirm).toHaveBeenCalledWith({ type: "delete_todo", id: "1" });
+    expect(confirm).toHaveBeenCalledWith(
+      { type: "delete_todo", id: "1" },
+      {
+        title: "Delete the todo?",
+        description: '"a" is not done yet.',
+        confirmLabel: "Delete",
+      },
+    );
     expect(todos).toEqual([]);
+  });
+
+  test("passes undefined when the command has no confirmation", async () => {
+    const confirm = mock(() => true);
+    const [tool] = createAiTools({
+      commands: [
+        defineCommand({
+          type: "reset",
+          description: "Reset",
+          args: z.object({}),
+          requiresConfirmation: true,
+          run: () => {},
+        }),
+      ],
+      confirm,
+    });
+    expect(await tool?.execute({})).toEqual({ ok: true });
+    expect(confirm).toHaveBeenCalledWith({ type: "reset" }, undefined);
   });
 
   test("rejects when the user declines or no handler is set", async () => {

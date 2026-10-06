@@ -31,13 +31,9 @@ export function Ai() {
     () =>
       createAiTools({
         commands,
-        // 確認が要る Command は今は reset_settings だけ。増えたら command.type で文言を分ける
-        confirm: () =>
-          confirm({
-            title: "reset.title",
-            description: "reset.description",
-            confirmLabel: "reset.confirm",
-          }),
+        // 文言は Command の定義が持つ。文言のない確認は出さずに拒否する
+        confirm: (_, confirmation) =>
+          confirmation ? confirm(confirmation) : false,
         getState: () => ({ theme, language }),
       }),
     [commands, confirm, theme, language],

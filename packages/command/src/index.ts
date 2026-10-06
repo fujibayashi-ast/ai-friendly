@@ -9,6 +9,7 @@ export type {
   ArgsSchema,
   Command,
   CommandDefinition,
+  Confirmation,
   ConfirmationRule,
   ConfirmHandler,
   ErrorCode,

@@ -1,14 +1,19 @@
 import { describe, expect, mock, test } from "bun:test";
-import { createAiTools } from "@ai-friendly/command";
+import { type ConfirmHandler, createAiTools } from "@ai-friendly/command";
+import { createTranslate } from "../i18n/messages";
 import type { Language, Theme } from "../settings/settings";
 import { defaultSettings } from "../settings/settings";
 import { createSettingsCommands } from "./settings-commands";
 
-const setup = (confirm?: () => Promise<boolean>) => {
+const setup = (confirm?: ConfirmHandler) => {
   const setTheme = mock((_: Theme) => {});
   const setLanguage = mock((_: Language) => {});
   const tools = createAiTools({
-    commands: createSettingsCommands({ setTheme, setLanguage }),
+    commands: createSettingsCommands({
+      setTheme,
+      setLanguage,
+      t: createTranslate("en"),
+    }),
     confirm,
   });
   const run = (name: string, input: unknown) =>
@@ -26,8 +31,17 @@ describe("settings commands", () => {
   });
 
   test("reset the settings only after confirmation", async () => {
-    const approved = setup(async () => true);
+    const confirm = mock<ConfirmHandler>(async () => true);
+    const approved = setup(confirm);
     expect(await approved.run("reset_settings", {})).toEqual({ ok: true });
+    expect(confirm).toHaveBeenCalledWith(
+      { type: "reset_settings" },
+      {
+        title: "Reset your settings?",
+        description: "The theme and language will go back to the defaults.",
+        confirmLabel: "Reset",
+      },
+    );
     expect(approved.setTheme).toHaveBeenCalledWith(defaultSettings.theme);
     expect(approved.setLanguage).toHaveBeenCalledWith(defaultSettings.language);
 
