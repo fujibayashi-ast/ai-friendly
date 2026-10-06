@@ -14,6 +14,11 @@ export const samples = [
     port: 5175,
     example: { name: "clear_completed", input: {} },
   },
+  {
+    id: "shop",
+    port: 5176,
+    example: { name: "sort_products", input: { order: "price_asc" } },
+  },
 ] as const;
 
 export type SampleId = (typeof samples)[number]["id"];
