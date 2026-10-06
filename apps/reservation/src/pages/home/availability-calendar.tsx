@@ -8,17 +8,17 @@ import { DayButton } from "./day-button";
 
 export function AvailabilityCalendar() {
   const { language, t } = useI18n();
-  const { state, today, showWeek } = useReservation();
-  const dates = weekDates(state.weekOf);
-  const first = dates[0] ?? state.weekOf;
-  const last = dates[6] ?? state.weekOf;
+  const { weekOf, today, showWeek } = useReservation();
+  const dates = weekDates(weekOf);
+  const first = dates[0] ?? weekOf;
+  const last = dates[6] ?? weekOf;
 
   const handlePrev = () => {
-    showWeek(addDays(state.weekOf, -7));
+    showWeek(addDays(weekOf, -7));
   };
 
   const handleNext = () => {
-    showWeek(addDays(state.weekOf, 7));
+    showWeek(addDays(weekOf, 7));
   };
 
   return (
@@ -32,7 +32,7 @@ export function AvailabilityCalendar() {
             variant="ghost"
             size="icon-sm"
             aria-label={t("calendar.prev")}
-            disabled={state.weekOf <= weekStart(today)}
+            disabled={weekOf <= weekStart(today)}
             onClick={handlePrev}
           >
             <ChevronLeft aria-hidden />

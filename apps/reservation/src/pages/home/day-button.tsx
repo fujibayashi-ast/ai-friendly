@@ -14,21 +14,21 @@ const marks: Record<DayStatus, string> = {
 /** カレンダーの 1 日。押すとフォームの日付に入る */
 export function DayButton({ date }: { date: string }) {
   const { language, t } = useI18n();
-  const { state, today, updateForm } = useReservation();
+  const { values, today, submitting, fill } = useReservation();
   const status = dayStatus(date);
   const past = date < today;
   const selectable = !past && (status === "available" || status === "few");
-  const selected = state.form.date === date;
+  const selected = values.date === date;
 
   const handleClick = () => {
-    updateForm({ date });
+    fill({ date });
   };
 
   return (
     <li>
       <button
         type="button"
-        disabled={!selectable || state.submitting}
+        disabled={!selectable || submitting}
         aria-pressed={selected}
         aria-label={t("calendar.day", {
           date: formatDate(language, date),

@@ -10,60 +10,33 @@ import {
   ToggleGroupItem,
 } from "@ai-friendly/ui";
 import { type ChangeEvent, type FormEvent, useId } from "react";
+import { Controller, useFormContext } from "react-hook-form";
+import { isMessageKey } from "../../i18n/messages";
 import { useI18n } from "../../i18n/use-i18n";
 import { availableTimes, times } from "../../reservation/availability";
 import { isDate } from "../../reservation/dates";
-import {
-  type FormField as Field,
-  type FormError,
-  partySizes,
-  seats,
-  validate,
-} from "../../reservation/reservation";
 import { useReservation } from "../../reservation/reservation-context";
+import {
+  partySizes,
+  type ReservationField,
+  type ReservationValues,
+  seats,
+} from "../../reservation/reservation-form";
 import { FormField } from "./form-field";
-
-// 項目ごとのエラーの組み合わせだけを、文言のキーにする
-type ErrorKey<E> = E extends {
-  field: infer F extends string;
-  code: infer C extends string;
-}
-  ? `error.${F}.${C}`
-  : never;
-const errorKey = <E extends FormError>(error: E) =>
-  `error.${error.field}.${error.code}` as ErrorKey<E>;
 
 export function ReservationFormView() {
   const { t } = useI18n();
-  const { state, today, updateForm, submit } = useReservation();
-  const { form, submitting } = state;
+  const { today, values, submitting, showWeek, submit } = useReservation();
+  const { control, register, formState } = useFormContext<ReservationValues>();
   const id = useId();
-  const errors = validate(form, today, state.showRequired);
-  const errorOf = (field: Field) => {
-    const error = errors.find((item) => item.field === field);
-    return error && t(errorKey(error));
+  const errorOf = (field: ReservationField) => {
+    const key = `error.${field}.${formState.errors[field]?.message}`;
+    return isMessageKey(key) ? t(key) : undefined;
   };
-  const open = isDate(form.date) ? availableTimes(form.date) : times;
+  const open = isDate(values.date) ? availableTimes(values.date) : times;
 
   const handleDateChange = (event: ChangeEvent<HTMLInputElement>) => {
-    updateForm({ date: event.target.value });
-  };
-
-  const handleTimeChange = (value: string) => {
-    updateForm({ time: value });
-  };
-
-  const handlePartySizeChange = (value: string) => {
-    updateForm({ partySize: Number(value) });
-  };
-
-  const handleSeatChange = (value: string) => {
-    const seat = seats.find((item) => item === value);
-    if (seat) updateForm({ seat });
-  };
-
-  const handleCouponChange = (event: ChangeEvent<HTMLInputElement>) => {
-    updateForm({ couponCode: event.target.value });
+    showWeek(event.target.value);
   };
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -76,129 +49,134 @@ export function ReservationFormView() {
       <h2 id={`${id}-title`} className="text-lg font-semibold">
         {t("form.title")}
       </h2>
-      <form
-        noValidate
-        onSubmit={handleSubmit}
-        className="grid gap-5 sm:grid-cols-2"
-      >
-        <FormField
-          id={`${id}-date`}
-          label={t("form.date")}
-          error={errorOf("date")}
-        >
-          <Input
+      <form noValidate onSubmit={handleSubmit}>
+        <fieldset disabled={submitting} className="grid gap-5 sm:grid-cols-2">
+          <FormField
             id={`${id}-date`}
-            type="date"
-            min={today}
-            value={form.date}
-            disabled={submitting}
-            aria-invalid={!!errorOf("date")}
-            onChange={handleDateChange}
-          />
-        </FormField>
-        <FormField
-          id={`${id}-time`}
-          label={t("form.time")}
-          error={errorOf("time")}
-        >
-          <Select
-            value={form.time}
-            disabled={submitting}
-            onValueChange={handleTimeChange}
+            label={t("form.date")}
+            error={errorOf("date")}
           >
-            <SelectTrigger
-              id={`${id}-time`}
-              className="w-full"
-              aria-invalid={!!errorOf("time")}
-            >
-              <SelectValue placeholder={t("form.time.placeholder")} />
-            </SelectTrigger>
-            <SelectContent>
-              {times.map((time) => (
-                <SelectItem
-                  key={time}
-                  value={time}
-                  disabled={!open.includes(time)}
-                >
-                  {open.includes(time) ? time : t("form.time.full", { time })}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </FormField>
-        <FormField
-          id={`${id}-party`}
-          label={t("form.partySize")}
-          error={errorOf("partySize")}
-        >
-          <Select
-            value={form.partySize === null ? "" : String(form.partySize)}
-            disabled={submitting}
-            onValueChange={handlePartySizeChange}
+            <Input
+              id={`${id}-date`}
+              type="date"
+              min={today}
+              aria-invalid={!!errorOf("date")}
+              {...register("date", { onChange: handleDateChange })}
+            />
+          </FormField>
+          <FormField
+            id={`${id}-time`}
+            label={t("form.time")}
+            error={errorOf("time")}
           >
-            <SelectTrigger
-              id={`${id}-party`}
-              className="w-full"
-              aria-invalid={!!errorOf("partySize")}
-            >
-              <SelectValue placeholder={t("form.partySize.placeholder")} />
-            </SelectTrigger>
-            <SelectContent>
-              {partySizes.map((count) => (
-                <SelectItem key={count} value={String(count)}>
-                  {t("form.partySize.option", { count })}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </FormField>
-        <FormField
-          id={`${id}-seat`}
-          label={t("form.seat")}
-          hint={t("form.seat.hint")}
-          error={errorOf("seat")}
-        >
-          <ToggleGroup
+            <Controller
+              control={control}
+              name="time"
+              render={({ field }) => (
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <SelectTrigger
+                    id={`${id}-time`}
+                    className="w-full"
+                    aria-invalid={!!errorOf("time")}
+                    onBlur={field.onBlur}
+                  >
+                    <SelectValue placeholder={t("form.time.placeholder")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {times.map((time) => (
+                      <SelectItem
+                        key={time}
+                        value={time}
+                        disabled={!open.includes(time)}
+                      >
+                        {open.includes(time)
+                          ? time
+                          : t("form.time.full", { time })}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+          </FormField>
+          <FormField
+            id={`${id}-party`}
+            label={t("form.partySize")}
+            error={errorOf("partySize")}
+          >
+            <Controller
+              control={control}
+              name="partySize"
+              render={({ field }) => (
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <SelectTrigger
+                    id={`${id}-party`}
+                    className="w-full"
+                    aria-invalid={!!errorOf("partySize")}
+                    onBlur={field.onBlur}
+                  >
+                    <SelectValue
+                      placeholder={t("form.partySize.placeholder")}
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {partySizes.map((count) => (
+                      <SelectItem key={count} value={String(count)}>
+                        {t("form.partySize.option", { count })}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+          </FormField>
+          <FormField
             id={`${id}-seat`}
-            type="single"
-            variant="outline"
-            value={form.seat ?? ""}
-            disabled={submitting}
-            aria-invalid={!!errorOf("seat")}
-            onValueChange={handleSeatChange}
-            className="w-full"
+            label={t("form.seat")}
+            hint={t("form.seat.hint")}
+            error={errorOf("seat")}
           >
-            {seats.map((seat) => (
-              <ToggleGroupItem key={seat} value={seat} className="flex-1">
-                {t(`seat.${seat}`)}
-              </ToggleGroupItem>
-            ))}
-          </ToggleGroup>
-        </FormField>
-        <FormField
-          id={`${id}-coupon`}
-          label={t("form.couponCode")}
-          hint={t("form.couponCode.hint")}
-          error={errorOf("couponCode")}
-        >
-          <Input
+            <Controller
+              control={control}
+              name="seat"
+              render={({ field }) => (
+                <ToggleGroup
+                  id={`${id}-seat`}
+                  type="single"
+                  variant="outline"
+                  value={field.value}
+                  aria-invalid={!!errorOf("seat")}
+                  onValueChange={field.onChange}
+                  className="w-full"
+                >
+                  {seats.map((seat) => (
+                    <ToggleGroupItem key={seat} value={seat} className="flex-1">
+                      {t(`seat.${seat}`)}
+                    </ToggleGroupItem>
+                  ))}
+                </ToggleGroup>
+              )}
+            />
+          </FormField>
+          <FormField
             id={`${id}-coupon`}
-            value={form.couponCode}
-            disabled={submitting}
-            autoComplete="off"
-            aria-invalid={!!errorOf("couponCode")}
-            onChange={handleCouponChange}
-          />
-        </FormField>
-        <div className="flex items-end sm:col-span-2">
-          <Button
-            type="submit"
-            disabled={submitting}
-            className="w-full sm:w-auto"
+            label={t("form.couponCode")}
+            hint={t("form.couponCode.hint")}
+            error={errorOf("couponCode")}
           >
-            {submitting ? t("form.submitting") : t("form.submit")}
-          </Button>
-        </div>
+            <Input
+              id={`${id}-coupon`}
+              autoComplete="off"
+              aria-invalid={!!errorOf("couponCode")}
+              {...register("couponCode")}
+            />
+          </FormField>
+          <div className="flex items-end sm:col-span-2">
+            <Button type="submit" className="w-full sm:w-auto">
+              {submitting ? t("form.submitting") : t("form.submit")}
+            </Button>
+          </div>
+        </fieldset>
       </form>
     </section>
   );

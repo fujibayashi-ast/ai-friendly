@@ -1,17 +1,26 @@
 import { createContext, useContext } from "react";
-import type { ReservationForm, ReservationState } from "./reservation";
+import type { ReservationValues } from "./reservation-form";
 
-export type CompletedReservation = { number: string; form: ReservationForm };
+export type CompletedReservation = {
+  number: string;
+  values: ReservationValues;
+};
 
 export type ReservationContextValue = {
-  state: ReservationState;
   /** 開いたときの今日（YYYY-MM-DD） */
   today: string;
+  /** カレンダーに出している週の月曜 */
+  weekOf: string;
+  /** 今の入力（画面の入力欄と同じ） */
+  values: ReservationValues;
+  /** 送信中。この間はフォームを変えない */
+  submitting: boolean;
   /** 直前に受け付けた予約。フォームを変えると消える */
   completed: CompletedReservation | null;
-  updateForm(patch: Partial<ReservationForm>): void;
+  /** 入力欄に入れる（変わった項目だけ渡す）。日付を変えたらカレンダーもその週にする */
+  fill(patch: Partial<ReservationValues>): void;
   showWeek(date: string): void;
-  /** エラーがあれば空の欄もエラーにして止める。なければ送る */
+  /** 「予約する」と同じ。エラーがあれば空の欄もエラーにして止める */
   submit(): Promise<void>;
 };
 

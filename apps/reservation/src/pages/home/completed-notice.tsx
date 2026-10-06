@@ -1,4 +1,5 @@
 import { formatDate } from "../../i18n/format";
+import { isMessageKey } from "../../i18n/messages";
 import { useI18n } from "../../i18n/use-i18n";
 import { useReservation } from "../../reservation/reservation-context";
 
@@ -6,6 +7,10 @@ import { useReservation } from "../../reservation/reservation-context";
 export function CompletedNotice() {
   const { language, t } = useI18n();
   const { completed } = useReservation();
+  const seatLabel = (seat: string) => {
+    const key = `seat.${seat}`;
+    return isMessageKey(key) ? t(key) : seat;
+  };
   return (
     <div role="status" className="empty:hidden">
       {completed && (
@@ -15,14 +20,16 @@ export function CompletedNotice() {
           </p>
           <p>
             {t("completed.summary", {
-              date: formatDate(language, completed.form.date),
-              time: completed.form.time,
-              count: completed.form.partySize ?? "",
-              seat: completed.form.seat ? t(`seat.${completed.form.seat}`) : "",
+              date: formatDate(language, completed.values.date),
+              time: completed.values.time,
+              count: completed.values.partySize,
+              seat: seatLabel(completed.values.seat),
             })}
           </p>
-          {completed.form.couponCode && (
-            <p>{t("completed.coupon", { code: completed.form.couponCode })}</p>
+          {completed.values.couponCode && (
+            <p>
+              {t("completed.coupon", { code: completed.values.couponCode })}
+            </p>
           )}
         </div>
       )}

@@ -110,6 +110,10 @@ export const messages: Record<Language, Record<MessageKey, string>> = {
   en,
 };
 
+export function isMessageKey(key: string): key is MessageKey {
+  return key in ja;
+}
+
 /** `{name}` を `values` で置き換える */
 export type Translate = (
   key: MessageKey,
