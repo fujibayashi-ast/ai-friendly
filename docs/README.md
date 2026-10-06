@@ -27,6 +27,7 @@
 題材ごとの仕様は `apps/<題材>/docs/` に置く。
 
 - [apps/settings/docs/commands.md](../apps/settings/docs/commands.md) — テーマ・言語の切り替えサイトの Command
+- [apps/tasks/docs/commands.md](../apps/tasks/docs/commands.md) — やることリストのサイトと Command
 
 ## Claude / 運用向け（`docs/claude/`）
 
