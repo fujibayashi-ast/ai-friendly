@@ -54,17 +54,11 @@ export function App() {
           </ToggleGroup>
         </div>
       </header>
-      <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-20 sm:px-6 sm:py-28">
-        <h1 className="text-4xl font-bold tracking-tight text-balance sm:text-5xl">
-          {t("heading")}
-        </h1>
-        <p className="mt-4 max-w-prose text-lg text-muted-foreground text-pretty">
-          {t("lead")}
-        </p>
-        <section aria-labelledby="samples" className="mt-16">
-          <h2 id="samples" className="text-xl font-semibold">
+      <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-12 sm:px-6 sm:py-16">
+        <section aria-labelledby="samples">
+          <h1 id="samples" className="text-2xl font-bold tracking-tight">
             {t("samples")}
-          </h2>
+          </h1>
           <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {samples.map((sample) => (
               <li key={sample.id}>

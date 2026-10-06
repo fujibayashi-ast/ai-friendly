@@ -3,8 +3,6 @@ export type Language = (typeof languages)[number];
 
 const ja = {
   siteName: "AI Friendly Site",
-  heading: "AI が操作しやすいサイトのサンプル",
-  lead: "普通のサイトに、サイトの関数を Command として包む層を足すだけで、サイト内の AI チャットや WebMCP（ブラウザの AI エージェント）から操作できるようにしています。各サンプルの右下のボタンから、AI に頼んでみてください。",
   samples: "サンプル",
   "language.label": "言語",
   "sample.settings.title": "表示の設定",
@@ -17,8 +15,6 @@ export type MessageKey = keyof typeof ja;
 
 const en: Record<MessageKey, string> = {
   siteName: "AI Friendly Site",
-  heading: "Sample sites that AI can operate",
-  lead: "Each site is an ordinary website with a thin layer that wraps its functions as commands, so the in-site AI chat and WebMCP (AI agents in the browser) can operate it. Open a sample and ask the AI with the button at the bottom right.",
   samples: "Samples",
   "language.label": "Language",
   "sample.settings.title": "Display settings",
