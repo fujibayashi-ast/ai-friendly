@@ -40,6 +40,7 @@ git diff main...HEAD --stat
 - **確認手順**: 必ず記載する（レビュアーが動作検証するため）
 - **スクリーンショット**: ユーザーからスクショが提供された場合のみ記載。提供がなければセクションごと省略する（Claude 側でスクショを撮る手段はない前提）
 - **スコープ外**: 対応しなかった項目があれば明示し、必要なら別 Issue に切り出す
+- **stacked PR**（`docs/claude/workflow.md` の「サブ Issue と stacked PR」）: 本文の冒頭に stack の一覧（親 Issue・各 PR・この PR の位置）を書く。差分の確認（手順 2）の `main` は直前のブランチに読み替える
 
 ### 5. PR を作成する
 
@@ -48,6 +49,8 @@ gh pr create \
   --title "PRタイトル" \
   --body "テンプレートに沿った本文"
 ```
+
+stacked PR の場合は `gh stack submit --auto` で作った PR を `gh pr edit` で書き直す（`gh stack` が使えないときは `gh pr create --base <直前のブランチ>`）。
 
 ### 6. 結果を報告する
 

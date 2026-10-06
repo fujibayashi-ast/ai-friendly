@@ -146,6 +146,7 @@ packages/
 * Issue 作成時は `/issue` スキルを使うこと
 * PR 作成前に `/review` スキルでセルフレビューを行うこと
 * PR 作成時は `/pr` スキルを使うこと
+* 1 PR に収まらない・差分を分けて見せたい Issue は、サブ Issue に分けて stacked PR で進める（`gh-stack` スキル。詳細は `docs/claude/workflow.md`）
 
 ## Implementation Workflow
 
