@@ -30,6 +30,7 @@ const geminiNano = useGeminiNano({ system, language }); // { label, provider?, s
   language={language} // "ja" | "en"。チャットの文言の言語
   suggestions={["ダークにして", "サイトを英語にして"]} // 何も話していないときに出す例
   debug={import.meta.env.DEV} // 失敗の理由に LLM 向けの英文も出す（開発中だけなど）
+  onRunningChange={setAiRunning} // AI が返事を待っている間 true（任意）
 />;
 ```
 
@@ -137,6 +138,25 @@ src/
 * 返事を受け取れなかった・API キーが正しくない・ステップ数の上限で止めた、は会話の流れの中にお知らせとして残す（LLM には送らない）
 * キーを保存した・「キーを変更」を押した・LLM を切り替えた・モデルのダウンロードが終わった、で入力欄が入れ替わるので、新しい入力欄にフォーカスを移す
 * 確認が要る Command は、アプリが `createAiTools` に渡した `confirm` で確認する（チャット内の確認は #10）
+
+## AI が操作している間
+
+`onRunningChange` は、送信して返事を待ち始めたら `true`、終わったら `false`（失敗・上限で止めたときも）で呼ばれる。値が変わったときだけ呼び、最初の表示では呼ばない。
+
+AI の操作と人の操作が重ならないよう、その間サイトの操作を止めたいときに使う。見た目はサイトが持つ。
+
+```tsx
+const [aiRunning, setAiRunning] = useState(false);
+
+<div inert={aiRunning}>{/* サイト。キーボードからも触れないようにする */}</div>
+{aiRunning && (
+  <div className="fixed inset-0 z-40 bg-background/60">AI が操作しています…</div>
+)}
+<FloatingChat onRunningChange={setAiRunning} … />
+```
+
+* オーバーレイは、チャットのパネル（`z-50`）と確認ダイアログより下に重ねる。確認が要る Command は、AI の実行中に確認ダイアログを出すため
+* settings サイトでは使っていない
 
 ## 文言
 

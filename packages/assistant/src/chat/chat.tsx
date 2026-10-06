@@ -4,6 +4,7 @@ import {
   type ReactNode,
   type RefObject,
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
 } from "react";
@@ -46,6 +47,8 @@ export type ChatProps = {
   /** ツールの実行の見せ方。既定は `ToolCallLine` */
   renderToolCall?: ComponentType<ToolCallLineProps>;
   inputRef?: RefObject<HTMLTextAreaElement | null>;
+  /** AI が返事を待ち始めたら `true`、終わったら `false` で呼ぶ。サイトがオーバーレイを出すときなどに使う */
+  onRunningChange?: (running: boolean) => void;
 };
 
 /**
@@ -64,12 +67,26 @@ export function Chat({
   debug = false,
   renderToolCall: ToolCallView = ToolCallLine,
   inputRef,
+  onRunningChange,
 }: ChatProps) {
   const t = createTranslate(language);
   const [selected, setSelected] = useState(0);
   const option = providers[selected] ?? providers[0];
   const provider = option?.provider;
   const { entries, running, send } = useChat({ provider, tools });
+
+  // 毎回新しい関数が渡されても、running が変わったときだけ呼ぶ
+  const latestOnRunningChange = useRef(onRunningChange);
+  useLayoutEffect(() => {
+    latestOnRunningChange.current = onRunningChange;
+  });
+  const wasRunning = useRef(running);
+  useEffect(() => {
+    if (running !== wasRunning.current) {
+      latestOnRunningChange.current?.(running);
+    }
+    wasRunning.current = running;
+  }, [running]);
   const listRef = useRef<HTMLDivElement>(null);
   const ownInputRef = useRef<HTMLTextAreaElement>(null);
   const input = inputRef ?? ownInputRef;
