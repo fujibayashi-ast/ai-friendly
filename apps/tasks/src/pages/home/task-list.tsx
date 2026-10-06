@@ -1,25 +1,23 @@
 import { Button } from "@ai-friendly/ui";
 import { Trash2 } from "lucide-react";
 import { useI18n } from "../../i18n/use-i18n";
-import { visibleTasks } from "../../tasks/tasks";
 import { useTasks } from "../../tasks/tasks-context";
 
 export function TaskList() {
   const { t } = useI18n();
-  const { tasks, filter, setTaskDone, deleteTask } = useTasks();
-  const visible = visibleTasks({ tasks, filter });
+  const { tasks, setTaskDone, deleteTask } = useTasks();
 
-  if (visible.length === 0) {
+  if (tasks.length === 0) {
     return (
       <p className="py-10 text-center text-sm text-muted-foreground">
-        {t(`empty.${filter}`)}
+        {t("empty")}
       </p>
     );
   }
 
   return (
     <ul className="divide-y">
-      {visible.map((task) => (
+      {tasks.map((task) => (
         <li key={task.id} className="flex items-center gap-3 py-2.5">
           <label className="flex min-w-0 flex-1 cursor-pointer items-center gap-3">
             <input

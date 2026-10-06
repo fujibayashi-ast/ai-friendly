@@ -8,16 +8,8 @@ const ja = {
   "add.label": "やることを追加",
   "add.placeholder": "例: 牛乳を買う",
   "add.submit": "追加",
-  "filter.label": "表示するもの",
-  "filter.all": "すべて",
-  "filter.active": "未完了",
-  "filter.done": "完了",
-  "empty.all": "やることはありません。",
-  "empty.active": "未完了のものはありません。",
-  "empty.done": "完了したものはありません。",
+  empty: "やることはありません。",
   "task.delete": "「{title}」を削除",
-  remaining: "未完了 {count} 件",
-  clearCompleted: "完了したものを削除",
 };
 
 export type MessageKey = keyof typeof ja;
@@ -29,16 +21,8 @@ const en: Record<MessageKey, string> = {
   "add.label": "Add a to-do",
   "add.placeholder": "e.g. Buy milk",
   "add.submit": "Add",
-  "filter.label": "Show",
-  "filter.all": "All",
-  "filter.active": "Active",
-  "filter.done": "Completed",
-  "empty.all": "Nothing to do.",
-  "empty.active": "No active to-dos.",
-  "empty.done": "No completed to-dos.",
+  empty: "Nothing to do.",
   "task.delete": 'Delete "{title}"',
-  remaining: "{count} active",
-  clearCompleted: "Clear completed",
 };
 
 export const messages: Record<Language, Record<MessageKey, string>> = {

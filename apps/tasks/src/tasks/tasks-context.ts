@@ -1,14 +1,11 @@
 import { createContext, useContext } from "react";
-import type { Filter, Task } from "./tasks";
+import type { Task } from "./tasks";
 
 export type TasksContextValue = {
   tasks: readonly Task[];
-  filter: Filter;
   addTask(title: string): void;
   setTaskDone(id: string, done: boolean): void;
   deleteTask(id: string): void;
-  clearCompleted(): void;
-  setFilter(filter: Filter): void;
 };
 
 export const TasksContext = createContext<TasksContextValue | null>(null);
