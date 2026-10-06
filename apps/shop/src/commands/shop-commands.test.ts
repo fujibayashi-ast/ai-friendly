@@ -84,6 +84,17 @@ describe("shop commands", () => {
     expect(s.addToCart).not.toHaveBeenCalled();
   });
 
+  test("set the quantity, adding the product when it is not in the cart", async () => {
+    const s = setup();
+    expect(
+      await s.run("set_cart_quantity", { product_id: "6", quantity: 2 }),
+    ).toEqual({ ok: true });
+    expect(s.addToCart.mock.calls).toEqual([["6", 2]]);
+    expect(
+      await s.run("set_cart_quantity", { product_id: "3", quantity: 1 }),
+    ).toMatchObject({ message: 'set_cart_quantity: product "3" is sold out' });
+  });
+
   test("change and remove only what is in the cart", async () => {
     const s = setup({ state: withHoney });
     expect(

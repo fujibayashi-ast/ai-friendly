@@ -78,7 +78,8 @@ export function createShopCommands({
     }),
     defineCommand({
       type: "add_to_cart",
-      description: "Add a product to the cart.",
+      description:
+        "Add a product to the cart (adds to the quantity already in the cart).",
       args: z.object({
         product_id: z.string(),
         quantity: z.number().int().min(1).default(1),
@@ -94,16 +95,21 @@ export function createShopCommands({
     }),
     defineCommand({
       type: "set_cart_quantity",
-      description: "Change how many of a product are in the cart.",
+      description:
+        "Make the quantity of a product in the cart exactly this number (adds it if it is not in the cart).",
       args: z.object({
         product_id: z.string(),
         quantity: z.number().int().min(1),
       }),
       run: ({ product_id, quantity }) => {
-        if (cartQuantity(state, product_id) === 0) return notInCart(product_id);
         const error = checkStock(product_id, quantity);
         if (error) return error;
-        setCartQuantity(product_id, quantity);
+        // 小さいモデルは「n 個にして」をカートにない商品にも使うので、なければ入れる
+        if (cartQuantity(state, product_id) === 0) {
+          addToCart(product_id, quantity);
+        } else {
+          setCartQuantity(product_id, quantity);
+        }
       },
     }),
     defineCommand({
