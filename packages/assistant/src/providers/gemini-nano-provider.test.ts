@@ -55,6 +55,7 @@ describe("toResponseSchema", () => {
                           theme: { type: "string", enum: ["light", "dark"] },
                         },
                         required: ["theme"],
+                        additionalProperties: false,
                       },
                     },
                     required: ["name", "input"],

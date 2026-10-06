@@ -28,7 +28,7 @@ const geminiNano = useGeminiNano({ system, language }); // { label, provider?, s
   actions={apiKey && <Button onClick={() => setApiKey(null)}>キーを変更</Button>} // パネルの見出しの右
   tools={tools} // createAiTools の結果
   language={language} // "ja" | "en"。チャットの文言の言語
-  suggestions={["ダークにして", "英語にして"]} // 何も話していないときに出す例
+  suggestions={["ダークにして", "サイトを英語にして"]} // 何も話していないときに出す例
   debug={import.meta.env.DEV} // 失敗の理由に LLM 向けの英文も出す（開発中だけなど）
 />;
 ```
@@ -79,11 +79,12 @@ type ChatProvider = {
 * パソコン版の Chrome 148 以降で、端末の条件（メモリ 16 GB など）を満たすときだけ使える
 * Prompt API にはツールを呼ぶ仕組みがないため、返事の形を JSON Schema（`responseConstraint`）で決める
 
-  ```json
-  { "calls": [{ "name": "set_theme", "input": { "theme": "dark" } }], "reply": "" }
+  ```jsonc
+  { "calls": [{ "name": "set_theme", "input": { "theme": "dark" } }] } // ツールを呼ぶ
+  { "reply": "ダークにしました。" }                                     // 返事する
   ```
 
-  * `calls` の要素は、ツールごとに `name` と `input`（そのツールの `inputSchema`）を `anyOf` で並べる。存在しないツール・形の違う引数は出せない
+  * `calls` の要素は、ツールごとに `name` と `input`（そのツールの `inputSchema` に `additionalProperties: false` を足したもの）を `anyOf` で並べる。存在しないツール・形の違う引数・知らない項目は出せない
   * 受け取った `calls` に `id`（`crypto.randomUUID()`）を付けて `toolCalls` にする
 * システムプロンプトには、サイトの `system` に、ツールの一覧（名前と説明を 1 行ずつ）と返事の形の説明を足す（小さいモデル向け）
 * 会話の変換: `assistant` は上の JSON の文字列、`tool` の結果は user の発言（`Result of set_theme: {"ok":true}`）。同じ役が続いたら 1 つにまとめる

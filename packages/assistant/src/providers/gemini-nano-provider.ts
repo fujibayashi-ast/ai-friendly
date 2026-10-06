@@ -74,7 +74,9 @@ export function toResponseSchema(
         minItems: 1,
         items: {
           anyOf: tools.map((tool) => {
-            const { $schema: _, ...input } = tool.inputSchema;
+            // 知らない項目は検証で失敗するので、出せないようにする（"confirm": true などを足しがち）
+            const { $schema: _, ...schema } = tool.inputSchema;
+            const input = { ...schema, additionalProperties: false };
             return {
               type: "object",
               properties: {
