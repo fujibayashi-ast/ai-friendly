@@ -49,6 +49,13 @@ const ja = {
   "completed.title": "予約を受け付けました（予約番号 {number}）",
   "completed.summary": "{date} {time}・{count} 名・{seat}",
   "completed.coupon": "クーポン {code}（ドリンク 1 杯サービス）",
+  "submit.title": "予約しますか？",
+  "submit.description": "{date} {time}、{count} 名、{seat}で予約します。",
+  "submit.confirm": "予約する",
+  "confirm.cancel": "やめる",
+  "chat.suggest.fill": "明日の 19 時に予約したい",
+  "chat.suggest.week": "来週の空いている日は？",
+  "chat.suggest.coupon": "クーポン ｔｏｍａｒｉ１０ を使いたい",
 };
 
 export type MessageKey = keyof typeof ja;
@@ -103,6 +110,13 @@ const en: Record<MessageKey, string> = {
   "completed.title": "Reservation received (number {number})",
   "completed.summary": "{date} {time}, party of {count}, {seat}",
   "completed.coupon": "Coupon {code} (one free drink)",
+  "submit.title": "Make this reservation?",
+  "submit.description": "{date} at {time}, party of {count}, {seat}.",
+  "submit.confirm": "Reserve",
+  "confirm.cancel": "Cancel",
+  "chat.suggest.fill": "I'd like a table tomorrow at 7 pm",
+  "chat.suggest.week": "Which days are open next week?",
+  "chat.suggest.coupon": "Use the coupon ｔｏｍａｒｉ１０",
 };
 
 export const messages: Record<Language, Record<MessageKey, string>> = {

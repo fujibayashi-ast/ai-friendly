@@ -26,6 +26,7 @@
   - [2026-10-06-tasks-app.md](history/2026-10-06-tasks-app.md) — やることリスト（stacked PR・ID を探して操作する Command・AI からだけの削除の確認）
   - [2026-10-06-confirmation-text.md](history/2026-10-06-confirmation-text.md) — 確認の文言を Command の定義に持たせる（`confirmation`）
   - [2026-10-06-shop-app.md](history/2026-10-06-shop-app.md) — ネットショップ（表示を変える Command・在庫の状態による失敗・非同期の注文）
+  - [2026-10-06-reservation-app.md](history/2026-10-06-reservation-app.md) — 予約フォーム（フォームを埋める Command・入力のエラーを直す・小さいモデルの対話の限界）
 
 題材ごとの仕様は `apps/<題材>/docs/` に置く。
 
