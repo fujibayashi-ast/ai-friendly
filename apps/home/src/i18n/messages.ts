@@ -17,6 +17,10 @@ const ja = {
   "sample.shop.description":
     "商品を絞り込み・並べ替えて、カートに入れて注文する小さなお店。注文は確認してから行います。",
   "sample.shop.example": "安い順に並べて",
+  "sample.reservation.title": "予約フォーム",
+  "sample.reservation.description":
+    "空き状況を見ながら日時・人数・席を選んで、お店を予約する小さなサイト。送る前に確認します。",
+  "sample.reservation.example": "2 名で予約したい",
 };
 
 export type MessageKey = keyof typeof ja;
@@ -37,6 +41,10 @@ const en: Record<MessageKey, string> = {
   "sample.shop.description":
     "A small shop to filter and sort products, add them to the cart, and order. Ordering asks you first.",
   "sample.shop.example": "Sort by lowest price",
+  "sample.reservation.title": "Reservation form",
+  "sample.reservation.description":
+    "A small site to book a table, choosing the date, time, party size, and seat while checking availability. Sending asks you first.",
+  "sample.reservation.example": "I'd like a table for 2",
 };
 
 export const messages: Record<Language, Record<MessageKey, string>> = {
