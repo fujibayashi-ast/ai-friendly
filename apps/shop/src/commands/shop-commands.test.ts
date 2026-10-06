@@ -54,20 +54,27 @@ describe("shop commands", () => {
     expect(s.setOrder).toHaveBeenCalledWith("price_asc");
   });
 
-  test("add to the cart with 1 as the default", async () => {
+  test("add to the cart with the quantity", async () => {
     const s = setup();
-    expect(await s.run("add_to_cart", { product_id: "1" })).toEqual({
-      ok: true,
+    expect(
+      await s.run("add_to_cart", { product_id: "1", quantity: 2 }),
+    ).toEqual({ ok: true });
+    expect(s.addToCart).toHaveBeenCalledWith("1", 2);
+    // 数を落として呼び直すことがあるので、省略させない
+    expect(await s.run("add_to_cart", { product_id: "1" })).toMatchObject({
+      code: "invalid_command",
     });
-    expect(s.addToCart).toHaveBeenCalledWith("1", 1);
   });
 
   test("explain why a product cannot be added", async () => {
     const s = setup({ state: withHoney });
     const cases: [unknown, string][] = [
-      [{ product_id: "3" }, 'add_to_cart: product "3" is sold out'],
       [
-        { product_id: "5" },
+        { product_id: "3", quantity: 1 },
+        'add_to_cart: product "3" is sold out',
+      ],
+      [
+        { product_id: "5", quantity: 1 },
         'add_to_cart: product "5" is not on sale yet (release date: 2026-11-20)',
       ],
       [
@@ -75,7 +82,7 @@ describe("shop commands", () => {
         'add_to_cart: only 2 left for product "6"',
       ],
       [
-        { product_id: "9" },
+        { product_id: "9", quantity: 1 },
         'add_to_cart: product "9" not found (ids: 1, 2, 3, 4, 5, 6, 7, 8)',
       ],
     ];
@@ -89,15 +96,16 @@ describe("shop commands", () => {
     expect(s.addToCart).not.toHaveBeenCalled();
   });
 
-  test("set the quantity, adding the product when it is not in the cart", async () => {
+  test("do not set the quantity of a product that is not in the cart", async () => {
     const s = setup();
     expect(
-      await s.run("set_cart_quantity", { product_id: "6", quantity: 2 }),
-    ).toEqual({ ok: true });
-    expect(s.addToCart.mock.calls).toEqual([["6", 2]]);
-    expect(
-      await s.run("set_cart_quantity", { product_id: "3", quantity: 1 }),
-    ).toMatchObject({ message: 'set_cart_quantity: product "3" is sold out' });
+      await s.run("set_cart_quantity", { product_id: "2", quantity: 1 }),
+    ).toMatchObject({
+      message:
+        'set_cart_quantity: product "2" is not in the cart (cart: empty)',
+    });
+    expect(s.addToCart).not.toHaveBeenCalled();
+    expect(s.setCartQuantity).not.toHaveBeenCalled();
   });
 
   test("change and remove only what is in the cart", async () => {
@@ -139,7 +147,7 @@ describe("shop commands", () => {
     const s = setup({ state: startOrder(withHoney) });
     const message = "an order is being placed; try again after it finishes";
     for (const [name, input] of [
-      ["add_to_cart", { product_id: "1" }],
+      ["add_to_cart", { product_id: "1", quantity: 1 }],
       ["set_cart_quantity", { product_id: "6", quantity: 2 }],
       ["remove_from_cart", { product_id: "6" }],
       ["place_order", {}],

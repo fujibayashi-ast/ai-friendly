@@ -48,8 +48,8 @@ src/
 | --- | --- | --- | --- |
 | `set_category` | `category: "all" \| "food" \| "kitchen" \| "stationery"` | 一覧をカテゴリで絞り込む | そのまま実行 |
 | `sort_products` | `order: "recommended" \| "price_asc" \| "price_desc"` | 一覧を並べ替える | そのまま実行 |
-| `add_to_cart` | `product_id: string`・`quantity: number`（1 以上の整数。省略すると 1） | カートに入れる（カートの数に足す） | そのまま実行 |
-| `set_cart_quantity` | `product_id: string`・`quantity: number`（1 以上の整数） | カートの数をちょうどその数にする。カートになければ入れる | そのまま実行 |
+| `add_to_cart` | `product_id: string`・`quantity: number`（1 以上の整数。省略できない） | カートに入れる（カートの数に足す） | そのまま実行 |
+| `set_cart_quantity` | `product_id: string`・`quantity: number`（1 以上の整数） | カートにある商品の数を変える。カートになければ失敗する | そのまま実行 |
 | `remove_from_cart` | `product_id: string` | カートから削除する | そのまま実行 |
 | `place_order` | なし | カートの中身を注文する（ダミーの API を待つ） | 確認ダイアログ（「合計 ￥3,480 の注文を確定します。」）。カートが空なら確認せずに失敗を返す |
 
@@ -79,7 +79,8 @@ src/
 
 * サイトの関数（`shop.ts`）は、売り切れや在庫を超える数を黙ってそろえる。Command は呼ぶ前に確かめて、そろえずに理由を返す（AI がユーザーに伝えられるように）
 * 注文の送信中は、画面のボタンと同じく、カートの操作と注文を受け付けない。サイトの関数（`shop.ts`）も送信中は何もしないので、Command は呼ぶ前に確かめて理由を返す（`place_order` は確認も出さない）。絞り込み・並べ替えは止めない
-* `set_cart_quantity` は、カートにない商品なら `addToCart` を、あれば `setCartQuantity` を呼ぶ。小さいモデルは「買えるだけ（= 在庫の数に）」のような頼みで、カートにない商品にも使うため
+* `set_cart_quantity` はカートにある商品だけ。カートにない商品で呼ぶと `not in the cart` を返し、AI はそれを見て `add_to_cart` で入れ直すか、入っていないことを伝える（#69）
+* `add_to_cart` の `quantity` は省略させない。小さいモデルは呼び直すときに数を落とすことがあるため（#69）
 * `place_order` の `run` は Promise を返す（ダミーの API を待つ）。AI への結果は注文が終わってから返る
 * 確認の文言は Command の定義（`confirmation`）が持つ。合計金額は `Intl` で表示中の言語に合わせる
 * 状態が変わるたびに Command と AI 向けツールを作り直す（`get_state` と在庫の確認が今の状態を使うように）
