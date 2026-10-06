@@ -6,12 +6,11 @@ import {
 import { type AiTool, createAiTools } from "@ai-friendly/command";
 import { registerWebMcpTools } from "@ai-friendly/command/webmcp";
 import { Button } from "@ai-friendly/ui";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSettingsCommands } from "../commands/settings-commands";
 import { useConfirm } from "../confirm/use-confirm";
 import { useI18n } from "../i18n/use-i18n";
 import { useTheme } from "../settings/use-theme";
-import { useApiKey } from "./use-api-key";
 
 declare global {
   interface Window {
@@ -54,7 +53,8 @@ export function Ai() {
     };
   }, [tools]);
 
-  const [apiKey, setApiKey] = useApiKey();
+  // 再読み込みで消える。保存はしない
+  const [apiKey, setApiKey] = useState<string | null>(null);
   const provider = useMemo(
     () => (apiKey ? createClaudeProvider({ apiKey, system }) : undefined),
     [apiKey],

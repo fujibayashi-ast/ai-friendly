@@ -12,7 +12,7 @@
 ## ブラウザから直接呼ぶ
 
 * サーバーを置かない方針のため、ブラウザから Claude API を直接呼ぶ（`anthropic-dangerous-direct-browser-access: true`）
-* 利用者自身の API キーを使う前提。キーはコードに含めず、settings サイトは `sessionStorage` に持つ（タブを閉じると消える）
+* 利用者自身の API キーを使う前提。キーはコードに含めず、settings サイトは state に持つだけで保存しない（再読み込みで消える。サンプルとして最小限にするため、sessionStorage への保存はやめた）
 * CLAUDE.md の「LLM はローカルのみ・外部通信なし」に、「利用者がキーを入れて話しかけたときだけ Claude API に通信する」を例外として足した
 * SDK（`@anthropic-ai/sdk`）は使わず `fetch` にした。使うのはメッセージの送信だけで、依存を増やすほどではない
 
