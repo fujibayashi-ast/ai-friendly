@@ -20,28 +20,25 @@ export function ToolCallLine({ call, result, t }: ToolCallView) {
   );
 
   return (
-    <div className="self-start max-w-full rounded-md bg-primary px-2.5 py-1.5 text-xs text-primary-foreground">
+    <div className="self-start max-w-full rounded-md bg-primary px-3 py-2 text-[13px] leading-5 text-primary-foreground">
       <div className="flex items-baseline gap-2">
         <Icon
           role="img"
           aria-label={label}
           className={
             running
-              ? "size-3.5 shrink-0 translate-y-0.5 motion-safe:animate-spin"
+              ? "size-3.5 shrink-0 translate-y-[3px] motion-safe:animate-spin"
               : failed
-                ? "size-3.5 shrink-0 translate-y-0.5 text-red-700"
-                : "size-3.5 shrink-0 translate-y-0.5"
+                ? "size-3.5 shrink-0 translate-y-[3px] text-red-700"
+                : "size-3.5 shrink-0 translate-y-[3px]"
           }
         />
-        <code className="min-w-0 break-all font-mono">
-          <span className="font-semibold">{call.name}</span>
-          <span className="opacity-75">({formatInput(call.input)})</span>
+        <code className="min-w-0 break-all font-mono font-medium">
+          {call.name}({formatInput(call.input)})
         </code>
       </div>
       {failed && (
-        <p className="mt-1 ml-5.5 break-words opacity-75">
-          {failureMessage(result)}
-        </p>
+        <p className="mt-1 ml-5.5 break-words">{failureMessage(result)}</p>
       )}
     </div>
   );
