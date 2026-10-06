@@ -1,0 +1,4 @@
+@import "tailwindcss";
+@import "@ai-friendly/ui/theme.css";
+@source "../../../packages/ui/src";
+@source "../../../packages/assistant/src";

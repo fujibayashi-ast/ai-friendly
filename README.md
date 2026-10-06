@@ -11,6 +11,7 @@ AI が操作しやすいサイトのサンプル集。
 ## 構成
 
 ```
+apps/home/           # トップページ（サンプルのカード）
 apps/settings/       # 題材 1: テーマ・言語の切り替え（Vite + React）
 packages/command/    # Command の定義・検証・確認・AI 向けツール・WebMCP 登録（React / LLM に依存しない）
 packages/assistant/  # サイト内の AI チャット（チャット UI・LLM の切り替え）
@@ -23,10 +24,10 @@ packages/ui/         # 共通 UI（shadcn/ui + Tailwind v4）
 
 ```sh
 bun install
-bun run dev   # テーマ・言語の切り替えサイト（apps/settings）を起動
+bun run dev   # トップと各サンプルをまとめて起動
 ```
 
-表示された URL（`http://localhost:5173/` など）を開く。
+`http://localhost:5173/` を開くと、トップページにサンプルが並ぶ。カードから各サンプル（`/settings/` など）を開く。
 
 * テーマと言語を右上のボタンで切り替えられる
 * 右下のボタンからチャットを開き、Claude の API キーを入れるか、入力欄の左下で Gemini Nano（パソコン版の Chrome 148 以降）か Qwen3.5 4B（WebGPU が使えるブラウザ）に切り替えると、話しかけて操作できる
@@ -39,7 +40,7 @@ bun run check      # Biome（lint / format）
 bun run format     # Biome の自動修正
 bun run typecheck  # 全 workspace の型チェック
 bun test
-bun run build
+bun run build      # 各アプリをビルドし、公開用に dist/ にまとめる（/ がトップ、/settings/ など）
 ```
 
 ## 技術スタック
