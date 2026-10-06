@@ -13,7 +13,7 @@
 * 予約フォームで使う
   * `fill_reservation_form`: `filled in; not sent yet. still missing: party_size, seat (ask the user for them one at a time)` / `… all fields are filled; ask the user whether to book it`
   * `submit_reservation`: サイトの `submit()` が受け付けた予約番号を返し、Command が `reservation 1001 was made for …` にする
-* 足りない項目は、画面にも「予約する」の横に出す（「あと時刻、人数、席を入れると予約できます。」）。AI のためだけでなく人にもわかりやすく、画面と Command が同じ `missingFields` を使う（[画面と AI は同じ関数](2026-10-06-reservation-app.md)）
+* 足りない項目は、画面にも「予約する」の横に出す（「あと時刻、人数、席を入れると予約できます。」）。AI のためだけでなく人にもわかりやすく、画面と Command が同じ `missingFields` を使う
 * ほかの題材には足さない（`{ ok: true }` で困っていない。ネットショップの注文番号も同じ形でできる）
 
 ## 比べた案
