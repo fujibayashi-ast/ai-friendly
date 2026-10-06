@@ -1,4 +1,3 @@
-import { dequal } from "dequal";
 import type {
   Command,
   CommandDefinition,
@@ -16,7 +15,6 @@ export type ConfirmHandler = (
 
 /**
  * アプリが持つ状態をセッションから読み書きするための口（React の state と setter など）
- * Undo / Redo では、外で変わったかを参照ではなく中身で比べる
  * @see docs/commands.md
  */
 export type CommandStore<State> = {
@@ -54,7 +52,7 @@ export type CommandSession<
   ): Promise<ExecuteResult>;
   /** 型の分からない入力（LLM の JSON など）を実行する。検証は `execute` と同じ */
   executeRaw(input: unknown, source: CommandSource): Promise<ExecuteResult>;
-  /** 直前のバッチを丸ごと戻す。その後に状態が外で変わっていたら戻さず `state_changed` を返す */
+  /** 直前のバッチを丸ごと戻す */
   undo(): ExecuteResult;
   redo(): ExecuteResult;
   canUndo(): boolean;
@@ -101,12 +99,6 @@ export function createCommandSession<
     store.setState(next);
     for (const listener of listeners) listener();
   };
-
-  const stateChanged = (action: "undo" | "redo"): ExecuteResult => ({
-    ok: false,
-    code: "state_changed",
-    message: `cannot ${action}: the state was changed after this batch (for example on the page). Read the current state and run new commands instead`,
-  });
 
   const executeRaw = async (
     input: unknown,
@@ -163,30 +155,26 @@ export function createCommandSession<
     execute: (commands, source = "user") => executeRaw(commands, source),
     executeRaw,
     undo() {
-      const entry = past.at(-1);
+      const entry = past.pop();
       if (!entry)
         return {
           ok: false,
           code: "nothing_to_undo",
           message: "nothing to undo",
         };
-      if (!dequal(store.getState(), entry.after)) return stateChanged("undo");
       future.push(entry);
-      past.pop();
       setState(entry.before);
       return { ok: true };
     },
     redo() {
-      const entry = future.at(-1);
+      const entry = future.pop();
       if (!entry)
         return {
           ok: false,
           code: "nothing_to_redo",
           message: "nothing to redo",
         };
-      if (!dequal(store.getState(), entry.before)) return stateChanged("redo");
       past.push(entry);
-      future.pop();
       setState(entry.after);
       return { ok: true };
     },

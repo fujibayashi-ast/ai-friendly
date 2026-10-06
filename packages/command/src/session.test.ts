@@ -221,45 +221,6 @@ describe("store", () => {
     expect(store.setState).toHaveBeenCalledTimes(1);
   });
 
-  test("undoes and redoes while the state is unchanged", async () => {
-    const { store } = createStore();
-    const session = createCommandSession({ store, commands: todoCommands });
-    await session.execute({ type: "add_todo", id: "1", title: "a" });
-    expect(session.undo()).toEqual({ ok: true });
-    expect(titles(store.getState())).toEqual([]);
-    expect(session.redo()).toEqual({ ok: true });
-    expect(titles(store.getState())).toEqual(["a"]);
-  });
-
-  test("compares by content, not by reference", async () => {
-    const { store, changeOutside } = createStore();
-    const session = createCommandSession({ store, commands: todoCommands });
-    await session.execute({ type: "add_todo", id: "1", title: "a" });
-    changeOutside(structuredClone(store.getState()));
-    expect(session.undo()).toEqual({ ok: true });
-  });
-
-  test("refuses to undo or redo over a change made outside", async () => {
-    const { store, changeOutside } = createStore();
-    const session = createCommandSession({ store, commands: todoCommands });
-    await session.execute({ type: "add_todo", id: "1", title: "a" });
-    changeOutside({ todos: [] });
-
-    expect(session.undo()).toEqual({
-      ok: false,
-      code: "state_changed",
-      message:
-        "cannot undo: the state was changed after this batch (for example on the page). Read the current state and run new commands instead",
-    });
-    expect(session.canUndo()).toBe(true);
-
-    await session.execute({ type: "add_todo", id: "2", title: "b" });
-    session.undo();
-    changeOutside({ todos: [{ id: "3", title: "c", done: false, tags: [] }] });
-    expect(session.redo()).toMatchObject({ ok: false, code: "state_changed" });
-    expect(session.canRedo()).toBe(true);
-  });
-
   test("passes the current state of the store to a confirmation rule", async () => {
     const { store, changeOutside } = createStore();
     const confirm = mock(() => true);

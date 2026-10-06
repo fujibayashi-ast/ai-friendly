@@ -10,7 +10,6 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "dequal": "2.0.3",
     "zod": "4.6.5"
   }
 }
