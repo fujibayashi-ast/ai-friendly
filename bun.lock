@@ -13,6 +13,7 @@
     "apps/settings": {
       "name": "@ai-friendly/settings",
       "dependencies": {
+        "@ai-friendly/assistant": "workspace:*",
         "@ai-friendly/command": "workspace:*",
         "@ai-friendly/ui": "workspace:*",
         "lucide-react": "1.52.0",
@@ -33,6 +34,18 @@
       "name": "@ai-friendly/assistant",
       "dependencies": {
         "@ai-friendly/command": "workspace:*",
+        "@ai-friendly/ui": "workspace:*",
+        "lucide-react": "1.52.0",
+      },
+      "devDependencies": {
+        "@types/react": "19.3.0",
+        "@types/react-dom": "19.3.0",
+        "react": "19.3.0",
+        "react-dom": "19.3.0",
+      },
+      "peerDependencies": {
+        "react": "^19.3.0",
+        "react-dom": "^19.3.0",
       },
     },
     "packages/command": {

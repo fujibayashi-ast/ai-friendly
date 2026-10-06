@@ -12,6 +12,9 @@ const ja = {
   "reset.description": "テーマと言語が初期設定に戻ります。",
   "reset.confirm": "リセットする",
   "confirm.cancel": "やめる",
+  "chat.suggest.theme": "ダークにして",
+  "chat.suggest.language": "英語にして",
+  "chat.suggest.reset": "設定をリセットして",
 };
 
 export type MessageKey = keyof typeof ja;
@@ -28,6 +31,9 @@ const en: Record<MessageKey, string> = {
   "reset.description": "The theme and language will go back to the defaults.",
   "reset.confirm": "Reset",
   "confirm.cancel": "Cancel",
+  "chat.suggest.theme": "Switch to dark",
+  "chat.suggest.language": "Switch to Japanese",
+  "chat.suggest.reset": "Reset the settings",
 };
 
 export const messages: Record<Language, Record<MessageKey, string>> = {
