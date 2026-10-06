@@ -31,6 +31,7 @@ export type {
   ToolCall,
 } from "./providers/provider";
 export { ProviderAuthError } from "./providers/provider";
+export { useClaude } from "./providers/use-claude";
 export { useGeminiNano } from "./providers/use-gemini-nano";
 export { useQwen } from "./providers/use-qwen";
 export {

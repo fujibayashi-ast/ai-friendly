@@ -1,13 +1,10 @@
 import { Button, cn } from "@ai-friendly/ui";
 import { MessageCircle, X } from "lucide-react";
-import { type ReactNode, useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { Chat, type ChatProps, focusSetup } from "../chat/chat";
 import { createTranslate } from "../i18n/messages";
 
-export type FloatingChatProps = Omit<ChatProps, "inputRef"> & {
-  /** パネルの見出しの右に置くもの（「キーを変更」など） */
-  actions?: ReactNode;
-};
+export type FloatingChatProps = Omit<ChatProps, "inputRef">;
 
 /**
  * 右下のボタンから開く、浮いたチャットのパネル。スマホでは画面いっぱいに開く
@@ -17,7 +14,7 @@ export type FloatingChatProps = Omit<ChatProps, "inputRef"> & {
  * <FloatingChat providers={[{ label: "Claude", provider }]} tools={tools} language="ja" suggestions={["ダークにして"]} />
  * @see docs/assistant.md
  */
-export function FloatingChat({ actions, ...props }: FloatingChatProps) {
+export function FloatingChat(props: FloatingChatProps) {
   const t = createTranslate(props.language);
   const [open, setOpen] = useState(false);
   const titleId = useId();
@@ -61,17 +58,14 @@ export function FloatingChat({ actions, ...props }: FloatingChatProps) {
           <h2 id={titleId} className="font-semibold">
             {t("title")}
           </h2>
-          <div className="flex items-center gap-1">
-            {actions}
-            <Button
-              variant="ghost"
-              size="icon"
-              aria-label={t("close")}
-              onClick={() => setOpen(false)}
-            >
-              <X aria-hidden />
-            </Button>
-          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label={t("close")}
+            onClick={() => setOpen(false)}
+          >
+            <X aria-hidden />
+          </Button>
         </header>
         <Chat {...props} inputRef={inputRef} />
       </section>

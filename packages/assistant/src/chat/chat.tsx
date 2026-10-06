@@ -32,6 +32,8 @@ export type ProviderOption = {
   provider?: ChatProvider;
   /** `provider` がないときに出すもの（`ApiKeyForm` など） */
   setup?: ReactNode;
+  /** この候補を選んでいるとき、入力欄の左下（切り替えの隣）に出すもの（「キーを変更」など） */
+  actions?: ReactNode;
 };
 
 export type ChatProps = {
@@ -132,12 +134,15 @@ export function Chat({
   };
 
   const providerSelect = (
-    <ProviderSelect
-      labels={providers.map((option) => option.label)}
-      selected={selected}
-      onSelect={setSelected}
-      label={t("provider")}
-    />
+    <div className="flex items-center gap-1">
+      <ProviderSelect
+        labels={providers.map((option) => option.label)}
+        selected={selected}
+        onSelect={setSelected}
+        label={t("provider")}
+      />
+      {option?.actions}
+    </div>
   );
 
   if (!provider) {
