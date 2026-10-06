@@ -12,7 +12,7 @@ const ja = {
   "sample.tasks.title": "やることリスト",
   "sample.tasks.description":
     "やることを追加・完了・削除する小さなサイト。AI からの削除は確認してから行います。",
-  "sample.tasks.example": "完了したものだけ見せて",
+  "sample.tasks.example": "完了したものを消して",
 };
 
 export type MessageKey = keyof typeof ja;
@@ -28,7 +28,7 @@ const en: Record<MessageKey, string> = {
   "sample.tasks.title": "To-do list",
   "sample.tasks.description":
     "A small site to add, complete, and delete to-dos. Deleting from the AI asks you first.",
-  "sample.tasks.example": "Show only the completed ones",
+  "sample.tasks.example": "Clear the completed ones",
 };
 
 export const messages: Record<Language, Record<MessageKey, string>> = {

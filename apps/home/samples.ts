@@ -12,7 +12,7 @@ export const samples = [
   {
     id: "tasks",
     port: 5175,
-    example: { name: "set_filter", input: { filter: "done" } },
+    example: { name: "clear_completed", input: {} },
   },
 ] as const;
 
