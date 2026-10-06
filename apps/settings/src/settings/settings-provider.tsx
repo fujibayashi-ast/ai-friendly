@@ -7,13 +7,12 @@ import {
 } from "react";
 import { createTranslate } from "../i18n/messages";
 import { applyTheme } from "./apply-theme";
-import type { Language, Theme } from "./settings";
+import { defaultSettings, type Language, type Theme } from "./settings";
 import { SettingsContext } from "./settings-context";
-import { loadSettings, saveSettings } from "./storage";
 
-/** 表示の設定（テーマ・言語）を持ち、localStorage に保存して `<html>` に反映する */
+/** 表示の設定（テーマ・言語）を持ち、`<html>` に反映する */
 export function SettingsProvider({ children }: { children: ReactNode }) {
-  const [settings, setSettings] = useState(loadSettings);
+  const [settings, setSettings] = useState(defaultSettings);
 
   const setTheme = useCallback(
     (theme: Theme) => setSettings((s) => ({ ...s, theme })),
@@ -24,7 +23,6 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     [],
   );
 
-  useEffect(() => saveSettings(settings), [settings]);
   useEffect(() => {
     applyTheme(settings.theme);
   }, [settings.theme]);

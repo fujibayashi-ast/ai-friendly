@@ -8,7 +8,6 @@
 flowchart LR
   subgraph site["普通のサイト（Command がなくても動く）"]
     Buttons["ヘッダーのボタン"] -- "setTheme / setLanguage" --> State["設定<br>{ theme, language }"]
-    State --> Storage["localStorage"]
     State --> Screen["画面（.dark・lang・文言）"]
   end
   subgraph ai["足した層（ai/・commands/）"]
@@ -53,7 +52,7 @@ type Settings = {
 ```
 
 * 初期値は `theme: "light"`、`language: "ja"`
-* localStorage（`ai-friendly:settings`）に保存する。読み込むときに検証し、壊れていれば初期値に戻す
+* 保存はしない。再読み込みすると初期値に戻る
 
 ## コードの構成
 
@@ -65,7 +64,7 @@ src/
   app.tsx               # SettingsProvider > ConfirmProvider > レイアウト + ページ、<Ai />
   layout/               # 全ページ共通の画面（ヘッダー・切り替えボタン）
   pages/home/           # ページごとの画面。ページ専用の部品もこの下に置く
-  settings/             # 表示の設定（状態・保存・<html> への反映・useTheme）
+  settings/             # 表示の設定（状態・<html> への反映・useTheme）
   i18n/                 # 文言の辞書と useI18n
   confirm/              # 確認ダイアログ（useConfirm）
   commands/             # AI が実行できる Command（機能ごとにファイル）
@@ -74,8 +73,8 @@ src/
 
 | ファイル | 役割 |
 | --- | --- |
-| `settings/settings.ts` | 設定の型・初期値・検証（zod） |
-| `settings/settings-provider.tsx` | 設定を `useState` で持ち、localStorage に保存し、テーマ（`.dark`）と言語（`lang`・`<title>`）を `<html>` に反映する |
+| `settings/settings.ts` | 設定の型と初期値 |
+| `settings/settings-provider.tsx` | 設定を `useState` で持ち、テーマ（`.dark`）と言語（`lang`・`<title>`）を `<html>` に反映する |
 | `settings/use-theme.ts` / `i18n/use-i18n.ts` | 画面から使うフック（`{ theme, setTheme }` / `{ language, setLanguage, t }`） |
 | `i18n/messages.ts` | 文言の辞書（ja / en）。日本語のキーから型を作り、英語の訳し忘れを型エラーにする |
 | `i18n/language-names.ts` | 言語名（JA / 日本語）。表示中の言語に関係なくその言語で書くので、辞書に入れない |
