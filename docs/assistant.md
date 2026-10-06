@@ -6,7 +6,7 @@ AI 向けツール（[ai-tools.md](ai-tools.md) の `createAiTools`）を使っ�
 flowchart LR
   User["ユーザー"] --> Chat["FloatingChat<br>（チャット UI）"]
   Chat --> Loop["runChat<br>（会話のループ）"]
-  Loop -- "messages + tools" --> Provider["ChatProvider<br>（仮のボット / LLM）"]
+  Loop -- "messages + tools" --> Provider["ChatProvider<br>（Claude API など）"]
   Provider -- "返事 / ツールの呼び出し" --> Loop
   Loop -- "tool.execute(input)" --> Tools["AI 向けツール<br>（検証 → 確認 → run）"]
 ```
@@ -14,12 +14,14 @@ flowchart LR
 ## 使い方
 
 ```tsx
-import { createScriptedProvider, FloatingChat } from "@ai-friendly/assistant";
+import { ApiKeyForm, createClaudeProvider, FloatingChat } from "@ai-friendly/assistant";
 
-const provider = createScriptedProvider({ rules, language });
+const provider = apiKey ? createClaudeProvider({ apiKey, system }) : undefined;
 
 <FloatingChat
-  provider={provider}
+  provider={provider} // ないときは setup を出す
+  setup={<ApiKeyForm language={language} onSubmit={setApiKey} />}
+  actions={apiKey && <Button onClick={() => setApiKey(null)}>キーを変更</Button>} // パネルの見出しの右
   tools={tools} // createAiTools の結果
   language={language} // "ja" | "en"。チャットの文言の言語
   suggestions={["ダークにして", "英語にして"]} // 何も話していないときに出す例
@@ -58,23 +60,21 @@ type ChatProvider = {
 
 | プロバイダ | 内容 |
 | --- | --- |
-| `createScriptedProvider({ rules, language })` | 通信しない仮のボット。入力が `rules` の `pattern` に合ったツールをすべて呼び、結果を見て短く返事する。合わなければ「決まった言い回しにだけ反応する」と返す |
+| `createClaudeProvider({ apiKey, model?, system? })` | ブラウザから Claude API（Messages API）を直接呼ぶ。`fetch` だけで、ライブラリは使わない。既定のモデルは `claude-haiku-4-5` |
 
-* 本物の LLM（ローカル LLM / Claude API）は #27 で足す
-
-```ts
-const rules: ScriptedRule[] = [
-  { pattern: /ダーク|dark/i, tool: "set_theme", input: { theme: "dark" } },
-  { pattern: /リセット|reset/i, tool: "reset_settings" },
-];
-```
+* ヘッダーは `x-api-key`・`anthropic-version: 2023-06-01`・`anthropic-dangerous-direct-browser-access: true`（ブラウザから直接呼ぶための許可）
+* 会話の変換: `assistant` は `text` と `tool_use`、続く `tool` は 1 つの user メッセージの `tool_result` にまとめる（失敗は `is_error: true`）。user が続いたら 1 つにまとめる
+* API キーが正しくない（401）ときは `ProviderAuthError` を投げ、チャットは「API キーが正しくありません」と知らせる
+* サーバーを通さないため、利用者自身の API キーを使う前提。キーの持ち方はアプリが決める（settings サイトは state に持つだけで保存しない）
+* ローカル LLM と、Claude / ローカル LLM の切り替えは #29
 
 ## 画面
 
 | 部品 | 内容 |
 | --- | --- |
-| `Chat` | メッセージの一覧と入力欄。会話の状態を自分で持ち、単体で使える（`<Chat provider tools language />`）。置き場所に依存しないので、ページの中・ドロワーなどにも入れられる |
-| `FloatingChat` | `Chat` を右下のボタンから開く浮いたパネルに入れる。スマホでは画面いっぱいに開く。閉じてもパネルは隠すだけなので、会話は残る |
+| `Chat` | メッセージの一覧と入力欄。会話の状態を自分で持ち、単体で使える（`<Chat provider tools language />`）。置き場所に依存しないので、ページの中・ドロワーなどにも入れられる。`provider` がないときは `setup` を出す |
+| `ApiKeyForm` | Claude の API キーを入れるフォーム。`setup` に置く |
+| `FloatingChat` | `Chat` を右下のボタンから開く浮いたパネルに入れる。スマホでは画面いっぱいに開く。閉じてもパネルは隠すだけなので、会話は残る。見出しの右に `actions` を置ける |
 | `ToolCallLine` | ツールの実行の既定の見せ方。`✓ set_theme(theme: "dark")` のブロックで、実行中は灰、成功は黄、失敗は赤の地。失敗は「やめました」（確認で拒否）/「実行できませんでした」と出し、`debug` のときは LLM 向けの英文のメッセージも出す。`renderToolCall` で差し替えられる（`ToolCallLineProps` を受け取る） |
 
 ### ファイルの構成
@@ -85,7 +85,7 @@ src/
   layouts/floating-chat.tsx  # FloatingChat: Chat を右下のパネルに入れる
   ui/                        # 見た目だけの部品。props だけで描画し、会話の状態や i18n を知らない
   conversation/              # 会話の状態（useChat）とループ（runChat）。画面なし
-  providers/                 # プロバイダの型と仮のボット
+  providers/                 # プロバイダの型と Claude API
   i18n/                      # チャットの文言（ja / en）
 ```
 
@@ -93,7 +93,8 @@ src/
 * 話しかけ方の例を押すと、例は消えるので入力欄にフォーカスを移す
 * Enter で送信、Shift+Enter で改行。日本語の変換を確定する Enter では送らない
 * 実行中は「考えています…」を出し、送信できない
-* 返事を受け取れなかった・ステップ数の上限で止めた、は会話の流れの中にお知らせとして残す（LLM には送らない）
+* 返事を受け取れなかった・API キーが正しくない・ステップ数の上限で止めた、は会話の流れの中にお知らせとして残す（LLM には送らない）
+* キーを保存した・「キーを変更」を押した、で入力欄が入れ替わるので、新しい入力欄にフォーカスを移す
 * 確認が要る Command は、アプリが `createAiTools` に渡した `confirm` で確認する（チャット内の確認は #10）
 
 ## 文言

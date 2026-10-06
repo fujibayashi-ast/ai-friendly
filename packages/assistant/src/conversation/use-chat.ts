@@ -1,12 +1,16 @@
 import type { AiTool } from "@ai-friendly/command";
 import { useCallback, useLayoutEffect, useRef, useState } from "react";
-import type { ChatMessage, ChatProvider } from "../providers/provider";
+import {
+  type ChatMessage,
+  type ChatProvider,
+  ProviderAuthError,
+} from "../providers/provider";
 import { runChat } from "./run-chat";
 
 /** 画面にだけ出すお知らせ（LLM には送らない） */
 export type ChatNotice = {
   role: "notice";
-  kind: "failed" | "too_many_steps";
+  kind: "failed" | "auth" | "too_many_steps";
 };
 
 /** 画面に並べるもの: 会話のメッセージとお知らせ */
@@ -26,7 +30,8 @@ export function useChat({
   provider,
   tools,
 }: {
-  provider: ChatProvider;
+  /** 省略すると送信しない（API キーの入力待ちなど） */
+  provider?: ChatProvider;
   tools: readonly AiTool[];
 }): ChatState {
   const [entries, setEntries] = useState<readonly ChatEntry[]>([]);
@@ -40,7 +45,7 @@ export function useChat({
 
   const send = useCallback(async (text: string) => {
     const content = text.trim();
-    if (!content || busy.current) return;
+    if (!content || busy.current || !latest.current.provider) return;
     busy.current = true;
 
     const show = (entry: ChatEntry) => setEntries((list) => [...list, entry]);
@@ -54,7 +59,11 @@ export function useChat({
       const result = await runChat({
         // 言語の切り替えなどでプロバイダが作り直されても、次のステップから最新を使う
         provider: {
-          complete: (request) => latest.current.provider.complete(request),
+          complete: async (request) => {
+            const { provider } = latest.current;
+            if (!provider) throw new Error("no provider");
+            return provider.complete(request);
+          },
         },
         messages: history.current,
         getTools: () => latest.current.tools,
@@ -63,8 +72,11 @@ export function useChat({
       if (result === "too_many_steps") {
         show({ role: "notice", kind: "too_many_steps" });
       }
-    } catch {
-      show({ role: "notice", kind: "failed" });
+    } catch (error) {
+      show({
+        role: "notice",
+        kind: error instanceof ProviderAuthError ? "auth" : "failed",
+      });
     } finally {
       busy.current = false;
       setRunning(false);

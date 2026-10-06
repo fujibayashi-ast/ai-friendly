@@ -22,6 +22,7 @@ import { Button, ToggleGroup, ToggleGroupItem } from "@ai-friendly/ui";
 | --- | --- |
 | `Button` | ボタン（`variant`: default / destructive / outline / secondary / ghost / link） |
 | `ToggleGroup` / `ToggleGroupItem` / `Toggle` | テーマ・言語などの選択 |
+| `Input` | 1 行の入力欄（API キーの入力など） |
 | `Textarea` | 複数行の入力欄（チャットの入力など） |
 | `AlertDialog` 一式 | AI が `requiresConfirmation` の Command を実行するときの確認 |
 | `cn` | クラス名の結合（clsx + tailwind-merge） |
