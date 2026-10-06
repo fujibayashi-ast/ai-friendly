@@ -2,80 +2,64 @@ import { z } from "zod";
 import { defineCommand } from "../define-command";
 
 export type Todo = { id: string; title: string; done: boolean; tags: string[] };
-export type TodoState = { todos: Todo[] };
 
-export const addTodo = defineCommand({
-  type: "add_todo",
-  description: "Add a todo",
-  args: z.object({
-    id: z.string(),
-    title: z.string(),
-    tags: z.array(z.string()).optional(),
-  }),
-  apply(state: TodoState, args) {
-    if (state.todos.some((t) => t.id === args.id)) {
-      return { ok: false, message: `todo "${args.id}" already exists` };
-    }
-    const todo = {
-      id: args.id,
-      title: args.title,
-      done: false,
-      tags: args.tags ?? [],
-    };
-    return { ok: true, state: { todos: [...state.todos, todo] } };
-  },
-});
+/** 配列を書き換える関数を呼ぶ Command（サイトの setter の代わり） */
+export function createTodoCommands(todos: Todo[] = []) {
+  const find = (id: string) => todos.find((t) => t.id === id);
 
-export const deleteTodo = defineCommand({
-  type: "delete_todo",
-  description: "Delete a todo",
-  args: z.object({ id: z.string() }),
-  apply(state: TodoState, args) {
-    if (!state.todos.some((t) => t.id === args.id)) {
-      return { ok: false, message: `todo "${args.id}" not found` };
-    }
-    return {
-      ok: true,
-      state: { todos: state.todos.filter((t) => t.id !== args.id) },
-    };
-  },
-  requiresConfirmation: (state, args) =>
-    !state.todos.find((t) => t.id === args.id)?.done,
-});
+  const addTodo = defineCommand({
+    type: "add_todo",
+    description: "Add a todo",
+    args: z.object({
+      id: z.string(),
+      title: z.string(),
+      tags: z.array(z.string()).optional(),
+    }),
+    run(args) {
+      if (find(args.id)) {
+        return { ok: false, message: `todo "${args.id}" already exists` };
+      }
+      todos.push({ ...args, done: false, tags: args.tags ?? [] });
+    },
+  });
 
-export const completeTodo = defineCommand({
-  type: "complete_todo",
-  description: "Mark a todo as done",
-  args: z.object({ id: z.string() }),
-  apply(state: TodoState, args) {
-    return {
-      ok: true,
-      state: {
-        todos: state.todos.map((t) =>
-          t.id === args.id ? { ...t, done: true } : t,
-        ),
-      },
-    };
-  },
-});
+  const deleteTodo = defineCommand({
+    type: "delete_todo",
+    description: "Delete a todo",
+    args: z.object({ id: z.string() }),
+    requiresConfirmation: (args) => !find(args.id)?.done,
+    run(args) {
+      const index = todos.findIndex((t) => t.id === args.id);
+      if (index < 0)
+        return { ok: false, message: `todo "${args.id}" not found` };
+      todos.splice(index, 1);
+    },
+  });
 
-export const setPriority = defineCommand({
-  type: "set_priority",
-  description: "Set priority",
-  args: z.object({
-    id: z.string(),
-    level: z.enum(["low", "high"]),
-    order: z.int().optional(),
-    meta: z.object({ note: z.string() }).optional(),
-  }),
-  apply(state: TodoState) {
-    return { ok: true, state };
-  },
-});
+  const completeTodo = defineCommand({
+    type: "complete_todo",
+    description: "Mark a todo as done",
+    args: z.object({ id: z.string() }),
+    async run(args) {
+      const todo = find(args.id);
+      if (todo) todo.done = true;
+    },
+  });
 
-export const todoCommands = [
-  addTodo,
-  deleteTodo,
-  completeTodo,
-  setPriority,
-] as const;
+  const setPriority = defineCommand({
+    type: "set_priority",
+    description: "Set priority",
+    args: z.object({
+      id: z.string(),
+      level: z.enum(["low", "high"]),
+      order: z.int().optional(),
+      meta: z.object({ note: z.string() }).optional(),
+    }),
+    run() {},
+  });
+
+  return {
+    todos,
+    commands: [addTodo, deleteTodo, completeTodo, setPriority] as const,
+  };
+}

@@ -2,9 +2,9 @@
 
 ## Project Overview
 
-**AI Friendly Site** — AI が少ない手数で操作できるサイトのサンプル集。
+**AI Friendly Site** — AI が操作しやすいサイトのサンプル集。
 
-* サイトの処理を Command にまとめ、UI・サイト内の AI チャット・WebMCP のすべてが同じ Command を通して操作する設計パターンを示す
+* 普通のサイトに、サイトの関数を Command として包む層を **足す** だけで、サイト内の AI チャット・WebMCP から操作できる設計パターンを示す
 * 主役は Command パターン。WebMCP（`document.modelContext`）が主流になるまでのつなぎであり、そのまま WebMCP にもつながる形にする
 * 題材の異なる複数のサイト（`apps/`）で、共通の基盤（`packages/`）がそのまま使えることを見せる
 * サーバーを持たない SPA として公開し、完成後に Zenn で紹介する（個人プロジェクト）
@@ -38,11 +38,11 @@
 
 ```
 apps/
-  <題材>/       # Vite + React の SPA。Command の定義と画面だけを書く
+  <題材>/       # Vite + React の SPA。普通のサイトと、その関数を包む Command
     docs/       # 題材ごとの Command 一覧・仕様
 packages/
   command/      # 純粋なロジック（React / LLM に依存しない）
-                #   Command 定義の型・execute（バッチ・ロールバック）・検証・確認フック
+                #   Command 定義の型（run でサイトの関数を呼ぶ）・引数の検証・確認フック
                 #   AI 向けツール（短い一覧・inputSchema）・WebMCP 登録（`@ai-friendly/command/webmcp`）
   assistant/    # サイト内の AI チャット
                 #   チャット UI（React）・LLM プロバイダの切り替え（ローカル LLM / Claude API など）
@@ -55,13 +55,13 @@ packages/
 
 ## Domain Rules
 
-* 状態の変更は必ず Command を通す。UI・AI チャット・WebMCP はすべて同じ Command を使う
-* 複数の Command は 1 バッチとして実行する。1 つでも失敗したらバッチ全体を適用しない
-* 実行結果は `{ ok: true }` / `{ ok: false, code, message }` で返す。`message` は LLM が読んで自分で直せる英文にする（何番目の何が違うか）
-* ID は Command を発行する側で決める（同じ Command 列なら同じ結果になるように）
-* Command には発行元（`"user"` / `"ai"`）を持たせる
-* 確認が必要な Command は定義に `requiresConfirmation` を持たせる。発行元が `"ai"` のときは、アプリが渡す確認フックで承認を得てから実行する
+* サイトは Command がなくても成立させる。状態は普通の React（`useState` など）で持ち、画面は普通に setter を呼ぶ
+* AI の層は後から足す。Command の `run` でサイトの関数（setter など）を呼ぶ。状態が変わったら Command とツールを作り直す
+* サイトの機能から AI の層を参照しない
+* 実行結果は `{ ok: true }` / `{ ok: false, code, message }` で返す。`message` は LLM が読んで自分で直せる英文にする（どこの何が違うか）
+* 確認が必要な Command は定義に `requiresConfirmation` を持たせ、アプリが渡す確認フックで承認を得てから実行する。条件はコードで決める（LLM に決めさせない）
 * AI 向けツールの説明は JSON Schema の全文ではなく、1 Command 1 行の短い一覧にする（小さいローカル LLM 向け）
+* バッチ・Undo は基盤に持たない。要るサイトは外側に足す
 
 ## Coding Rules
 
@@ -74,7 +74,7 @@ packages/
   * 題材に依存しない処理は `packages/` の責務に応じた package に置く
   * `utils/` のような何でも置き場は作らない
 * 禁止事項
-  * UI から状態を直接変更すること（Command を通す）
+  * サイトの機能から AI の層（Command の定義・`@ai-friendly/command`）を参照すること（AI の層は後から足すもの）
   * TS の `any`
   * UI 文字列の直書き（i18n を通す）
   * ユーザーの操作なしに動く外部通信の追加（通信する機能は Issue で判断する）
@@ -122,7 +122,7 @@ packages/
   * 例外: ローカル LLM のモデルのダウンロード（ユーザーが選んだときのみ）
 * API キーなどの機密情報は持たない。必要な場合は `.env` に置き、コミットしない
 * 個人情報は扱わない。localStorage に保存するのはサンプルデータのみ
-* AI が出した Command は発行元 `"ai"` として扱う（確認フックの対象にする）
+* AI からの操作は、引数の検証と（必要なら）確認を通してからサイトの関数に届ける
 
 ## MCP
 

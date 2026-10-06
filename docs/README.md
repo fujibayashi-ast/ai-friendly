@@ -16,6 +16,7 @@
   - [2026-10-05-ui-package.md](history/2026-10-05-ui-package.md) — 共通 UI（shadcn・アクセントの黄・標準から変えたところ）
   - [2026-10-06-command-store.md](history/2026-10-06-command-store.md) — アプリの状態にセッションをつなぐ（`store`）
   - [2026-10-06-remove-undo.md](history/2026-10-06-remove-undo.md) — Command 基盤から Undo / Redo と操作の履歴を外した理由
+  - [2026-10-06-minimal-command.md](history/2026-10-06-minimal-command.md) — Command をサイトの関数を呼ぶ形にし、バッチ・状態を外した理由
 
 題材ごとの仕様は `apps/<題材>/docs/` に置く。
 

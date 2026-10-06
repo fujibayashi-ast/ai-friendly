@@ -16,13 +16,13 @@ type JsonSchema = {
  * 例: `add_todo(id: string, tags?: string[]) — Add a todo`
  * @see docs/ai-tools.md
  */
-export function describeCommands<State>(
-  definitions: readonly CommandDefinition<State>[],
+export function describeCommands(
+  definitions: readonly CommandDefinition[],
 ): string {
   return definitions.map(describeCommand).join("\n");
 }
 
-function describeCommand<State>(definition: CommandDefinition<State>): string {
+function describeCommand(definition: CommandDefinition): string {
   const schema = z.toJSONSchema(definition.args, {
     io: "input",
   }) as JsonSchema;
@@ -30,7 +30,7 @@ function describeCommand<State>(definition: CommandDefinition<State>): string {
   return `${definition.type}(${params}) — ${definition.description}${confirmationMark(definition)}`;
 }
 
-function confirmationMark<State>(definition: CommandDefinition<State>): string {
+export function confirmationMark(definition: CommandDefinition): string {
   const rule = definition.requiresConfirmation;
   if (typeof rule === "function") return " [may ask the user to confirm]";
   return rule ? " [asks the user to confirm]" : "";

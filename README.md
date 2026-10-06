@@ -1,8 +1,8 @@
 # AI Friendly Site
 
-AI が少ない手数で操作できるサイトのサンプル集。
+AI が操作しやすいサイトのサンプル集。
 
-サイトの処理を **Command** にまとめ、画面の操作・サイト内の AI チャット・WebMCP（ブラウザの AI エージェント）のすべてが同じ Command を通して操作する設計パターンを示す。題材の異なる複数のサイトで、共通の基盤がそのまま使えることを見せる。
+普通のサイトに、サイトの関数を **Command** として包む層を足すだけで、サイト内の AI チャット・WebMCP（ブラウザの AI エージェント）から操作できるようにする設計パターンを示す。題材の異なる複数のサイトで、共通の基盤がそのまま使えることを見せる。
 
 - サーバーなしの SPA（API はダミー）
 - LLM はブラウザ上のローカル LLM
@@ -12,7 +12,7 @@ AI が少ない手数で操作できるサイトのサンプル集。
 
 ```
 apps/<題材>/         # 各サンプルサイト（Vite + React）
-packages/command/    # Command の定義・実行・検証・AI 向けツール・WebMCP 登録（React / LLM に依存しない）
+packages/command/    # Command の定義・検証・確認・AI 向けツール・WebMCP 登録（React / LLM に依存しない）
 packages/assistant/  # サイト内の AI チャット（チャット UI・LLM の切り替え）
 packages/ui/         # 共通 UI（shadcn/ui + Tailwind v4）
 ```
