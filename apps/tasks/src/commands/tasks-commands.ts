@@ -1,19 +1,22 @@
 import { defineCommand } from "@ai-friendly/command";
 import { useMemo } from "react";
 import { z } from "zod";
+import type { Translate } from "../i18n/messages";
+import { useI18n } from "../i18n/use-i18n";
 import type { Task } from "../tasks/tasks";
 import { type TasksContextValue, useTasks } from "../tasks/tasks-context";
 
 type TasksActions = Pick<
   TasksContextValue,
   "tasks" | "addTask" | "setTaskDone" | "deleteTask"
->;
+> & { t: Translate };
 
 export function createTasksCommands({
   tasks,
   addTask,
   setTaskDone,
   deleteTask,
+  t,
 }: TasksActions) {
   const notFound = (id: string) => ({
     ok: false as const,
@@ -21,6 +24,7 @@ export function createTasksCommands({
   });
   const find = (id: string): Task | undefined =>
     tasks.find((task) => task.id === id);
+  const completed = tasks.filter((task) => task.done);
 
   return [
     defineCommand({
@@ -43,6 +47,11 @@ export function createTasksCommands({
       description: "Delete a to-do.",
       args: z.object({ id: z.string() }),
       requiresConfirmation: true,
+      confirmation: ({ id }) => ({
+        title: t("delete.title"),
+        description: t("delete.description", { title: find(id)?.title ?? "" }),
+        confirmLabel: t("delete.confirm"),
+      }),
       run: ({ id }) => {
         if (!find(id)) return notFound(id);
         deleteTask(id);
@@ -53,10 +62,14 @@ export function createTasksCommands({
       description: "Delete all the completed to-dos.",
       args: z.object({}),
       // 消すものがないときは確認せずに知らせる
-      requiresConfirmation: () => tasks.some((task) => task.done),
+      requiresConfirmation: () => completed.length > 0,
+      confirmation: () => ({
+        title: t("clear.title"),
+        description: t("clear.description", { count: completed.length }),
+        confirmLabel: t("clear.confirm"),
+      }),
       // サイトにない機能を、サイトの関数の組み合わせで足す
       run: () => {
-        const completed = tasks.filter((task) => task.done);
         if (completed.length === 0) {
           return { ok: false, message: "there are no completed tasks" };
         }
@@ -69,8 +82,9 @@ export function createTasksCommands({
 /** やることの Command。サイトの useTasks の関数を呼ぶ */
 export function useTasksCommands() {
   const { tasks, addTask, setTaskDone, deleteTask } = useTasks();
+  const { t } = useI18n();
   return useMemo(
-    () => createTasksCommands({ tasks, addTask, setTaskDone, deleteTask }),
-    [tasks, addTask, setTaskDone, deleteTask],
+    () => createTasksCommands({ tasks, addTask, setTaskDone, deleteTask, t }),
+    [tasks, addTask, setTaskDone, deleteTask, t],
   );
 }

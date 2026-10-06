@@ -30,7 +30,8 @@ const resetSettingsCommand = defineCommand({
 
 const tools = createAiTools({
   commands: [setLanguageCommand, resetSettingsCommand],
-  confirm: (command) => window.confirm(`Run ${command.type}?`),
+  confirm: (command, confirmation) =>
+    window.confirm(confirmation?.title ?? `Run ${command.type}?`),
   getState: () => ({ theme, language }),
 });
 await registerWebMcpTools(tools, { signal });
@@ -46,6 +47,7 @@ React では、状態が変わるたびに Command とツールを作り直す�
 | `description` | 何をするか（英文）。AI 向けのツールの説明に使う |
 | `args` | 引数の定義（下の「引数の書き方」） |
 | `requiresConfirmation` | 実行の前に確認フックで承認を得るか。`true` / `false`、または `(args) => boolean` |
+| `confirmation` | 確認で見せる文言。`(args) => { title, description, confirmLabel }`。訳した文字列を返す。省略できる |
 | `run(args)` | サイトの関数を呼ぶ。`args` は検証済み。成功なら何も返さない。ドメイン上のエラー（存在しない ID など）は `{ ok: false, message }` を返す。Promise でもよい |
 
 * `message` は LLM が読んで直せる英文にする（`todo "1" not found`）
@@ -64,6 +66,26 @@ const deleteTodoCommand = defineCommand({
 
 * 状態を見て判定するときは、Command を作るときに今の状態を閉じ込める
 * 確認するかを LLM に決めさせない。確認は AI の間違いへの守りなので、条件はコードで決める
+
+### 確認の文言
+
+```ts
+const deleteTodoCommand = defineCommand({
+  type: "delete_todo",
+  // ...
+  requiresConfirmation: true,
+  confirmation: ({ id }) => ({
+    title: t("delete.title"),
+    description: t("delete.description", { title: find(id)?.title ?? "" }),
+    confirmLabel: t("delete.confirm"),
+  }),
+  run: ({ id }) => deleteTodo(id),
+});
+```
+
+* 文言は Command の定義に持たせる。確認フックは受け取った文言を出すだけにし、Command の種類で分けない（Command を足すときに定義だけ書けば済む）
+* package は i18n を知らないので、アプリが訳した文字列を返す。言語が変わったら Command を作り直す
+* `confirmation` があるだけでは確認しない。確認するかは `requiresConfirmation` で決める
 
 ### 引数の書き方
 
@@ -101,7 +123,7 @@ flowchart TD
 ```
 
 * 検証は確認の前に済ませる
-* 確認の画面（ダイアログ・チャット内での確認など）はアプリが `confirm` で決める。`confirm` には `{ type, ...args }` が渡る
+* 確認の画面（ダイアログ・チャット内での確認など）はアプリが `confirm` で決める。`confirm` には `{ type, ...args }` と、定義の `confirmation` が返した文言（なければ `undefined`）が渡る
 
 ## 結果とエラー
 

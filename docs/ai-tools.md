@@ -17,7 +17,8 @@ import { registerWebMcpTools } from "@ai-friendly/command/webmcp";
 
 const tools = createAiTools({
   commands: [addTodoCommand, deleteTodoCommand],
-  confirm: (command) => window.confirm(`Run ${command.type}?`),
+  confirm: (command, confirmation) =>
+    window.confirm(confirmation?.title ?? `Run ${command.type}?`),
   getState: () => todos.map(({ id, title, done }) => ({ id, title, done })),
 });
 

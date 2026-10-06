@@ -32,17 +32,34 @@ export type CommandDefinition<
   description: string;
   args: Schema;
   requiresConfirmation?: ConfirmationRule<z.output<Schema>>;
+  /** 確認で見せる文言。確認フックにそのまま渡る。訳した文字列を返す */
+  confirmation?: {
+    bivarianceHack(args: z.output<Schema>): Confirmation;
+  }["bivarianceHack"];
   /** サイトの関数（setter など）を呼ぶ。`args` は検証済み */
   run(
     args: z.output<Schema>,
   ): void | RunResult | Promise<RunResult> | Promise<void>;
 };
 
+/** 確認で見せる文言（ダイアログ・チャット内の確認ボタンなど） */
+export type Confirmation = {
+  title: string;
+  description: string;
+  confirmLabel: string;
+};
+
 /** 確認フックに渡す Command（`{ type, ...args }` の平らな形） */
 export type Command = { type: string } & Record<string, unknown>;
 
-/** 確認が要る Command を実行してよいか尋ねる。承認したら `true` */
-export type ConfirmHandler = (command: Command) => boolean | Promise<boolean>;
+/**
+ * 確認が要る Command を実行してよいか尋ねる。承認したら `true`
+ * `confirmation` は定義の `confirmation` が返した文言。定義になければ `undefined`
+ */
+export type ConfirmHandler = (
+  command: Command,
+  confirmation: Confirmation | undefined,
+) => boolean | Promise<boolean>;
 
 /**
  * - `invalid_command`: 引数の形が違う（未定義のフィールド・必須の欠け・型の違い）

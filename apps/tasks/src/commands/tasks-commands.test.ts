@@ -1,5 +1,6 @@
 import { describe, expect, mock, test } from "bun:test";
-import { createAiTools } from "@ai-friendly/command";
+import { type ConfirmHandler, createAiTools } from "@ai-friendly/command";
+import { createTranslate } from "../i18n/messages";
 import type { Task } from "../tasks/tasks";
 import { createTasksCommands } from "./tasks-commands";
 
@@ -13,7 +14,7 @@ const setup = ({
   confirm,
 }: {
   tasks?: Task[];
-  confirm?: () => Promise<boolean>;
+  confirm?: ConfirmHandler;
 } = {}) => {
   const actions = {
     addTask: mock((_: string) => {}),
@@ -22,7 +23,11 @@ const setup = ({
   };
   const confirmMock = mock(confirm ?? (async () => true));
   const tools = createAiTools({
-    commands: createTasksCommands({ tasks, ...actions }),
+    commands: createTasksCommands({
+      tasks,
+      ...actions,
+      t: createTranslate("en"),
+    }),
     confirm: confirmMock,
   });
   const run = (name: string, input: unknown) =>
@@ -64,6 +69,11 @@ describe("tasks commands", () => {
       ok: true,
     });
     expect(approved.deleteTask).toHaveBeenCalledWith("1");
+    expect(approved.confirm.mock.calls[0]?.[1]).toEqual({
+      title: "Delete this to-do?",
+      description: '"a" will be deleted.',
+      confirmLabel: "Delete",
+    });
 
     const declined = setup({ confirm: async () => false });
     expect(await declined.run("delete_task", { id: "1" })).toMatchObject({
@@ -77,6 +87,9 @@ describe("tasks commands", () => {
     const s = setup();
     expect(await s.run("clear_completed", {})).toEqual({ ok: true });
     expect(s.confirm).toHaveBeenCalledTimes(1);
+    expect(s.confirm.mock.calls[0]?.[1]).toMatchObject({
+      description: "1 completed to-dos will be deleted.",
+    });
     expect(s.deleteTask.mock.calls).toEqual([["1"]]);
   });
 

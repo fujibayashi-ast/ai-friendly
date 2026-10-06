@@ -27,7 +27,8 @@ export type AiToolsOptions = {
  * @example
  * const tools = createAiTools({
  *   commands: [setLanguageCommand, resetSettingsCommand],
- *   confirm: (command) => window.confirm(`Run ${command.type}?`),
+ *   confirm: (command, confirmation) =>
+ *     window.confirm(confirmation?.title ?? `Run ${command.type}?`),
  *   getState: () => ({ theme, language }),
  * });
  * await registerWebMcpTools(tools, { signal });

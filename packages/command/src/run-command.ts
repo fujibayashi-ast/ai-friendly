@@ -17,7 +17,10 @@ export async function runCommand(
     typeof rule === "function" ? rule(args) : rule === true;
   if (
     needsConfirmation &&
-    !(await confirm?.({ ...args, type: definition.type }))
+    !(await confirm?.(
+      { ...args, type: definition.type },
+      definition.confirmation?.(args),
+    ))
   ) {
     return {
       ok: false,

@@ -24,6 +24,7 @@
   - [2026-10-06-local-llm.md](history/2026-10-06-local-llm.md) — LLM の切り替えと Gemini Nano・WebLLM（Prompt API と WebLLM の比較・ツールの呼び出しを JSON Schema で受ける）
   - [2026-10-06-home.md](history/2026-10-06-home.md) — トップページと、1 つのサイトとして開発・公開する形
   - [2026-10-06-tasks-app.md](history/2026-10-06-tasks-app.md) — やることリスト（stacked PR・ID を探して操作する Command・AI からだけの削除の確認）
+  - [2026-10-06-confirmation-text.md](history/2026-10-06-confirmation-text.md) — 確認の文言を Command の定義に持たせる（`confirmation`）
 
 題材ごとの仕様は `apps/<題材>/docs/` に置く。
 
