@@ -34,34 +34,45 @@ describe("toSystemPrompt", () => {
 });
 
 describe("toResponseSchema", () => {
-  test("limits calls to the tools and their input schemas", () => {
+  test("allows either calls limited to the tools, or a reply", () => {
     expect(toResponseSchema([tool])).toEqual({
-      type: "object",
-      properties: {
-        calls: {
-          type: "array",
-          items: {
-            anyOf: [
-              {
-                type: "object",
-                properties: {
-                  name: { type: "string", enum: ["set_theme"] },
-                  input: {
+      anyOf: [
+        {
+          type: "object",
+          properties: {
+            calls: {
+              type: "array",
+              minItems: 1,
+              items: {
+                anyOf: [
+                  {
                     type: "object",
                     properties: {
-                      theme: { type: "string", enum: ["light", "dark"] },
+                      name: { type: "string", enum: ["set_theme"] },
+                      input: {
+                        type: "object",
+                        properties: {
+                          theme: { type: "string", enum: ["light", "dark"] },
+                        },
+                        required: ["theme"],
+                      },
                     },
-                    required: ["theme"],
+                    required: ["name", "input"],
                   },
-                },
-                required: ["name", "input"],
+                ],
               },
-            ],
+            },
           },
+          required: ["calls"],
+          additionalProperties: false,
         },
-        reply: { type: "string" },
-      },
-      required: ["calls", "reply"],
+        {
+          type: "object",
+          properties: { reply: { type: "string" } },
+          required: ["reply"],
+          additionalProperties: false,
+        },
+      ],
     });
   });
 });
@@ -92,22 +103,39 @@ describe("toNanoMessages", () => {
       {
         role: "assistant",
         content:
-          '{"calls":[{"name":"set_theme","input":{"theme":"dark"}},{"name":"set_language","input":{"language":"en"}}],"reply":""}',
+          '{"calls":[{"name":"set_theme","input":{"theme":"dark"}},{"name":"set_language","input":{"language":"en"}}]}',
       },
       {
         role: "user",
         content:
           'Result of set_theme: {"ok":true}\nResult of set_language: {"ok":false,"code":"rejected","message":"m"}',
       },
-      { role: "assistant", content: '{"calls":[],"reply":"Done."}' },
+      { role: "assistant", content: '{"reply":"Done."}' },
     ]);
+  });
+
+  test("asks for a reply right after the tool results", () => {
+    const messages = toNanoMessages([
+      { role: "user", content: "dark" },
+      {
+        role: "assistant",
+        content: "",
+        toolCalls: [{ id: "a", name: "set_theme", input: { theme: "dark" } }],
+      },
+      { role: "tool", toolCallId: "a", result: { ok: true } },
+    ]);
+    expect(messages.at(-1)).toEqual({
+      role: "user",
+      content:
+        'Result of set_theme: {"ok":true}\nNow reply to the user in their language, unless another tool is still needed.',
+    });
   });
 });
 
 describe("fromNanoResponse", () => {
   test("reads the reply and gives each call an id", () => {
     const reply = fromNanoResponse(
-      '{"calls":[{"name":"set_theme","input":{"theme":"dark"}}],"reply":""}',
+      '{"calls":[{"name":"set_theme","input":{"theme":"dark"}}]}',
     );
     expect(reply.content).toBe("");
     expect(reply.toolCalls).toEqual([
@@ -123,7 +151,7 @@ describe("fromNanoResponse", () => {
 describe("createGeminiNanoProvider", () => {
   test("prompts a new session with the constraint and destroys it", async () => {
     const destroy = mock(() => {});
-    const prompt = mock(async () => '{"calls":[],"reply":"Hi"}');
+    const prompt = mock(async () => '{"reply":"Hi"}');
     const create = mock(async () => ({ prompt, destroy }));
     globals.LanguageModel = { create };
 

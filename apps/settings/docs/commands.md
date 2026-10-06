@@ -36,7 +36,7 @@ flowchart LR
 ```ts
 defineCommand({
   type: "set_theme",
-  description: "Change the color theme.", // AI 向けの説明
+  description: "Change the color theme of this website (light or dark).", // AI 向けの説明。何の設定かをはっきり書く（小さいモデルは「英語にして」を返事の言語と取り違える）
   args: z.object({ theme: z.enum(themes) }), // 引数（zod）。AI からの入力はここで検証される
   run: ({ theme }) => setTheme(theme), // ボタンと同じ setter を呼ぶ
 }),
@@ -96,7 +96,7 @@ src/
 | Gemini Nano（Chrome の Prompt API） | パソコン版の Chrome 148 以降。モデルがなければ「モデルをダウンロード」を押す |
 
 * Claude の API キーは React の state に持つだけで保存しない（再読み込みで消える）。見出しの「キーを変更」で入れ直せる
-* システムプロンプトは両方で共通。「ツールでサイトを操作する・必要なら get_state で今の設定を見る・ユーザーの言語で短く返事する」
+* システムプロンプトは両方で共通。「ツールでサイトを操作する・「ダークにして」「英語にして」のような頼みはサイトのことなのでツールを使う・必要なら get_state で今の設定を見る・ユーザーの言語で短く返事する」
 * ブラウザから Claude API を直接呼ぶ（サーバーを通さない）。通信するのはキーを入れて話しかけたときだけ。Gemini Nano は通信しない（モデルのダウンロードは Chrome が行う）
 * チャットとは別に、同じツールを WebMCP にも登録している
 * 開発中（`bun run dev`）は、失敗の理由に LLM 向けの英文も出す（`debug`）

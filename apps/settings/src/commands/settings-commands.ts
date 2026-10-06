@@ -23,13 +23,14 @@ export function createSettingsCommands({
   return [
     defineCommand({
       type: "set_theme",
-      description: "Change the color theme.",
+      description: "Change the color theme of this website (light or dark).",
       args: z.object({ theme: z.enum(themes) }),
       run: ({ theme }) => setTheme(theme),
     }),
     defineCommand({
       type: "set_language",
-      description: "Change the display language.",
+      description:
+        "Change the language this website is shown in (ja: Japanese, en: English).",
       args: z.object({ language: z.enum(languages) }),
       run: ({ language }) => setLanguage(language),
     }),

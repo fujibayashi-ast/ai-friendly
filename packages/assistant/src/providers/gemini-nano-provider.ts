@@ -52,21 +52,26 @@ export function toSystemPrompt(
     "Tools:",
     ...tools.map((tool) => `- ${tool.name}: ${tool.description}`),
     "",
-    'Answer in JSON: {"calls": [{"name": "<tool>", "input": {...}}], "reply": "<text>"}.',
-    '- To use tools, put them in "calls" and leave "reply" empty. You will get the results as "Result of <tool>: ...".',
-    '- When no tool is needed, or after you get the results, return "calls": [] and write "reply".',
+    "Answer in JSON, in one of two forms:",
+    '- To use tools: {"calls": [{"name": "<tool>", "input": {...}}]}. You will get the results as "Result of <tool>: ...".',
+    '- To reply to the user: {"reply": "<text>"}.',
+    "Do not call a tool again for a request that already succeeded.",
   ].join("\n");
 }
 
-/** 返事の形: 呼び出し（ツールごとの引数のスキーマに縛る）と返事の文 */
+/**
+ * 返事の形: ツールの呼び出し（ツールごとの引数のスキーマに縛る）か返事の文の、どちらか一方
+ * 両方を持てると、小さいモデルは実行前に「変えました」と返事を書いてしまう
+ */
 export function toResponseSchema(
   tools: readonly AiTool[],
 ): Record<string, unknown> {
-  return {
+  const calls = {
     type: "object",
     properties: {
       calls: {
         type: "array",
+        minItems: 1,
         items: {
           anyOf: tools.map((tool) => {
             const { $schema: _, ...input } = tool.inputSchema;
@@ -81,11 +86,22 @@ export function toResponseSchema(
           }),
         },
       },
-      reply: { type: "string" },
     },
-    required: ["calls", "reply"],
+    required: ["calls"],
+    additionalProperties: false,
   };
+  const reply = {
+    type: "object",
+    properties: { reply: { type: "string" } },
+    required: ["reply"],
+    additionalProperties: false,
+  };
+  return { anyOf: [calls, reply] };
 }
+
+// 結果を見た後に同じツールを呼び直さないよう、結果のすぐ後で返事を促す
+const afterResults =
+  "Now reply to the user in their language, unless another tool is still needed.";
 
 /** Prompt API にはツールの役がないので、呼び出しは返事の JSON に、結果は user の発言にする */
 export function toNanoMessages(
@@ -107,11 +123,21 @@ export function toNanoMessages(
         names.set(call.id, call.name);
         return { name: call.name, input: call.input };
       });
-      push("assistant", JSON.stringify({ calls, reply: message.content }));
+      // 返事の形に合わせて、呼び出しがあれば呼び出しだけにする（Claude の会話を引き継いだときなど）
+      push(
+        "assistant",
+        JSON.stringify(
+          calls.length > 0 ? { calls } : { reply: message.content },
+        ),
+      );
     } else {
       const name = names.get(message.toolCallId) ?? "tool";
       push("user", `Result of ${name}: ${JSON.stringify(message.result)}`);
     }
+  }
+  const last = result.at(-1);
+  if (last && messages.at(-1)?.role === "tool") {
+    last.content += `\n${afterResults}`;
   }
   return result;
 }
