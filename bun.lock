@@ -50,10 +50,13 @@
     "apps/shop": {
       "name": "@ai-friendly/shop",
       "dependencies": {
+        "@ai-friendly/assistant": "workspace:*",
+        "@ai-friendly/command": "workspace:*",
         "@ai-friendly/ui": "workspace:*",
         "lucide-react": "1.52.0",
         "react": "19.3.0",
         "react-dom": "19.3.0",
+        "zod": "4.6.5",
       },
       "devDependencies": {
         "@tailwindcss/vite": "4.3.3",

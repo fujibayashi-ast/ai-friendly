@@ -3,8 +3,6 @@ import type { CategoryFilter, ShopState, SortOrder } from "./shop";
 
 export type ShopContextValue = {
   state: ShopState;
-  /** 注文の送信中 */
-  ordering: boolean;
   /** 直前の注文の番号。カートを変えると消える */
   orderNumber: string | null;
   setCategory(category: CategoryFilter): void;

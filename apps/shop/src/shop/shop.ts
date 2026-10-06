@@ -20,6 +20,8 @@ export type ShopState = {
   category: CategoryFilter;
   order: SortOrder;
   cart: readonly CartItem[];
+  /** 注文の送信中。この間はカートを変えない */
+  ordering: boolean;
 };
 
 export const initialShopState: ShopState = {
@@ -27,6 +29,7 @@ export const initialShopState: ShopState = {
   category: "all",
   order: "recommended",
   cart: [],
+  ordering: false,
 };
 
 /** 在庫がこの数以下なら「残り n 点」と出す */
@@ -82,6 +85,7 @@ export function addToCart(
   id: string,
   quantity: number,
 ): ShopState {
+  if (state.ordering) return state;
   const product = findProduct(state, id);
   if (!product || productStatus(product) !== "available") return state;
   const next = Math.min(cartQuantity(state, id) + quantity, product.stock);
@@ -103,6 +107,7 @@ export function setCartQuantity(
   id: string,
   quantity: number,
 ): ShopState {
+  if (state.ordering) return state;
   const product = findProduct(state, id);
   if (!product) return state;
   const next = Math.max(1, Math.min(quantity, product.stock));
@@ -115,10 +120,15 @@ export function setCartQuantity(
 }
 
 export function removeFromCart(state: ShopState, id: string): ShopState {
+  if (state.ordering) return state;
   return {
     ...state,
     cart: state.cart.filter((item) => item.productId !== id),
   };
+}
+
+export function startOrder(state: ShopState): ShopState {
+  return { ...state, ordering: true };
 }
 
 /** 注文した数だけ在庫を減らし、カートを空にする */
@@ -135,5 +145,6 @@ export function completeOrder(
         : product;
     }),
     cart: [],
+    ordering: false,
   };
 }

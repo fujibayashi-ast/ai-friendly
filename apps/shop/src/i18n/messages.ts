@@ -29,6 +29,13 @@ const ja = {
   "cart.order": "注文する",
   "cart.ordering": "注文しています…",
   "cart.ordered": "注文しました（注文番号 {number}）",
+  "order.title": "注文しますか？",
+  "order.description": "合計 {total} の注文を確定します。",
+  "order.confirm": "注文する",
+  "confirm.cancel": "やめる",
+  "chat.suggest.add": "はちみつを 2 つカートに入れて",
+  "chat.suggest.sort": "キッチン用品を安い順に見せて",
+  "chat.suggest.order": "注文して",
 };
 
 export type MessageKey = keyof typeof ja;
@@ -61,6 +68,13 @@ const en: Record<MessageKey, string> = {
   "cart.order": "Place order",
   "cart.ordering": "Placing order…",
   "cart.ordered": "Order placed (order number {number})",
+  "order.title": "Place this order?",
+  "order.description": "Your order totaling {total} will be placed.",
+  "order.confirm": "Place order",
+  "confirm.cancel": "Cancel",
+  "chat.suggest.add": "Add 2 honey to my cart",
+  "chat.suggest.sort": "Show kitchen items, cheapest first",
+  "chat.suggest.order": "Place the order",
 };
 
 export const messages: Record<Language, Record<MessageKey, string>> = {

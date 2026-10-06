@@ -13,7 +13,8 @@ export function CartLine({
   quantity: number;
 }) {
   const { language, t } = useI18n();
-  const { ordering, setCartQuantity, removeFromCart } = useShop();
+  const { state, setCartQuantity, removeFromCart } = useShop();
+  const { ordering } = state;
   const name = product.name[language];
 
   const handleDecrease = () => {

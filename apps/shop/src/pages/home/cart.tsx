@@ -7,7 +7,8 @@ import { CartLine } from "./cart-line";
 
 export function Cart() {
   const { language, t } = useI18n();
-  const { state, ordering, orderNumber, placeOrder } = useShop();
+  const { state, orderNumber, placeOrder } = useShop();
+  const { ordering } = state;
 
   const handleOrder = () => {
     void placeOrder();
