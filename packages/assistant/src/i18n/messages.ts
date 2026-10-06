@@ -33,6 +33,16 @@ const ja = {
     "ダウンロードできませんでした。もう一度試してください。",
   "nano.unavailable":
     "このブラウザでは使えません。パソコン版の Chrome（148 以降）で開いてください。",
+  "qwen.description":
+    "ブラウザの中で Qwen3.5 4B を動かします。API キーは要りません。",
+  "qwen.load": "モデルを読み込む",
+  "qwen.note":
+    "初回だけ、モデル（約 2.4 GB）をダウンロードします。メモリ 16 GB 程度の端末向けです。",
+  "qwen.downloading": "ダウンロードしています…",
+  "qwen.loading": "読み込んでいます…",
+  "qwen.failed": "読み込めませんでした。もう一度試してください。",
+  "qwen.unavailable":
+    "このブラウザでは使えません。WebGPU が使えるブラウザ（Chrome・Edge など）で開いてください。",
 };
 
 export type MessageKey = keyof typeof ja;
@@ -69,6 +79,15 @@ const en: Record<MessageKey, string> = {
   "nano.downloadFailed": "Couldn't download the model. Try again.",
   "nano.unavailable":
     "Not available in this browser. Open this site in Chrome 148 or later on a computer.",
+  "qwen.description": "Runs Qwen3.5 4B inside your browser. No API key needed.",
+  "qwen.load": "Load the model",
+  "qwen.note":
+    "The model (about 2.4 GB) is downloaded only the first time. Needs a device with about 16 GB of memory.",
+  "qwen.downloading": "Downloading…",
+  "qwen.loading": "Loading…",
+  "qwen.failed": "Couldn't load the model. Try again.",
+  "qwen.unavailable":
+    "Not available in this browser. Open this site in a browser with WebGPU (Chrome, Edge, etc.).",
 };
 
 /** チャットの表示言語。サイトの言語を渡す */

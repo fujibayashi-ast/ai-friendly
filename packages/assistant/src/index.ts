@@ -32,6 +32,11 @@ export type {
 } from "./providers/provider";
 export { ProviderAuthError } from "./providers/provider";
 export { useGeminiNano } from "./providers/use-gemini-nano";
+export { useQwen } from "./providers/use-qwen";
+export {
+  createWebLlmProvider,
+  type WebLlmProviderOptions,
+} from "./providers/web-llm-provider";
 export {
   ToolCallLine,
   type ToolCallLineProps,

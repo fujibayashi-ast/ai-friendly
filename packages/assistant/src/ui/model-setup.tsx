@@ -1,24 +1,26 @@
 import { Button } from "@ai-friendly/ui";
 
-/** Gemini Nano のモデルのダウンロード・使えないことの表示（見た目だけ） */
-export function GeminiNanoSetup({
+/** ブラウザの中で動かす LLM の、モデルのダウンロード・読み込みと、使えないことの表示（見た目だけ） */
+export function ModelSetup({
   status,
   progress,
   failed,
-  onDownload,
+  onLoad,
   texts,
 }: {
-  status: "checking" | "unavailable" | "downloadable" | "downloading";
+  status: "checking" | "unavailable" | "ready" | "loading";
   /** 0〜1 */
   progress: number;
   failed: boolean;
-  onDownload: () => void;
+  onLoad: () => void;
   texts: {
     description: string;
-    download: string;
-    downloadNote: string;
-    downloading: string;
-    downloadFailed: string;
+    /** ボタン（「モデルをダウンロード」など） */
+    action: string;
+    note: string;
+    /** 進み具合の前に出す（「ダウンロードしています…」など） */
+    loading: string;
+    failed: string;
     unavailable: string;
   };
 }) {
@@ -30,14 +32,14 @@ export function GeminiNanoSetup({
   return (
     <div className="flex flex-col gap-3 p-4">
       <p className="text-sm">{texts.description}</p>
-      {status === "downloading" ? (
+      {status === "loading" ? (
         <div className="flex flex-col gap-2">
           <p className="text-sm" aria-live="polite">
-            {texts.downloading} {percent}%
+            {texts.loading} {percent}%
           </p>
           <div
             role="progressbar"
-            aria-label={texts.downloading}
+            aria-label={texts.loading}
             aria-valuenow={percent}
             className="h-2 w-full overflow-hidden rounded-full bg-muted"
           >
@@ -48,16 +50,16 @@ export function GeminiNanoSetup({
           </div>
         </div>
       ) : (
-        <Button className="self-start" onClick={onDownload}>
-          {texts.download}
+        <Button className="self-start" onClick={onLoad}>
+          {texts.action}
         </Button>
       )}
       {failed && (
         <p role="alert" className="text-sm text-destructive">
-          {texts.downloadFailed}
+          {texts.failed}
         </p>
       )}
-      <p className="text-xs text-muted-foreground">{texts.downloadNote}</p>
+      <p className="text-xs text-muted-foreground">{texts.note}</p>
     </div>
   );
 }

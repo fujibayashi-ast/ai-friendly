@@ -21,7 +21,7 @@
   - [2026-10-06-minimal-command.md](history/2026-10-06-minimal-command.md) — Command をサイトの関数を呼ぶ形にし、バッチ・状態を外した理由
   - [2026-10-06-chat-ui.md](history/2026-10-06-chat-ui.md) — チャット UI（置き場所・ツールの表示・仮のボット・デザイン）
   - [2026-10-06-claude-provider.md](history/2026-10-06-claude-provider.md) — Claude API のプロバイダ（ブラウザから直接呼ぶ・仮のボットを外す・#10 の見送り）
-  - [2026-10-06-local-llm.md](history/2026-10-06-local-llm.md) — LLM の切り替えと Gemini Nano（Prompt API と WebLLM の比較・ツールの呼び出しを JSON Schema で受ける）
+  - [2026-10-06-local-llm.md](history/2026-10-06-local-llm.md) — LLM の切り替えと Gemini Nano・WebLLM（Prompt API と WebLLM の比較・ツールの呼び出しを JSON Schema で受ける）
 
 題材ごとの仕様は `apps/<題材>/docs/` に置く。
 
