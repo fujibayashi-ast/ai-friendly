@@ -11,7 +11,9 @@ export function ProductCard({ product }: { product: Product }) {
   const { state, ordering, addToCart } = useShop();
   const name = product.name[language];
   const status = productStatus(product);
-  const atLimit = cartQuantity(state, product.id) >= product.stock;
+  // カートに入れた分を引いた、まだ入れられる数
+  const remaining = product.stock - cartQuantity(state, product.id);
+  const atLimit = remaining <= 0;
 
   const handleAdd = () => {
     addToCart(product.id, 1);
@@ -24,8 +26,8 @@ export function ProductCard({ product }: { product: Product }) {
         })
       : status === "sold_out"
         ? t("product.soldOut")
-        : product.stock <= lowStockLimit
-          ? t("product.lowStock", { count: product.stock })
+        : !atLimit && remaining <= lowStockLimit
+          ? t("product.lowStock", { count: remaining })
           : null;
 
   return (
