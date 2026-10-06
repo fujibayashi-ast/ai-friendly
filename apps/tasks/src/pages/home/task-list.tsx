@@ -1,11 +1,10 @@
-import { Button } from "@ai-friendly/ui";
-import { Trash2 } from "lucide-react";
 import { useI18n } from "../../i18n/use-i18n";
 import { useTasks } from "../../tasks/tasks-context";
+import { TaskItem } from "./task-item";
 
 export function TaskList() {
   const { t } = useI18n();
-  const { tasks, setTaskDone, deleteTask } = useTasks();
+  const { tasks } = useTasks();
 
   if (tasks.length === 0) {
     return (
@@ -18,34 +17,7 @@ export function TaskList() {
   return (
     <ul className="divide-y">
       {tasks.map((task) => (
-        <li key={task.id} className="flex items-center gap-3 py-2.5">
-          <label className="flex min-w-0 flex-1 cursor-pointer items-center gap-3">
-            <input
-              type="checkbox"
-              checked={task.done}
-              onChange={(event) => setTaskDone(task.id, event.target.checked)}
-              className="size-4 shrink-0 accent-primary"
-            />
-            <span
-              className={
-                task.done
-                  ? "truncate text-muted-foreground line-through"
-                  : "truncate"
-              }
-            >
-              {task.title}
-            </span>
-          </label>
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label={t("task.delete", { title: task.title })}
-            onClick={() => deleteTask(task.id)}
-            className="shrink-0 text-muted-foreground"
-          >
-            <Trash2 aria-hidden />
-          </Button>
-        </li>
+        <TaskItem key={task.id} task={task} />
       ))}
     </ul>
   );

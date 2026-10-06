@@ -20,5 +20,5 @@ src/
     tasks-provider.tsx    #   useState で持ち、関数を出す（useTasks）
   i18n/                   # 文言（ja / en）・言語の state（I18nProvider・useI18n）
   layout/                 # ヘッダー（サイト名・言語の切り替え）
-  pages/home/             # 追加の入力欄・一覧
+  pages/home/             # 追加の入力欄・一覧・1 行（task-item.tsx）
 ```
