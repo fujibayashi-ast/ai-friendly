@@ -1,15 +1,12 @@
 # AI 向けツールと WebMCP
 
-Command の定義とセッションから AI 向けのツールを作り、WebMCP（ブラウザの AI エージェント）に登録する。サイト内のチャット（`@ai-friendly/assistant`）も同じツールを使う。Command そのものの仕様は [commands.md](commands.md)。
+Command の定義から AI 向けのツールを作り、WebMCP（ブラウザの AI エージェント）に登録する。サイト内のチャット（`@ai-friendly/assistant`）も同じツールを使う。Command そのものの仕様は [commands.md](commands.md)。
 
 ```mermaid
 flowchart LR
-  Defs["Command の定義"] --> Tools["createAiTools"]
-  Session["セッション"] --> Tools
+  Defs["Command の定義<br>（run でサイトの関数を呼ぶ）"] --> Tools["createAiTools"]
   Tools --> WebMCP["registerWebMcpTools<br>（ブラウザの AI エージェント）"]
   Tools --> Chat["assistant のチャット<br>（ローカル LLM / Claude API）"]
-  WebMCP -- "executeRaw(…, &quot;ai&quot;)" --> Session
-  Chat -- "executeRaw(…, &quot;ai&quot;)" --> Session
 ```
 
 ## 使い方
@@ -18,34 +15,35 @@ flowchart LR
 import { createAiTools } from "@ai-friendly/command";
 import { registerWebMcpTools } from "@ai-friendly/command/webmcp";
 
-const tools = createAiTools(session, {
-  describeState: (state) => state.todos.map(({ id, title, done }) => ({ id, title, done })),
+const tools = createAiTools({
+  commands: [addTodoCommand, deleteTodoCommand],
+  confirm: (command) => window.confirm(`Run ${command.type}?`),
+  getState: () => todos.map(({ id, title, done }) => ({ id, title, done })),
 });
 
 const controller = new AbortController();
-const registered = await registerWebMcpTools(tools.all, { signal: controller.signal });
-// 画面を離れるときなどに解除する
+const registered = await registerWebMcpTools(tools, { signal: controller.signal });
+// 状態が変わってツールを作り直すとき・画面を離れるときに解除する
 controller.abort();
 ```
 
 ## ツール（`createAiTools`）
 
-| ツール | 中身 | 主な使い道 |
-| --- | --- | --- |
-| `tools.batch`（`execute_commands`） | 複数の Command を 1 バッチで実行する。説明に Command の短い一覧を載せる | チャット（小さいローカル LLM）・WebMCP |
-| `tools.perCommand`（ツール名は Command の `type`） | Command を 1 つ実行する。`inputSchema` は `z.toJSONSchema(args, { io: "input" })` | WebMCP（引数の型を正確に伝える） |
-| `tools.getState`（`get_state`） | `describeState(state)` の結果を返す。`readOnlyHint: true`。`describeState` を渡したときだけ作る | 両方（ID などを調べる） |
-| `tools.all` | 上のすべて | `registerWebMcpTools` に渡す |
+`AiTool[]` を返す。
 
-* どのツールも実行は `session.executeRaw(…, "ai")` を通る。確認フック・検証の英文のエラーがそのまま効く
+| ツール | 中身 |
+| --- | --- |
+| Command ごと（ツール名は Command の `type`） | Command を 1 つ実行する。`inputSchema` は `z.toJSONSchema(args, { io: "input" })`。確認が要る Command は説明の末尾に `[asks the user to confirm]` が付く |
+| `get_state` | `getState()` の結果を返す。`readOnlyHint: true`。`getState` を渡したときだけ作る |
+
+* 実行は「引数の検証 → 確認 → `run`」の順に進む（[commands.md](commands.md) の「実行の流れ」）
 * 戻り値は `ExecuteResult`（`{ ok: true }` / `{ ok: false, code, message }`）
-* `execute_commands` の入力は `{"commands": [{ "type": "add_todo", ... }]}`。形が違えば `invalid_command` を返す
-* `describeState` は、AI が Command を組み立てるのに要る情報だけを返す（全部渡すとトークンが増える）
-* Command の `type` を `execute_commands` / `get_state` にしない（ツール名がぶつかる）
+* `getState` は、AI が Command を組み立てるのに要る情報だけを返す（全部渡すとトークンが増える）
+* Command の `type` を `get_state` にしない（ツール名がぶつかる）
 
 ## 短い一覧（`describeCommands`）
 
-小さい LLM 向けに、JSON Schema の代わりに 1 Command 1 行で書く。`execute_commands` の説明に使う。
+小さい LLM 向けに、JSON Schema の代わりに 1 Command 1 行で書く。チャットのシステムプロンプトなどに使う。
 
 ```
 add_todo(id: string, title: string, tags?: string[]) — Add a todo

@@ -1,62 +1,31 @@
 import type { z } from "zod";
-import type { Command, CommandDefinition } from "./types";
+import type { CommandDefinition } from "./types";
 
-export type ValidatedCommand<State> = {
-  command: Command;
-  args: Record<string, unknown>;
-  definition: CommandDefinition<State>;
-};
-
-export type ValidationResult<State> =
-  | { ok: true; commands: ValidatedCommand<State>[] }
+export type ValidationResult =
+  | { ok: true; args: Record<string, unknown> }
   | { ok: false; message: string };
 
-export function validateCommands<State>(
+export function validateArgs(
   input: unknown,
-  definitions: ReadonlyMap<string, CommandDefinition<State>>,
-): ValidationResult<State> {
-  const items = Array.isArray(input) ? input : [input];
-  if (items.length === 0) {
-    return { ok: false, message: "commands: expected at least 1 command" };
+  definition: CommandDefinition,
+): ValidationResult {
+  const value = input ?? {};
+  if (!isRecord(value))
+    return { ok: false, message: "input: expected an object" };
+  const parsed = definition.args
+    .strict()
+    .safeParse(value, { reportInput: true });
+  if (!parsed.success) {
+    return { ok: false, message: formatIssue(parsed.error.issues, definition) };
   }
-
-  const commands: ValidatedCommand<State>[] = [];
-  for (const [index, item] of items.entries()) {
-    const path = `commands[${index}]`;
-    if (!isRecord(item) || typeof item.type !== "string") {
-      return {
-        ok: false,
-        message: `${path}: expected an object with a string "type"`,
-      };
-    }
-    const definition = definitions.get(item.type);
-    if (!definition) {
-      const available = [...definitions.keys()].join(", ");
-      return {
-        ok: false,
-        message: `${path}: unknown command "${item.type}" (available: ${available})`,
-      };
-    }
-    const { type: _, ...rest } = item;
-    const parsed = definition.args
-      .strict()
-      .safeParse(rest, { reportInput: true });
-    if (!parsed.success) {
-      return {
-        ok: false,
-        message: formatIssue(parsed.error.issues, path, definition),
-      };
-    }
-    const args = parsed.data;
-    commands.push({ command: { ...args, type: item.type }, args, definition });
-  }
-  return { ok: true, commands };
+  return { ok: true, args: parsed.data };
 }
 
-function formatIssue<State>(
+const path = "input";
+
+function formatIssue(
   issues: readonly z.core.$ZodIssue[],
-  path: string,
-  definition: CommandDefinition<State>,
+  definition: CommandDefinition,
 ): string {
   const [issue] = issues;
   if (!issue) return `${path}: invalid arguments for ${definition.type}`;

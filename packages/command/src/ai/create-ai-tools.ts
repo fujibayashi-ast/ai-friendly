@@ -1,7 +1,7 @@
 import { z } from "zod";
-import type { CommandSession } from "../session";
-import type { CommandDefinition, ExecuteResult } from "../types";
-import { describeCommands } from "./describe-commands";
+import { runCommand } from "../run-command";
+import type { CommandDefinition, ConfirmHandler } from "../types";
+import { confirmationMark } from "./describe-commands";
 
 /** AI に渡すツール。WebMCP の `registerTool` にもそのまま渡せる形 */
 export type AiTool = {
@@ -12,102 +12,47 @@ export type AiTool = {
   annotations?: { readOnlyHint?: boolean };
 };
 
-export type AiTools = {
-  /** `execute_commands`: 複数の Command を 1 バッチで実行する */
-  batch: AiTool;
-  /** Command ごとのツール（ツール名は Command の `type`） */
-  perCommand: AiTool[];
-  /** `get_state`: `describeState` を渡したときだけ作る */
-  getState?: AiTool;
-  all: AiTool[];
-};
-
-export type AiToolsOptions<State> = {
-  /** AI に見せる状態。ID など、AI が Command を組み立てるのに要る情報を返す */
-  describeState?: (state: State) => unknown;
+export type AiToolsOptions = {
+  commands: readonly CommandDefinition[];
+  /** 省略すると、確認が要る Command はすべて `rejected` になる */
+  confirm?: ConfirmHandler;
+  /** AI に見せる今の状態（ID など、Command を組み立てるのに要る情報）。渡したときだけ `get_state` を作る */
+  getState?: () => unknown;
 };
 
 /**
- * セッションから AI 向けのツールを作る。実行はすべて `session.executeRaw(…, "ai")` を通る
+ * Command ごとの AI 向けツールと `get_state` を作る
+ * ツールの実行は、引数の検証 → 確認 → `run` の順に進む
+ *
+ * @example
+ * const tools = createAiTools({
+ *   commands: [setLanguageCommand, resetSettingsCommand],
+ *   confirm: (command) => window.confirm(`Run ${command.type}?`),
+ *   getState: () => ({ theme, language }),
+ * });
+ * await registerWebMcpTools(tools, { signal });
  * @see docs/ai-tools.md
  */
-export function createAiTools<
-  State,
-  Defs extends readonly CommandDefinition<State>[],
->(
-  session: CommandSession<State, Defs>,
-  options: AiToolsOptions<State> = {},
-): AiTools {
-  const definitions: readonly CommandDefinition<State>[] = session.definitions;
-
-  const batch: AiTool = {
-    name: "execute_commands",
-    description: [
-      "Run one or more commands as a single batch. If any command fails, none are applied.",
-      'Input: {"commands": [{"type": "<command>", ...fields}]}',
-      "Commands:",
-      describeCommands(definitions),
-    ].join("\n"),
-    inputSchema: {
-      type: "object",
-      properties: {
-        commands: {
-          type: "array",
-          items: {
-            type: "object",
-            properties: {
-              type: { type: "string", enum: definitions.map((d) => d.type) },
-            },
-            required: ["type"],
-          },
-        },
-      },
-      required: ["commands"],
-    },
-    execute: async (input) => {
-      if (!isRecord(input) || !("commands" in input)) {
-        return invalid('input: expected {"commands": [...]}');
-      }
-      return session.executeRaw(input.commands, "ai");
-    },
-  };
-
-  const perCommand = definitions.map(
+export function createAiTools(options: AiToolsOptions): AiTool[] {
+  const tools = options.commands.map(
     (definition): AiTool => ({
       name: definition.type,
-      description: definition.description,
+      description: definition.description + confirmationMark(definition),
       inputSchema: z.toJSONSchema(definition.args, { io: "input" }),
-      execute: async (input) => {
-        if (input !== undefined && !isRecord(input)) {
-          return invalid("input: expected an object");
-        }
-        return session.executeRaw({ ...input, type: definition.type }, "ai");
-      },
+      execute: (input) => runCommand(definition, input, options.confirm),
     }),
   );
 
-  const { describeState } = options;
-  const getState: AiTool | undefined = describeState && {
-    name: "get_state",
-    description:
-      "Get the current state. Use it to find IDs and values before running commands.",
-    inputSchema: { type: "object", properties: {} },
-    execute: async () => describeState(session.getState()),
-    annotations: { readOnlyHint: true },
-  };
-
-  return {
-    batch,
-    perCommand,
-    getState,
-    all: [batch, ...perCommand, ...(getState ? [getState] : [])],
-  };
-}
-
-function invalid(message: string): ExecuteResult {
-  return { ok: false, code: "invalid_command", message };
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
+  const { getState } = options;
+  if (getState) {
+    tools.push({
+      name: "get_state",
+      description:
+        "Get the current state. Use it to find IDs and values before running commands.",
+      inputSchema: { type: "object", properties: {} },
+      execute: async () => getState(),
+      annotations: { readOnlyHint: true },
+    });
+  }
+  return tools;
 }
