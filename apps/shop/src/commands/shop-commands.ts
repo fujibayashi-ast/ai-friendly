@@ -17,6 +17,7 @@ import { type ShopContextValue, useShop } from "../shop/shop-context";
 type ShopActions = Pick<
   ShopContextValue,
   | "state"
+  | "ordering"
   | "setCategory"
   | "setOrder"
   | "addToCart"
@@ -27,6 +28,7 @@ type ShopActions = Pick<
 
 export function createShopCommands({
   state,
+  ordering,
   setCategory,
   setOrder,
   addToCart,
@@ -45,6 +47,11 @@ export function createShopCommands({
     fail(
       `product "${id}" is not in the cart (cart: ${state.cart.map((item) => item.productId).join(", ") || "empty"})`,
     );
+  // 画面のボタンと同じく、注文の送信中はカートと注文を受け付けない（サイトの関数も何もしない）
+  const busy = () =>
+    ordering
+      ? fail("an order is being placed; try again after it finishes")
+      : undefined;
   /** 販売中で、カートの分と合わせて在庫に収まるか。だめなら理由を返す */
   const checkStock = (id: string, quantity: number) => {
     const product = findProduct(state, id);
@@ -85,10 +92,9 @@ export function createShopCommands({
         quantity: z.number().int().min(1).default(1),
       }),
       run: ({ product_id, quantity }) => {
-        const error = checkStock(
-          product_id,
-          cartQuantity(state, product_id) + quantity,
-        );
+        const error =
+          busy() ??
+          checkStock(product_id, cartQuantity(state, product_id) + quantity);
         if (error) return error;
         addToCart(product_id, quantity);
       },
@@ -102,7 +108,7 @@ export function createShopCommands({
         quantity: z.number().int().min(1),
       }),
       run: ({ product_id, quantity }) => {
-        const error = checkStock(product_id, quantity);
+        const error = busy() ?? checkStock(product_id, quantity);
         if (error) return error;
         // 小さいモデルは「n 個にして」をカートにない商品にも使うので、なければ入れる
         if (cartQuantity(state, product_id) === 0) {
@@ -117,6 +123,8 @@ export function createShopCommands({
       description: "Remove a product from the cart.",
       args: z.object({ product_id: z.string() }),
       run: ({ product_id }) => {
+        const error = busy();
+        if (error) return error;
         if (cartQuantity(state, product_id) === 0) return notInCart(product_id);
         removeFromCart(product_id);
       },
@@ -126,7 +134,7 @@ export function createShopCommands({
       description: "Place an order for everything in the cart.",
       args: z.object({}),
       // 空のカートは確認せずに知らせる
-      requiresConfirmation: () => state.cart.length > 0,
+      requiresConfirmation: () => !ordering && state.cart.length > 0,
       confirmation: () => ({
         title: t("order.title"),
         description: t("order.description", {
@@ -135,6 +143,8 @@ export function createShopCommands({
         confirmLabel: t("order.confirm"),
       }),
       run: async () => {
+        const error = busy();
+        if (error) return error;
         if (state.cart.length === 0) return fail("the cart is empty");
         await placeOrder();
       },
@@ -146,6 +156,7 @@ export function createShopCommands({
 export function useShopCommands() {
   const {
     state,
+    ordering,
     setCategory,
     setOrder,
     addToCart,
@@ -158,6 +169,7 @@ export function useShopCommands() {
     () =>
       createShopCommands({
         state,
+        ordering,
         setCategory,
         setOrder,
         addToCart,
@@ -169,6 +181,7 @@ export function useShopCommands() {
       }),
     [
       state,
+      ordering,
       setCategory,
       setOrder,
       addToCart,

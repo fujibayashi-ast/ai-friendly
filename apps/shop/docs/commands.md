@@ -75,8 +75,10 @@ src/
   | 存在しない ID | `add_to_cart: product "9" not found (ids: 1, 2, …, 8)` |
   | カートにない | `remove_from_cart: product "1" is not in the cart (cart: 6)` |
   | 空のカートで注文 | `place_order: the cart is empty` |
+  | 注文の送信中にカートの操作・注文 | `add_to_cart: an order is being placed; try again after it finishes` |
 
 * サイトの関数（`shop.ts`）は、売り切れや在庫を超える数を黙ってそろえる。Command は呼ぶ前に確かめて、そろえずに理由を返す（AI がユーザーに伝えられるように）
+* 注文の送信中は、画面のボタンと同じく、カートの操作と注文を受け付けない。サイトの関数（`ShopProvider`）も送信中は何もしないので、Command は呼ぶ前に確かめて理由を返す（`place_order` は確認も出さない）。絞り込み・並べ替えは止めない
 * `set_cart_quantity` は、カートにない商品なら `addToCart` を、あれば `setCartQuantity` を呼ぶ。小さいモデルは「買えるだけ（= 在庫の数に）」のような頼みで、カートにない商品にも使うため
 * `place_order` の `run` は Promise を返す（ダミーの API を待つ）。AI への結果は注文が終わってから返る
 * 確認の文言は Command の定義（`confirmation`）が持つ。合計金額は `Intl` で表示中の言語に合わせる

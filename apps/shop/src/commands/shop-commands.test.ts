@@ -6,9 +6,11 @@ import { createShopCommands } from "./shop-commands";
 
 const setup = ({
   state = initialShopState,
+  ordering = false,
   confirm,
 }: {
   state?: ShopState;
+  ordering?: boolean;
   confirm?: ConfirmHandler;
 } = {}) => {
   const actions = {
@@ -23,6 +25,7 @@ const setup = ({
   const tools = createAiTools({
     commands: createShopCommands({
       state,
+      ordering,
       ...actions,
       language: "en",
       t: createTranslate("en"),
@@ -128,6 +131,29 @@ describe("shop commands", () => {
       code: "rejected",
     });
     expect(declined.placeOrder).not.toHaveBeenCalled();
+  });
+
+  test("refuse cart changes and orders while an order is being placed", async () => {
+    const s = setup({ state: withHoney, ordering: true });
+    const message = "an order is being placed; try again after it finishes";
+    for (const [name, input] of [
+      ["add_to_cart", { product_id: "1" }],
+      ["set_cart_quantity", { product_id: "6", quantity: 2 }],
+      ["remove_from_cart", { product_id: "6" }],
+      ["place_order", {}],
+    ] as const) {
+      expect(await s.run(name, input)).toEqual({
+        ok: false,
+        code: "domain_error",
+        message: `${name}: ${message}`,
+      });
+    }
+    expect(s.confirm).not.toHaveBeenCalled();
+    expect(s.addToCart).not.toHaveBeenCalled();
+    expect(s.placeOrder).not.toHaveBeenCalled();
+    expect(await s.run("set_category", { category: "food" })).toEqual({
+      ok: true,
+    });
   });
 
   test("tell without asking when the cart is empty", async () => {
