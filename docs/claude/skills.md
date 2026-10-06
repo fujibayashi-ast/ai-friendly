@@ -20,6 +20,7 @@ TEMPLATE_REF: main
 
 - private リポジトリのため、取得には認証済みの `gh` を使う（同 Org メンバーであれば閲覧可）
 - skill は `.claude/skills/<name>/` フォルダ単位で配置される
+- テンプレート以外から入れた skill: `gh-stack`（取得元は [github/gh-stack](https://github.com/github/gh-stack) の `skills/gh-stack`。版は `SKILL.md` の frontmatter）。更新するときはそこから取り直す
 
 ## 取得・更新コマンドの考え方
 
