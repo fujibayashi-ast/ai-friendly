@@ -20,7 +20,7 @@ export function ToolCallLine({ call, result, t }: ToolCallView) {
   );
 
   return (
-    <div className="text-xs text-muted-foreground">
+    <div className="self-start max-w-full rounded-md bg-muted px-2.5 py-1.5 text-xs text-muted-foreground">
       <div className="flex items-baseline gap-2">
         <Icon
           role="img"
@@ -33,11 +33,9 @@ export function ToolCallLine({ call, result, t }: ToolCallView) {
                 : "size-3.5 shrink-0 translate-y-0.5"
           }
         />
-        <span className="flex min-w-0 flex-wrap items-baseline gap-x-2">
-          <code className="rounded-sm bg-primary px-1 font-mono text-primary-foreground">
-            {call.name}
-          </code>
-          <span className="break-all font-mono">{formatInput(call.input)}</span>
+        <span className="flex min-w-0 flex-wrap items-baseline gap-x-2 font-mono">
+          <code className="font-semibold text-foreground">{call.name}</code>
+          <span className="break-all">{formatInput(call.input)}</span>
         </span>
       </div>
       {failed && (
