@@ -9,6 +9,12 @@ const icons = { light: Sun, dark: Moon } as const;
 export function ThemeSwitcher() {
   const { theme, setTheme } = useTheme();
   const { t } = useI18n();
+
+  const handleValueChange = (value: string) => {
+    const next = themes.find((v) => v === value);
+    if (next) setTheme(next);
+  };
+
   return (
     <ToggleGroup
       type="single"
@@ -16,10 +22,7 @@ export function ThemeSwitcher() {
       spacing={1}
       aria-label={t("theme.label")}
       value={theme}
-      onValueChange={(value) => {
-        const next = themes.find((v) => v === value);
-        if (next) setTheme(next);
-      }}
+      onValueChange={handleValueChange}
     >
       {themes.map((item) => {
         const Icon = icons[item];

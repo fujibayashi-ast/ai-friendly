@@ -1,6 +1,6 @@
 import { Button, cn } from "@ai-friendly/ui";
 import { MessageCircle, X } from "lucide-react";
-import { useEffect, useId, useRef, useState } from "react";
+import { type KeyboardEvent, useEffect, useId, useRef, useState } from "react";
 import { Chat, type ChatProps, focusSetup } from "../chat/chat";
 import { createTranslate } from "../i18n/messages";
 
@@ -34,6 +34,23 @@ export function FloatingChat(props: FloatingChatProps) {
     wasOpen.current = open;
   }, [open]);
 
+  const handleKeyDown = (event: KeyboardEvent<HTMLElement>) => {
+    // 切り替えの一覧（パネルの外に描画される）を閉じる Esc では、パネルは閉じない
+    if (
+      event.key === "Escape" &&
+      event.currentTarget.contains(event.target as Node)
+    )
+      setOpen(false);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+  };
+
+  const handleToggle = () => {
+    setOpen(!open);
+  };
+
   return (
     <>
       <section
@@ -41,14 +58,7 @@ export function FloatingChat(props: FloatingChatProps) {
         role="dialog"
         aria-labelledby={titleId}
         hidden={!open}
-        onKeyDown={(event) => {
-          // 切り替えの一覧（パネルの外に描画される）を閉じる Esc では、パネルは閉じない
-          if (
-            event.key === "Escape" &&
-            event.currentTarget.contains(event.target as Node)
-          )
-            setOpen(false);
-        }}
+        onKeyDown={handleKeyDown}
         className={cn(
           "fixed inset-0 z-50 flex flex-col bg-background sm:inset-auto sm:right-4 sm:bottom-22 sm:h-[560px] sm:max-h-[calc(100dvh-7.5rem)] sm:w-[380px] sm:rounded-xl sm:border sm:shadow-lg motion-safe:animate-in motion-safe:fade-in-0 motion-safe:zoom-in-95 sm:origin-bottom-right",
           !open && "hidden",
@@ -62,7 +72,7 @@ export function FloatingChat(props: FloatingChatProps) {
             variant="ghost"
             size="icon"
             aria-label={t("close")}
-            onClick={() => setOpen(false)}
+            onClick={handleClose}
           >
             <X aria-hidden />
           </Button>
@@ -74,7 +84,7 @@ export function FloatingChat(props: FloatingChatProps) {
         type="button"
         aria-label={t(open ? "launcher.close" : "launcher.open")}
         aria-expanded={open}
-        onClick={() => setOpen(!open)}
+        onClick={handleToggle}
         className={cn(
           "fixed right-4 bottom-4 z-50 flex size-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-transform outline-none hover:scale-105 focus-visible:ring-[3px] focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background motion-reduce:transition-none",
           open && "max-sm:hidden",

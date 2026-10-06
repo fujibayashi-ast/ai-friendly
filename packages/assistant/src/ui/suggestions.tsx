@@ -11,16 +11,31 @@ export function Suggestions({
   return (
     <div className="flex flex-wrap gap-2">
       {items.map((text) => (
-        <Button
-          key={text}
-          variant="outline"
-          size="sm"
-          className="rounded-full font-normal"
-          onClick={() => onSelect(text)}
-        >
-          {text}
-        </Button>
+        <SuggestionButton key={text} text={text} onSelect={onSelect} />
       ))}
     </div>
+  );
+}
+
+function SuggestionButton({
+  text,
+  onSelect,
+}: {
+  text: string;
+  onSelect: (text: string) => void;
+}) {
+  const handleClick = () => {
+    onSelect(text);
+  };
+
+  return (
+    <Button
+      variant="outline"
+      size="sm"
+      className="rounded-full font-normal"
+      onClick={handleClick}
+    >
+      {text}
+    </Button>
   );
 }

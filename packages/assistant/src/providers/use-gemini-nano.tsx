@@ -75,6 +75,10 @@ export function useGeminiNano({
   );
   const t = createTranslate(language);
 
+  const handleLoad = () => {
+    void download();
+  };
+
   return {
     label: "Gemini Nano",
     provider,
@@ -89,7 +93,7 @@ export function useGeminiNano({
         }
         progress={progress}
         failed={failed}
-        onLoad={() => void download()}
+        onLoad={handleLoad}
         texts={{
           description: t("nano.description"),
           action: t("nano.download"),

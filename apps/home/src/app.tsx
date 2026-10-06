@@ -18,6 +18,11 @@ export function App() {
     document.documentElement.lang = language;
   }, [language]);
 
+  const handleValueChange = (value: string) => {
+    const next = languages.find((v) => v === value);
+    if (next) setLanguage(next);
+  };
+
   return (
     <div className="flex min-h-dvh flex-col">
       <header className="border-b">
@@ -35,10 +40,7 @@ export function App() {
             spacing={1}
             aria-label={t("language.label")}
             value={language}
-            onValueChange={(value) => {
-              const next = languages.find((v) => v === value);
-              if (next) setLanguage(next);
-            }}
+            onValueChange={handleValueChange}
           >
             {languages.map((item) => (
               <ToggleGroupItem

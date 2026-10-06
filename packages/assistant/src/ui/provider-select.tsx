@@ -20,11 +20,13 @@ export function ProviderSelect({
   label: string;
 }) {
   if (labels.length < 2) return null;
+
+  const handleValueChange = (value: string) => {
+    onSelect(Number(value));
+  };
+
   return (
-    <Select
-      value={String(selected)}
-      onValueChange={(value) => onSelect(Number(value))}
-    >
+    <Select value={String(selected)} onValueChange={handleValueChange}>
       <SelectTrigger
         size="sm"
         aria-label={label}

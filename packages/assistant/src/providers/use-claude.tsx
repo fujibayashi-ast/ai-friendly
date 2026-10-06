@@ -32,6 +32,10 @@ export function useClaude({
   );
   const t = createTranslate(language);
 
+  const handleChangeKey = () => {
+    onApiKeyChange(null);
+  };
+
   return {
     label: "Claude",
     provider,
@@ -41,7 +45,7 @@ export function useClaude({
         variant="ghost"
         size="sm"
         className="text-muted-foreground"
-        onClick={() => onApiKeyChange(null)}
+        onClick={handleChangeKey}
       >
         {t("apiKey.change")}
       </Button>

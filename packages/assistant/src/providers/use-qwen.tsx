@@ -78,6 +78,10 @@ export function useQwen({
   );
   const t = createTranslate(language);
 
+  const handleLoad = () => {
+    void load();
+  };
+
   return {
     label: "Qwen3.5 4B",
     provider,
@@ -86,7 +90,7 @@ export function useQwen({
         status={status}
         progress={progress}
         failed={failed}
-        onLoad={() => void load()}
+        onLoad={handleLoad}
         texts={{
           description: t("qwen.description"),
           action: t("qwen.load"),

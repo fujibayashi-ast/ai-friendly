@@ -162,6 +162,16 @@ export function Chat({
     );
   }
 
+  const handleSuggestionSelect = (text: string) => {
+    void send(text);
+    // 押した例は消えるので、入力欄にフォーカスを移す
+    input.current?.focus();
+  };
+
+  const handleSubmit = (text: string) => {
+    void send(text);
+  };
+
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <div
@@ -176,11 +186,7 @@ export function Chat({
             {suggestions.length > 0 && (
               <Suggestions
                 items={suggestions}
-                onSelect={(text) => {
-                  void send(text);
-                  // 押した例は消えるので、入力欄にフォーカスを移す
-                  input.current?.focus();
-                }}
+                onSelect={handleSuggestionSelect}
               />
             )}
           </div>
@@ -221,7 +227,7 @@ export function Chat({
         placeholder={t("placeholder")}
         sendLabel={t("send")}
         disabled={running}
-        onSubmit={(text) => void send(text)}
+        onSubmit={handleSubmit}
         inputRef={input}
         start={providerSelect}
       />
