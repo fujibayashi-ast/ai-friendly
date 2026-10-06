@@ -9,6 +9,7 @@ import {
   setCartQuantity,
   setCategory,
   setOrder,
+  startOrder,
   visibleProducts,
 } from "./shop";
 
@@ -52,12 +53,20 @@ describe("cart", () => {
     expect(state.cart).toEqual([]);
   });
 
+  test("keep the cart while an order is being placed", () => {
+    const state = startOrder(addToCart(initialShopState, "6", 1));
+    expect(addToCart(state, "1", 1)).toBe(state);
+    expect(setCartQuantity(state, "6", 2)).toBe(state);
+    expect(removeFromCart(state, "6")).toBe(state);
+  });
+
   test("total and order", () => {
     let state = addToCart(initialShopState, "1", 2);
     state = addToCart(state, "6", 2);
     expect(cartTotal(state)).toBe(1280 * 2 + 1680 * 2);
     state = completeOrder(state, state.cart);
     expect(state.cart).toEqual([]);
+    expect(state.ordering).toBe(false);
     const honey = state.products.find((product) => product.id === "6");
     expect(honey && productStatus(honey)).toBe("sold_out");
   });

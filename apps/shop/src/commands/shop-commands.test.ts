@@ -1,16 +1,19 @@
 import { describe, expect, mock, test } from "bun:test";
 import { type ConfirmHandler, createAiTools } from "@ai-friendly/command";
 import { createTranslate } from "../i18n/messages";
-import { addToCart, initialShopState, type ShopState } from "../shop/shop";
+import {
+  addToCart,
+  initialShopState,
+  type ShopState,
+  startOrder,
+} from "../shop/shop";
 import { createShopCommands } from "./shop-commands";
 
 const setup = ({
   state = initialShopState,
-  ordering = false,
   confirm,
 }: {
   state?: ShopState;
-  ordering?: boolean;
   confirm?: ConfirmHandler;
 } = {}) => {
   const actions = {
@@ -25,7 +28,6 @@ const setup = ({
   const tools = createAiTools({
     commands: createShopCommands({
       state,
-      ordering,
       ...actions,
       language: "en",
       t: createTranslate("en"),
@@ -134,7 +136,7 @@ describe("shop commands", () => {
   });
 
   test("refuse cart changes and orders while an order is being placed", async () => {
-    const s = setup({ state: withHoney, ordering: true });
+    const s = setup({ state: startOrder(withHoney) });
     const message = "an order is being placed; try again after it finishes";
     for (const [name, input] of [
       ["add_to_cart", { product_id: "1" }],

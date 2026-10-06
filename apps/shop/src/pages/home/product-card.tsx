@@ -8,7 +8,7 @@ import { ProductImage } from "./product-image";
 
 export function ProductCard({ product }: { product: Product }) {
   const { language, t } = useI18n();
-  const { state, ordering, addToCart } = useShop();
+  const { state, addToCart } = useShop();
   const name = product.name[language];
   const status = productStatus(product);
   // カートに入れた分を引いた、まだ入れられる数
@@ -53,7 +53,7 @@ export function ProductCard({ product }: { product: Product }) {
           size="sm"
           variant="outline"
           aria-label={atLimit ? undefined : t("product.addLabel", { name })}
-          disabled={atLimit || ordering}
+          disabled={atLimit || state.ordering}
           onClick={handleAdd}
         >
           {atLimit ? t("product.limit") : t("product.add")}

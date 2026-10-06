@@ -17,7 +17,6 @@ import { type ShopContextValue, useShop } from "../shop/shop-context";
 type ShopActions = Pick<
   ShopContextValue,
   | "state"
-  | "ordering"
   | "setCategory"
   | "setOrder"
   | "addToCart"
@@ -28,7 +27,6 @@ type ShopActions = Pick<
 
 export function createShopCommands({
   state,
-  ordering,
   setCategory,
   setOrder,
   addToCart,
@@ -49,7 +47,7 @@ export function createShopCommands({
     );
   // 画面のボタンと同じく、注文の送信中はカートと注文を受け付けない（サイトの関数も何もしない）
   const busy = () =>
-    ordering
+    state.ordering
       ? fail("an order is being placed; try again after it finishes")
       : undefined;
   /** 販売中で、カートの分と合わせて在庫に収まるか。だめなら理由を返す */
@@ -134,7 +132,7 @@ export function createShopCommands({
       description: "Place an order for everything in the cart.",
       args: z.object({}),
       // 空のカートは確認せずに知らせる
-      requiresConfirmation: () => !ordering && state.cart.length > 0,
+      requiresConfirmation: () => !state.ordering && state.cart.length > 0,
       confirmation: () => ({
         title: t("order.title"),
         description: t("order.description", {
@@ -156,7 +154,6 @@ export function createShopCommands({
 export function useShopCommands() {
   const {
     state,
-    ordering,
     setCategory,
     setOrder,
     addToCart,
@@ -169,7 +166,6 @@ export function useShopCommands() {
     () =>
       createShopCommands({
         state,
-        ordering,
         setCategory,
         setOrder,
         addToCart,
@@ -181,7 +177,6 @@ export function useShopCommands() {
       }),
     [
       state,
-      ordering,
       setCategory,
       setOrder,
       addToCart,
