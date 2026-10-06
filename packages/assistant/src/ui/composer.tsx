@@ -1,20 +1,22 @@
 import { Button, Textarea } from "@ai-friendly/ui";
 import { ArrowUp } from "lucide-react";
-import { type KeyboardEvent, type Ref, useState } from "react";
+import { type KeyboardEvent, type ReactNode, type Ref, useState } from "react";
 
-/** 入力欄と送信ボタン。Enter で送信、Shift+Enter で改行 */
+/** 入力欄と送信ボタン。Enter で送信、Shift+Enter で改行。左下に `start`（LLM の切り替えなど）を置ける */
 export function Composer({
   placeholder,
   sendLabel,
   disabled,
   onSubmit,
   inputRef,
+  start,
 }: {
   placeholder: string;
   sendLabel: string;
   disabled: boolean;
   onSubmit: (text: string) => void;
   inputRef?: Ref<HTMLTextAreaElement>;
+  start?: ReactNode;
 }) {
   const [draft, setDraft] = useState("");
 
@@ -38,7 +40,7 @@ export function Composer({
 
   return (
     <form
-      className="flex items-end gap-2 border-t p-3"
+      className="flex flex-col gap-2 border-t p-3"
       onSubmit={(event) => {
         event.preventDefault();
         submit();
@@ -54,15 +56,18 @@ export function Composer({
         rows={1}
         className="max-h-32 min-h-10 resize-none"
       />
-      <Button
-        type="submit"
-        size="icon"
-        aria-label={sendLabel}
-        disabled={disabled || !draft.trim()}
-        className="size-10 shrink-0"
-      >
-        <ArrowUp aria-hidden />
-      </Button>
+      <div className="flex items-center justify-between gap-2">
+        <div>{start}</div>
+        <Button
+          type="submit"
+          size="icon"
+          aria-label={sendLabel}
+          disabled={disabled || !draft.trim()}
+          className="size-8 shrink-0"
+        >
+          <ArrowUp aria-hidden />
+        </Button>
+      </div>
     </form>
   );
 }

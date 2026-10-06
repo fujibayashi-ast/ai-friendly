@@ -1,7 +1,7 @@
 import { Button, cn } from "@ai-friendly/ui";
 import { MessageCircle, X } from "lucide-react";
 import { type ReactNode, useEffect, useId, useRef, useState } from "react";
-import { Chat, type ChatProps } from "../chat/chat";
+import { Chat, type ChatProps, focusSetup } from "../chat/chat";
 import { createTranslate } from "../i18n/messages";
 
 export type FloatingChatProps = Omit<ChatProps, "inputRef"> & {
@@ -14,7 +14,7 @@ export type FloatingChatProps = Omit<ChatProps, "inputRef"> & {
  * 閉じてもパネルは隠すだけなので、会話は残る
  *
  * @example
- * <FloatingChat provider={provider} tools={tools} language="ja" suggestions={["ダークにして"]} />
+ * <FloatingChat providers={[{ label: "Claude", provider }]} tools={tools} language="ja" suggestions={["ダークにして"]} />
  * @see docs/assistant.md
  */
 export function FloatingChat({ actions, ...props }: FloatingChatProps) {
@@ -27,9 +27,11 @@ export function FloatingChat({ actions, ...props }: FloatingChatProps) {
 
   const wasOpen = useRef(false);
   useEffect(() => {
-    // 入力欄がなければ（API キーの入力待ちなど）、パネルの最初の入力に移す
-    if (open)
-      (inputRef.current ?? panelRef.current?.querySelector("input"))?.focus();
+    // 入力欄がなければ（API キーの入力待ちなど）、setup の最初の入力に移す
+    if (open) {
+      if (inputRef.current) inputRef.current.focus();
+      else focusSetup(panelRef.current);
+    }
     // スマホでは開いている間ボタンを隠すので、閉じて描画し直した後に戻す
     else if (wasOpen.current) launcherRef.current?.focus();
     wasOpen.current = open;
@@ -43,7 +45,12 @@ export function FloatingChat({ actions, ...props }: FloatingChatProps) {
         aria-labelledby={titleId}
         hidden={!open}
         onKeyDown={(event) => {
-          if (event.key === "Escape") setOpen(false);
+          // 切り替えの一覧（パネルの外に描画される）を閉じる Esc では、パネルは閉じない
+          if (
+            event.key === "Escape" &&
+            event.currentTarget.contains(event.target as Node)
+          )
+            setOpen(false);
         }}
         className={cn(
           "fixed inset-0 z-50 flex flex-col bg-background sm:inset-auto sm:right-4 sm:bottom-22 sm:h-[560px] sm:max-h-[calc(100dvh-7.5rem)] sm:w-[380px] sm:rounded-xl sm:border sm:shadow-lg motion-safe:animate-in motion-safe:fade-in-0 motion-safe:zoom-in-95 sm:origin-bottom-right",

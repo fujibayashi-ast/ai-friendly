@@ -2,6 +2,7 @@ import {
   ApiKeyForm,
   createClaudeProvider,
   FloatingChat,
+  useGeminiNano,
 } from "@ai-friendly/assistant";
 import { type AiTool, createAiTools } from "@ai-friendly/command";
 import { registerWebMcpTools } from "@ai-friendly/command/webmcp";
@@ -55,15 +56,22 @@ export function Ai() {
 
   // 再読み込みで消える。保存はしない
   const [apiKey, setApiKey] = useState<string | null>(null);
-  const provider = useMemo(
+  const claude = useMemo(
     () => (apiKey ? createClaudeProvider({ apiKey, system }) : undefined),
     [apiKey],
   );
+  const geminiNano = useGeminiNano({ system, language });
 
   return (
     <FloatingChat
-      provider={provider}
-      setup={<ApiKeyForm language={language} onSubmit={setApiKey} />}
+      providers={[
+        {
+          label: "Claude",
+          provider: claude,
+          setup: <ApiKeyForm language={language} onSubmit={setApiKey} />,
+        },
+        geminiNano,
+      ]}
       actions={
         apiKey && (
           <Button variant="ghost" size="sm" onClick={() => setApiKey(null)}>
@@ -84,4 +92,4 @@ export function Ai() {
 }
 
 const system =
-  "You operate this website for the user by calling the tools. Check the current settings with get_state when you need them. Reply briefly in the same language as the user.";
+  'You operate this website for the user by calling the tools. Requests like "make it dark" or "switch to English" are about this website, so use the tools for them. Check the current settings with get_state when you need them. Reply briefly in the same language as the user.';

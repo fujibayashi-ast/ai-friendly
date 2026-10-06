@@ -1,5 +1,5 @@
 export { ApiKeyForm } from "./chat/api-key-form";
-export { Chat, type ChatProps } from "./chat/chat";
+export { Chat, type ChatProps, type ProviderOption } from "./chat/chat";
 export {
   type RunChatOptions,
   type RunChatResult,
@@ -20,6 +20,10 @@ export {
   type ClaudeProviderOptions,
   createClaudeProvider,
 } from "./providers/claude-provider";
+export {
+  createGeminiNanoProvider,
+  type GeminiNanoProviderOptions,
+} from "./providers/gemini-nano-provider";
 export type {
   ChatMessage,
   ChatProvider,
@@ -27,6 +31,7 @@ export type {
   ToolCall,
 } from "./providers/provider";
 export { ProviderAuthError } from "./providers/provider";
+export { useGeminiNano } from "./providers/use-gemini-nano";
 export {
   ToolCallLine,
   type ToolCallLineProps,

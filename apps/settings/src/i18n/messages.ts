@@ -13,7 +13,7 @@ const ja = {
   "reset.confirm": "リセットする",
   "confirm.cancel": "やめる",
   "chat.suggest.theme": "ダークにして",
-  "chat.suggest.language": "英語にして",
+  "chat.suggest.language": "サイトを英語にして",
   "chat.suggest.reset": "設定をリセットして",
   "chat.changeKey": "キーを変更",
 };
@@ -33,7 +33,7 @@ const en: Record<MessageKey, string> = {
   "reset.confirm": "Reset",
   "confirm.cancel": "Cancel",
   "chat.suggest.theme": "Switch to dark",
-  "chat.suggest.language": "Switch to Japanese",
+  "chat.suggest.language": "Show this site in Japanese",
   "chat.suggest.reset": "Reset the settings",
   "chat.changeKey": "Change key",
 };
