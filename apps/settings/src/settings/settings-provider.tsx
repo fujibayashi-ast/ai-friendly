@@ -6,7 +6,6 @@ import {
   useState,
 } from "react";
 import { createTranslate } from "../i18n/messages";
-import { applyTheme } from "./apply-theme";
 import { defaultSettings, type Language, type Theme } from "./settings";
 import { SettingsContext } from "./settings-context";
 
@@ -24,7 +23,9 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   );
 
   useEffect(() => {
-    applyTheme(settings.theme);
+    const root = document.documentElement;
+    root.classList.toggle("dark", settings.theme === "dark");
+    root.style.colorScheme = settings.theme;
   }, [settings.theme]);
   useEffect(() => {
     document.documentElement.lang = settings.language;
