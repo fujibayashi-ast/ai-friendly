@@ -7,9 +7,9 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "bun run --filter @ai-friendly/settings dev",
+    "dev": "bun run --filter './apps/*' dev",
     "typecheck": "bun run --workspaces --if-present typecheck",
-    "build": "bun run --workspaces --if-present build",
+    "build": "bun run --workspaces --if-present build && bun apps/home/build-site.ts",
     "check": "biome check",
     "format": "biome check --write"
   },

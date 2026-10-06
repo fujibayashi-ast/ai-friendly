@@ -38,6 +38,7 @@
 
 ```
 apps/
+  home/         # トップページ（サンプルのカード）。開発時の転送・公開用のまとめ
   <題材>/       # Vite + React の SPA。普通のサイトと、その関数を包む Command
     docs/       # 題材ごとの Command 一覧・仕様
 packages/

@@ -8,7 +8,7 @@ export function Header() {
     <header className="border-b">
       <div className="mx-auto flex h-16 max-w-5xl items-center justify-between gap-2 px-4 sm:gap-4 sm:px-6">
         <a
-          href="/"
+          href={import.meta.env.BASE_URL}
           aria-label={t("siteName")}
           className="flex items-center gap-2.5 font-semibold whitespace-nowrap"
         >
