@@ -130,3 +130,13 @@ export function formErrors(
     return [{ field, code: issue.message }];
   });
 }
+
+/** まだ入れていない必須の項目（「予約する」を押す前の案内に使う） */
+export function missingFields(
+  values: ReservationValues,
+  today: string,
+): ReservationField[] {
+  return formErrors(values, today)
+    .filter((error) => error.code === "required")
+    .map((error) => error.field);
+}

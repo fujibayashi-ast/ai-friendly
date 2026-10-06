@@ -17,6 +17,7 @@
 
 * 空き状況のカレンダー: 1 週間（月〜日）。○ 空きあり / △ 残りわずか（4 枠以下）/ × 満席 / 休 定休日。前の週・次の週に送れる（今週より前には戻らない）。日を押すとフォームの日付に入る。フォームの日付を変えると、カレンダーもその週になる
 * 空き状況はダミー: 金曜の 19:00・19:30、土曜の 18:00〜20:00 は満席。毎月 15 日は貸し切りで満席
+* 「予約する」の横に、まだ入れていない必須の項目を出す（「あと時刻、人数、席を入れると予約できます。」。`missingFields`）
 * 送信: ダミーの API（`reservation-api.ts`。通信せず、0.8 秒待って予約番号を返す）。送信中はフォームを変えられない（`<fieldset disabled>`）。終わると「予約を受け付けました（予約番号 1001）」と中身を出し、フォームを空に戻す。受け付けの表示は、次に入力を変えるまで出す
 * 今日は開いたときの端末の日付。名前・電話番号は聞かない（個人情報を扱わない）。状態は保存しない
 * 文言は ja / en。日付は `Intl` で言語に合わせる（「10月9日(金)」「Fri, October 9」）
@@ -29,7 +30,7 @@ src/
   reservation/            # 普通のサイトの機能
     dates.ts              #   日付（"YYYY-MM-DD" の文字列。計算は dayjs）
     availability.ts       #   時刻・定休日・ダミーの空き状況
-    reservation-form.ts   #   入力の型・ルール（zod のスキーマ）・エラーの一覧（formErrors）
+    reservation-form.ts   #   入力の型・ルール（zod のスキーマ）・エラーの一覧（formErrors）・足りない項目（missingFields）
     reservation-api.ts    #   ダミーの予約 API
     reservation-provider.tsx  # フォーム（React Hook Form）とカレンダーの週を持ち、関数を出す（useReservation）
   i18n/                   # 文言（ja / en）・言語の state・日付の形（format.ts）
@@ -64,7 +65,7 @@ src/
 
   | Command | いつ | message |
   | --- | --- | --- |
-  | `fill_reservation_form` | 足りない項目がある | `filled in; not sent yet. still missing: party_size, seat (ask the user for them one at a time)` |
+  | `fill_reservation_form` | 足りない項目がある（画面の「あと…を入れると予約できます」と同じ `missingFields`） | `filled in; not sent yet. still missing: party_size, seat (ask the user for them one at a time)` |
   | | すべて埋まった | `filled in; not sent yet. all fields are filled; ask the user whether to book it` |
   | `submit_reservation` | 受け付けた | `reservation 1001 was made for 2026-10-08 19:00, 2 people, table` |
 

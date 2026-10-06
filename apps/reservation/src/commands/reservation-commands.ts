@@ -15,6 +15,7 @@ import {
   type FormError,
   type FormResult,
   formErrors,
+  missingFields,
   type ReservationField,
   type ReservationValues,
   seats,
@@ -141,8 +142,9 @@ export function createReservationCommands({
           return fail(`the form was filled in, but ${describe(errors, form)}`);
         }
         // 小さいモデルは、入れただけで「予約しました」と言いがちなので、まだ送っていないことと次の一手を伝える
-        const missing = formErrors(form, today).map(
-          (error) => argNames[error.field],
+        // 画面の「あと 人数・席 を入れると予約できます」と同じ関数
+        const missing = missingFields(form, today).map(
+          (field) => argNames[field],
         );
         return done(
           missing.length > 0
