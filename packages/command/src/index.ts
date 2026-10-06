@@ -23,5 +23,4 @@ export type {
   ConfirmationRule,
   ErrorCode,
   ExecuteResult,
-  HistoryEntry,
 } from "./types";

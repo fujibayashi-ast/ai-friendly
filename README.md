@@ -12,7 +12,7 @@ AI が少ない手数で操作できるサイトのサンプル集。
 
 ```
 apps/<題材>/         # 各サンプルサイト（Vite + React）
-packages/command/    # Command の定義・実行・Undo・検証・AI 向けツール・WebMCP 登録（React / LLM に依存しない）
+packages/command/    # Command の定義・実行・検証・AI 向けツール・WebMCP 登録（React / LLM に依存しない）
 packages/assistant/  # サイト内の AI チャット（チャット UI・LLM の切り替え）
 packages/ui/         # 共通 UI（shadcn/ui + Tailwind v4）
 ```

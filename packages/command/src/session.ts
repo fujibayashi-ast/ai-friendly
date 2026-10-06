@@ -4,7 +4,6 @@ import type {
   CommandOf,
   CommandSource,
   ExecuteResult,
-  HistoryEntry,
 } from "./types";
 import { validateCommands } from "./validate";
 
@@ -52,21 +51,12 @@ export type CommandSession<
   ): Promise<ExecuteResult>;
   /** 型の分からない入力（LLM の JSON など）を実行する。検証は `execute` と同じ */
   executeRaw(input: unknown, source: CommandSource): Promise<ExecuteResult>;
-  /** 直前のバッチを丸ごと戻す */
-  undo(): ExecuteResult;
-  redo(): ExecuteResult;
-  canUndo(): boolean;
-  canRedo(): boolean;
-  /** 実行したバッチの一覧（古い順）。Undo したものは含まない */
-  getHistory(): HistoryEntry[];
   /**
-   * Command の実行・Undo / Redo で状態が変わったら `listener` を呼ぶ。戻り値は解除する関数
+   * Command の実行で状態が変わったら `listener` を呼ぶ。戻り値は解除する関数
    * `store` の外での変更は通知しない
    */
   subscribe(listener: () => void): () => void;
 };
-
-type Entry<State> = HistoryEntry & { before: State; after: State };
 
 /**
  * Command を実行するセッションを作る
@@ -91,8 +81,6 @@ export function createCommandSession<
 >(options: CommandSessionOptions<State, Defs>): CommandSession<State, Defs> {
   const definitions = new Map(options.commands.map((d) => [d.type, d]));
   const listeners = new Set<() => void>();
-  const past: Entry<State>[] = [];
-  let future: Entry<State>[] = [];
   const store = options.store ?? createLocalStore<State>(options.initialState);
 
   const setState = (next: State) => {
@@ -126,8 +114,7 @@ export function createCommandSession<
       };
     }
 
-    const before = store.getState();
-    let next = before;
+    let next = store.getState();
     for (const [
       index,
       { command, args, definition },
@@ -143,8 +130,6 @@ export function createCommandSession<
       next = result.state;
     }
 
-    past.push({ commands, source, before, after: next });
-    future = [];
     setState(next);
     return { ok: true };
   };
@@ -154,34 +139,6 @@ export function createCommandSession<
     getState: () => store.getState(),
     execute: (commands, source = "user") => executeRaw(commands, source),
     executeRaw,
-    undo() {
-      const entry = past.pop();
-      if (!entry)
-        return {
-          ok: false,
-          code: "nothing_to_undo",
-          message: "nothing to undo",
-        };
-      future.push(entry);
-      setState(entry.before);
-      return { ok: true };
-    },
-    redo() {
-      const entry = future.pop();
-      if (!entry)
-        return {
-          ok: false,
-          code: "nothing_to_redo",
-          message: "nothing to redo",
-        };
-      past.push(entry);
-      setState(entry.after);
-      return { ok: true };
-    },
-    canUndo: () => past.length > 0,
-    canRedo: () => future.length > 0,
-    getHistory: () =>
-      past.map(({ commands, source }) => ({ commands, source })),
     subscribe(listener) {
       listeners.add(listener);
       return () => listeners.delete(listener);

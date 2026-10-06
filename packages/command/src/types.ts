@@ -71,21 +71,9 @@ export type Command = { type: string } & Record<string, unknown>;
  * - `invalid_command`: 形が違う（未定義の Command・フィールド、型の違い）
  * - `domain_error`: `apply` が失敗した
  * - `rejected`: 確認で拒否された、または確認フックがない
- * - `nothing_to_undo` / `nothing_to_redo`: 戻せる / やり直せる履歴がない
  */
-export type ErrorCode =
-  | "invalid_command"
-  | "domain_error"
-  | "rejected"
-  | "nothing_to_undo"
-  | "nothing_to_redo";
+export type ErrorCode = "invalid_command" | "domain_error" | "rejected";
 
 export type ExecuteResult =
   | { ok: true }
   | { ok: false; code: ErrorCode; message: string };
-
-/** 実行したバッチ 1 つ分の記録 */
-export type HistoryEntry = {
-  commands: readonly Command[];
-  source: CommandSource;
-};

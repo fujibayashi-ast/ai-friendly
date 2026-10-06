@@ -37,7 +37,7 @@ controller.abort();
 | `tools.getState`（`get_state`） | `describeState(state)` の結果を返す。`readOnlyHint: true`。`describeState` を渡したときだけ作る | 両方（ID などを調べる） |
 | `tools.all` | 上のすべて | `registerWebMcpTools` に渡す |
 
-* どのツールも実行は `session.executeRaw(…, "ai")` を通る。確認フック・検証の英文のエラー・Undo がそのまま効く
+* どのツールも実行は `session.executeRaw(…, "ai")` を通る。確認フック・検証の英文のエラーがそのまま効く
 * 戻り値は `ExecuteResult`（`{ ok: true }` / `{ ok: false, code, message }`）
 * `execute_commands` の入力は `{"commands": [{ "type": "add_todo", ... }]}`。形が違えば `invalid_command` を返す
 * `describeState` は、AI が Command を組み立てるのに要る情報だけを返す（全部渡すとトークンが増える）

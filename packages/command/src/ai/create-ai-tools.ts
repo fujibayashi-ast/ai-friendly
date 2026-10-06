@@ -43,7 +43,7 @@ export function createAiTools<
   const batch: AiTool = {
     name: "execute_commands",
     description: [
-      "Run one or more commands as a single batch. If any command fails, none are applied. One undo reverts the whole batch.",
+      "Run one or more commands as a single batch. If any command fails, none are applied.",
       'Input: {"commands": [{"type": "<command>", ...fields}]}',
       "Commands:",
       describeCommands(definitions),

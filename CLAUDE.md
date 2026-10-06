@@ -42,7 +42,7 @@ apps/
     docs/       # 題材ごとの Command 一覧・仕様
 packages/
   command/      # 純粋なロジック（React / LLM に依存しない）
-                #   Command 定義の型・execute（バッチ・ロールバック）・Undo/Redo・検証・確認フック
+                #   Command 定義の型・execute（バッチ・ロールバック）・検証・確認フック
                 #   AI 向けツール（短い一覧・inputSchema）・WebMCP 登録（`@ai-friendly/command/webmcp`）
   assistant/    # サイト内の AI チャット
                 #   チャット UI（React）・LLM プロバイダの切り替え（ローカル LLM / Claude API など）
@@ -56,7 +56,7 @@ packages/
 ## Domain Rules
 
 * 状態の変更は必ず Command を通す。UI・AI チャット・WebMCP はすべて同じ Command を使う
-* 複数の Command は 1 バッチとして実行する。1 つでも失敗したらバッチ全体を適用しない。Undo 1 回でバッチ全体を戻す
+* 複数の Command は 1 バッチとして実行する。1 つでも失敗したらバッチ全体を適用しない
 * 実行結果は `{ ok: true }` / `{ ok: false, code, message }` で返す。`message` は LLM が読んで自分で直せる英文にする（何番目の何が違うか）
 * ID は Command を発行する側で決める（同じ Command 列なら同じ結果になるように）
 * Command には発行元（`"user"` / `"ai"`）を持たせる
@@ -122,7 +122,7 @@ packages/
   * 例外: ローカル LLM のモデルのダウンロード（ユーザーが選んだときのみ）
 * API キーなどの機密情報は持たない。必要な場合は `.env` に置き、コミットしない
 * 個人情報は扱わない。localStorage に保存するのはサンプルデータのみ
-* AI が出した Command は発行元 `"ai"` として記録する
+* AI が出した Command は発行元 `"ai"` として扱う（確認フックの対象にする）
 
 ## MCP
 

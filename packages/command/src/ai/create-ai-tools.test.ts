@@ -38,15 +38,7 @@ describe("execute_commands", () => {
       ],
     });
     expect(result).toEqual({ ok: true });
-    expect(session.getHistory()).toEqual([
-      {
-        commands: [
-          { type: "add_todo", id: "1", title: "a" },
-          { type: "add_todo", id: "2", title: "b" },
-        ],
-        source: "ai",
-      },
-    ]);
+    expect(session.getState().todos.map((t) => t.title)).toEqual(["a", "b"]);
   });
 
   test("returns validation errors for the LLM", async () => {
@@ -96,7 +88,11 @@ describe("per-command tools", () => {
     expect(await byName("add_todo").execute({ id: "1", title: "a" })).toEqual({
       ok: true,
     });
-    expect(session.getHistory()[0]?.source).toBe("ai");
+    expect(session.getState().todos).toHaveLength(1);
+    // 発行元が "ai" なので、確認フックのない削除は拒否される
+    expect(await byName("delete_todo").execute({ id: "1" })).toMatchObject({
+      code: "rejected",
+    });
   });
 
   test("rejects a non-object input", async () => {

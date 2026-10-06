@@ -1,6 +1,6 @@
 # Command 基盤（`@ai-friendly/command`）
 
-Command を検証・実行し、Undo / Redo できるようにする。AI チャット・WebMCP（画面の操作も、望むなら）はここを通す。React / LLM には依存しない。
+Command を検証し、バッチとして実行する。AI チャット・WebMCP（画面の操作も、望むなら）はここを通す。React / LLM には依存しない。
 
 状態はセッションが持つ（`initialState`）か、アプリが持つものを読み書きする（`store`。下の「アプリの状態につなぐ」）。
 
@@ -85,11 +85,8 @@ args: z.object({
 | --- | --- |
 | `execute(commands, source = "user")` | 定義済みの Command だけを受け取る（型で検査）。戻り値は `Promise<ExecuteResult>` |
 | `executeRaw(input, source)` | 型の分からない入力（LLM の JSON など）を受け取る。検証は `execute` と同じ |
-| `undo()` / `redo()` | バッチ単位で戻す / やり直す |
-| `canUndo()` / `canRedo()` | 戻せるか / やり直せるか |
 | `getState()` | 今の状態。`initialState` のときは変わらない限り同じ参照を返す。`store` のときは `store.getState()` |
-| `getHistory()` | 実行したバッチ（`{ commands, source }`）の一覧。Undo したものは含まない |
-| `subscribe(listener)` | Command の実行・Undo / Redo で状態が変わったら呼ぶ。戻り値は解除する関数。`store` の外での変更は通知しない |
+| `subscribe(listener)` | Command の実行で状態が変わったら呼ぶ。戻り値は解除する関数。`store` の外での変更は通知しない |
 
 ## アプリの状態につなぐ（`store`）
 
@@ -109,7 +106,7 @@ const session = createCommandSession({
 * `initialState` と `store` はどちらか一方だけ渡す
 * セッションは実行のたびに `store.getState()` を読む（確認の判定・`apply` の起点）。成功したら `store.setState(next)` を 1 回呼ぶ
 * `getState()` は、`setState` の直後に呼ばれても新しい状態を返すようにする（React の state の反映を待つと、続けて実行したバッチが古い状態から始まるため。ref などで持つ）
-* 画面の操作は Command を通さず、アプリの setter を直接呼んでよい。その操作は Command の履歴に残らない
+* 画面の操作は Command を通さず、アプリの setter を直接呼んでよい
 
 
 ## 実行の流れ
@@ -124,10 +121,10 @@ flowchart TD
   D -- はい --> F
   C -- いいえ --> F["先頭から apply"]
   F -- 1 つでも失敗 --> E3["domain_error（状態は変えない）"]
-  F -- すべて成功 --> G["履歴に積む・Redo を消す・通知"]
+  F -- すべて成功 --> G["状態を更新・通知"]
 ```
 
-* Command 1 つでも配列でもよい。配列は 1 バッチとして扱い、Undo 1 回で戻る。空の配列はエラー
+* Command 1 つでも配列でもよい。配列は 1 バッチとして扱う。空の配列はエラー
 * バッチの途中で失敗したら、状態は実行前のまま変えない
 * 確認はバッチにつき 1 回。検証は確認の前に済ませる
 * 確認の画面（ダイアログ・チャット内での確認など）はアプリが `confirm` で決める。Command ごとに出し分けたいときは `confirm` の中で `command.type` を見る
@@ -148,7 +145,10 @@ type ExecuteResult = { ok: true } | { ok: false; code: ErrorCode; message: strin
 | | | `commands[0].level: Invalid option: expected one of "low"\|"high"` |
 | `domain_error` | `apply` が失敗した | `commands[1] (add_todo): todo "1" already exists` |
 | `rejected` | 確認で拒否された / `confirm` がない | `commands: rejected by the user` |
-| `nothing_to_undo` / `nothing_to_redo` | 戻せる / やり直せる履歴がない | `nothing to undo` |
 
 * `message` は LLM が読んで自分で直せるよう、英文で「何番目の何が違うか」を書く
 * 型の違いなどは zod のメッセージに場所（`commands[0].title`）を付けて返す。未定義の Command・フィールド、必須項目の欠けは、使える Command・フィールドを添えた独自の英文にする
+
+## Undo を持たない
+
+Undo / Redo と操作の履歴は持たない（[docs/history/2026-10-06-remove-undo.md](history/2026-10-06-remove-undo.md)）。戻したいときは、AI が状態を読んで、戻すための Command を新しく実行する。

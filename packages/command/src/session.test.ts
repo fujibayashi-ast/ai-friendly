@@ -38,7 +38,6 @@ describe("execute", () => {
       message: 'commands[1] (add_todo): todo "1" already exists',
     });
     expect(session.getState()).toBe(before);
-    expect(session.canUndo()).toBe(false);
   });
 
   test("returns invalid_command for raw input from AI", async () => {
@@ -53,16 +52,6 @@ describe("execute", () => {
       message:
         "commands[0].id: Invalid input: expected string, received number",
     });
-  });
-
-  test("records commands and source in history", async () => {
-    const session = createSession();
-    await session.execute({ type: "add_todo", id: "1", title: "a" });
-    await session.executeRaw([{ type: "add_todo", id: "2", title: "b" }], "ai");
-    expect(session.getHistory()).toEqual([
-      { commands: [{ type: "add_todo", id: "1", title: "a" }], source: "user" },
-      { commands: [{ type: "add_todo", id: "2", title: "b" }], source: "ai" },
-    ]);
   });
 });
 
@@ -139,58 +128,19 @@ describe("confirmation", () => {
   });
 });
 
-describe("undo / redo", () => {
-  test("undoes and redoes a whole batch", async () => {
-    const session = createSession();
-    await session.execute({ type: "add_todo", id: "1", title: "a" });
-    await session.execute([
-      { type: "add_todo", id: "2", title: "b" },
-      { type: "add_todo", id: "3", title: "c" },
-    ]);
-
-    expect(session.undo()).toEqual({ ok: true });
-    expect(titles(session.getState())).toEqual(["a"]);
-    expect(session.redo()).toEqual({ ok: true });
-    expect(titles(session.getState())).toEqual(["a", "b", "c"]);
-  });
-
-  test("clears redo after a new execute", async () => {
-    const session = createSession();
-    await session.execute({ type: "add_todo", id: "1", title: "a" });
-    session.undo();
-    await session.execute({ type: "add_todo", id: "2", title: "b" });
-    expect(session.canRedo()).toBe(false);
-    expect(session.redo()).toEqual({
-      ok: false,
-      code: "nothing_to_redo",
-      message: "nothing to redo",
-    });
-  });
-
-  test("reports nothing to undo", () => {
-    expect(createSession().undo()).toEqual({
-      ok: false,
-      code: "nothing_to_undo",
-      message: "nothing to undo",
-    });
-  });
-});
-
 describe("subscribe", () => {
-  test("notifies on execute / undo / redo until unsubscribed", async () => {
+  test("notifies on execute until unsubscribed", async () => {
     const session = createSession();
     const listener = mock(() => {});
     const unsubscribe = session.subscribe(listener);
 
     await session.execute({ type: "add_todo", id: "1", title: "a" });
-    session.undo();
-    session.redo();
     await session.execute({ type: "add_todo", id: "1", title: "dup" });
-    expect(listener).toHaveBeenCalledTimes(3);
+    expect(listener).toHaveBeenCalledTimes(1);
 
     unsubscribe();
-    session.undo();
-    expect(listener).toHaveBeenCalledTimes(3);
+    await session.execute({ type: "add_todo", id: "2", title: "b" });
+    expect(listener).toHaveBeenCalledTimes(1);
   });
 });
 

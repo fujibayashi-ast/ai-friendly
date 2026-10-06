@@ -16,7 +16,6 @@ flowchart LR
     Tools["AI 向けツール"]
     WebMCP["WebMCP 登録<br>（/webmcp）"]
     Exec["execute（バッチ・ロールバック）"]
-    History["Undo / Redo"]
     Confirm["確認フック"]
   end
   Agent["ブラウザの AI エージェント"]
@@ -27,14 +26,13 @@ flowchart LR
   Tools -- "Command（ai）" --> Confirm --> Exec
   Defs --> Tools
   Defs --> Exec
-  Exec --> History
 ```
 
 ## package
 
 | package | 責務 | 依存 |
 | --- | --- | --- |
-| `packages/command` | Command 定義の型・execute・Undo/Redo（スナップショット方式）・検証（LLM が読める英文のエラー）・発行元・確認フック・購読。仕様は [commands.md](commands.md)<br>AI 向けツール（`execute_commands`・Command ごと・`get_state`）と WebMCP への登録（`@ai-friendly/command/webmcp`）。仕様は [ai-tools.md](ai-tools.md) | zod のみ（React / LLM に依存しない） |
+| `packages/command` | Command 定義の型・execute（バッチ・ロールバック）・検証（LLM が読める英文のエラー）・発行元・確認フック・購読。仕様は [commands.md](commands.md)<br>AI 向けツール（`execute_commands`・Command ごと・`get_state`）と WebMCP への登録（`@ai-friendly/command/webmcp`）。仕様は [ai-tools.md](ai-tools.md) | zod のみ（React / LLM に依存しない） |
 | `packages/assistant` | サイト内の AI チャット：チャット UI・LLM プロバイダの切り替え（ローカル LLM / Claude API など） | `packages/command` |
 | `packages/ui` | 共通 UI：shadcn/ui の部品と Tailwind v4 の配色トークン（`theme.css`）。使い方は [ui.md](ui.md) | なし（React は peer） |
 | `apps/<題材>` | 題材ごとの状態・Command 定義・画面 | `packages/command`, `packages/assistant`, `packages/ui` |
