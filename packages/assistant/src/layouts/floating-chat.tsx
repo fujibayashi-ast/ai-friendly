@@ -1,10 +1,13 @@
 import { Button, cn } from "@ai-friendly/ui";
 import { MessageCircle, X } from "lucide-react";
-import { useEffect, useId, useRef, useState } from "react";
+import { type ReactNode, useEffect, useId, useRef, useState } from "react";
 import { Chat, type ChatProps } from "../chat/chat";
 import { createTranslate } from "../i18n/messages";
 
-export type FloatingChatProps = Omit<ChatProps, "inputRef">;
+export type FloatingChatProps = Omit<ChatProps, "inputRef"> & {
+  /** パネルの見出しの右に置くもの（「キーを変更」など） */
+  actions?: ReactNode;
+};
 
 /**
  * 右下のボタンから開く、浮いたチャットのパネル。スマホでは画面いっぱいに開く
@@ -14,16 +17,19 @@ export type FloatingChatProps = Omit<ChatProps, "inputRef">;
  * <FloatingChat provider={provider} tools={tools} language="ja" suggestions={["ダークにして"]} />
  * @see docs/assistant.md
  */
-export function FloatingChat(props: FloatingChatProps) {
+export function FloatingChat({ actions, ...props }: FloatingChatProps) {
   const t = createTranslate(props.language);
   const [open, setOpen] = useState(false);
   const titleId = useId();
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const launcherRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLElement>(null);
 
   const wasOpen = useRef(false);
   useEffect(() => {
-    if (open) inputRef.current?.focus();
+    // 入力欄がなければ（API キーの入力待ちなど）、パネルの最初の入力に移す
+    if (open)
+      (inputRef.current ?? panelRef.current?.querySelector("input"))?.focus();
     // スマホでは開いている間ボタンを隠すので、閉じて描画し直した後に戻す
     else if (wasOpen.current) launcherRef.current?.focus();
     wasOpen.current = open;
@@ -32,6 +38,7 @@ export function FloatingChat(props: FloatingChatProps) {
   return (
     <>
       <section
+        ref={panelRef}
         role="dialog"
         aria-labelledby={titleId}
         hidden={!open}
@@ -47,14 +54,17 @@ export function FloatingChat(props: FloatingChatProps) {
           <h2 id={titleId} className="font-semibold">
             {t("title")}
           </h2>
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label={t("close")}
-            onClick={() => setOpen(false)}
-          >
-            <X aria-hidden />
-          </Button>
+          <div className="flex items-center gap-1">
+            {actions}
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label={t("close")}
+              onClick={() => setOpen(false)}
+            >
+              <X aria-hidden />
+            </Button>
+          </div>
         </header>
         <Chat {...props} inputRef={inputRef} />
       </section>

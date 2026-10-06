@@ -1,5 +1,11 @@
 import type { AiTool } from "@ai-friendly/command";
-import { type ComponentType, type RefObject, useEffect, useRef } from "react";
+import {
+  type ComponentType,
+  type ReactNode,
+  type RefObject,
+  useEffect,
+  useRef,
+} from "react";
 import {
   failureMessage,
   isFailure,
@@ -16,7 +22,10 @@ import { ToolCallLine, type ToolCallLineProps } from "../ui/tool-call-line";
 import { UserMessage } from "../ui/user-message";
 
 export type ChatProps = {
-  provider: ChatProvider;
+  /** 省略すると、会話の代わりに `setup` を出す（API キーの入力待ちなど） */
+  provider?: ChatProvider;
+  /** `provider` がないときに出すもの（`ApiKeyForm` など） */
+  setup?: ReactNode;
   /** `createAiTools` の結果。作り直されてよい（会話のループは毎回最新を使う） */
   tools: readonly AiTool[];
   language: ChatLanguage;
@@ -39,6 +48,7 @@ export type ChatProps = {
  */
 export function Chat({
   provider,
+  setup,
   tools,
   language,
   suggestions = [],
@@ -51,6 +61,18 @@ export function Chat({
   const listRef = useRef<HTMLDivElement>(null);
   const ownInputRef = useRef<HTMLTextAreaElement>(null);
   const input = inputRef ?? ownInputRef;
+  const setupRef = useRef<HTMLDivElement>(null);
+
+  // キーを保存した・変更を押した、で入力欄が入れ替わるので、新しい入力欄にフォーカスを移す
+  const hadProvider = useRef(Boolean(provider));
+  useEffect(() => {
+    const hasProvider = Boolean(provider);
+    if (hasProvider !== hadProvider.current) {
+      if (hasProvider) input.current?.focus();
+      else setupRef.current?.querySelector("input")?.focus();
+    }
+    hadProvider.current = hasProvider;
+  }, [provider, input]);
   const results = new Map(
     entries.flatMap((entry) =>
       entry.role === "tool" ? [[entry.toolCallId, entry.result] as const] : [],
@@ -79,6 +101,14 @@ export function Chat({
       detail: debug ? failureMessage(result) : undefined,
     };
   };
+
+  if (!provider) {
+    return (
+      <div ref={setupRef} className="min-h-0 flex-1 overflow-y-auto">
+        {setup}
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
@@ -115,24 +145,16 @@ export function Chat({
             case "assistant":
               return (
                 <div key={key} className="flex flex-col gap-2">
-                  {entry.toolCalls?.map((call) => (
-                    <ToolCallView key={call.id} {...toolCallProps(call)} />
-                  ))}
                   {entry.content && (
                     <AssistantMessage>{entry.content}</AssistantMessage>
                   )}
+                  {entry.toolCalls?.map((call) => (
+                    <ToolCallView key={call.id} {...toolCallProps(call)} />
+                  ))}
                 </div>
               );
             case "notice":
-              return (
-                <Notice key={key}>
-                  {t(
-                    entry.kind === "failed"
-                      ? "error.failed"
-                      : "error.tooManySteps",
-                  )}
-                </Notice>
-              );
+              return <Notice key={key}>{t(noticeMessages[entry.kind])}</Notice>;
             default:
               return null;
           }
@@ -153,3 +175,9 @@ export function Chat({
     </div>
   );
 }
+
+const noticeMessages = {
+  failed: "error.failed",
+  auth: "error.auth",
+  too_many_steps: "error.tooManySteps",
+} as const;

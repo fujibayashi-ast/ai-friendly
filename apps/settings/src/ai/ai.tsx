@@ -1,12 +1,17 @@
-import { createScriptedProvider, FloatingChat } from "@ai-friendly/assistant";
+import {
+  ApiKeyForm,
+  createClaudeProvider,
+  FloatingChat,
+} from "@ai-friendly/assistant";
 import { type AiTool, createAiTools } from "@ai-friendly/command";
 import { registerWebMcpTools } from "@ai-friendly/command/webmcp";
+import { Button } from "@ai-friendly/ui";
 import { useEffect, useMemo } from "react";
 import { useSettingsCommands } from "../commands/settings-commands";
 import { useConfirm } from "../confirm/use-confirm";
 import { useI18n } from "../i18n/use-i18n";
 import { useTheme } from "../settings/use-theme";
-import { scriptedRules } from "./scripted-rules";
+import { useApiKey } from "./use-api-key";
 
 declare global {
   interface Window {
@@ -49,14 +54,23 @@ export function Ai() {
     };
   }, [tools]);
 
+  const [apiKey, setApiKey] = useApiKey();
   const provider = useMemo(
-    () => createScriptedProvider({ rules: scriptedRules, language }),
-    [language],
+    () => (apiKey ? createClaudeProvider({ apiKey, system }) : undefined),
+    [apiKey],
   );
 
   return (
     <FloatingChat
       provider={provider}
+      setup={<ApiKeyForm language={language} onSubmit={setApiKey} />}
+      actions={
+        apiKey && (
+          <Button variant="ghost" size="sm" onClick={() => setApiKey(null)}>
+            {t("chat.changeKey")}
+          </Button>
+        )
+      }
       tools={tools}
       language={language}
       debug={import.meta.env.DEV}
@@ -68,3 +82,6 @@ export function Ai() {
     />
   );
 }
+
+const system =
+  "You operate this website for the user by calling the tools. Check the current settings with get_state when you need them. Reply briefly in the same language as the user.";

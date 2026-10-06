@@ -9,6 +9,7 @@ const ja = {
   you: "あなた",
   thinking: "考えています…",
   "error.failed": "返事を受け取れませんでした。もう一度送ってください。",
+  "error.auth": "API キーが正しくありません。キーを変更してください。",
   "error.tooManySteps":
     "操作が多すぎるため止めました。もう少し分けて頼んでください。",
   "tool.done": "完了",
@@ -16,10 +17,11 @@ const ja = {
   "tool.running": "実行中",
   "tool.rejected": "やめました",
   "tool.error": "実行できませんでした",
-  "scripted.done": "実行しました。",
-  "scripted.failed": "うまくいきませんでした。",
-  "scripted.fallback":
-    "仮の AI のため、決まった言い回しにだけ反応します。例を参考に話しかけてください。",
+  "apiKey.description":
+    "Claude の API キーを入れると、AI に頼めるようになります。",
+  "apiKey.label": "Claude の API キー",
+  "apiKey.note": "キーはこのタブの中だけに保存され、閉じると消えます。",
+  "apiKey.save": "保存",
 };
 
 export type MessageKey = keyof typeof ja;
@@ -35,16 +37,18 @@ const en: Record<MessageKey, string> = {
   you: "You",
   thinking: "Thinking…",
   "error.failed": "Couldn't get a reply. Send it again.",
+  "error.auth": "The API key is invalid. Change the key.",
   "error.tooManySteps": "Stopped after too many steps. Ask for less at once.",
   "tool.done": "Done",
   "tool.failed": "Failed",
   "tool.running": "Running",
   "tool.rejected": "Cancelled",
   "tool.error": "Couldn't run this",
-  "scripted.done": "Done.",
-  "scripted.failed": "That didn't work.",
-  "scripted.fallback":
-    "This stand-in AI only understands set phrases. Try one of the examples.",
+  "apiKey.description": "Enter your Claude API key to ask the AI.",
+  "apiKey.label": "Claude API key",
+  "apiKey.note":
+    "The key is kept only in this tab and is removed when you close it.",
+  "apiKey.save": "Save",
 };
 
 /** チャットの表示言語。サイトの言語を渡す */

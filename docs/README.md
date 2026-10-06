@@ -20,6 +20,7 @@
   - [2026-10-06-remove-undo.md](history/2026-10-06-remove-undo.md) — Command 基盤から Undo / Redo と操作の履歴を外した理由
   - [2026-10-06-minimal-command.md](history/2026-10-06-minimal-command.md) — Command をサイトの関数を呼ぶ形にし、バッチ・状態を外した理由
   - [2026-10-06-chat-ui.md](history/2026-10-06-chat-ui.md) — チャット UI（置き場所・ツールの表示・仮のボット・デザイン）
+  - [2026-10-06-claude-provider.md](history/2026-10-06-claude-provider.md) — Claude API のプロバイダ（ブラウザから直接呼ぶ・仮のボットを外す・#10 の見送り）
 
 題材ごとの仕様は `apps/<題材>/docs/` に置く。
 

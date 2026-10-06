@@ -1,3 +1,4 @@
+export { ApiKeyForm } from "./chat/api-key-form";
 export { Chat, type ChatProps } from "./chat/chat";
 export {
   type RunChatOptions,
@@ -15,17 +16,17 @@ export {
   FloatingChat,
   type FloatingChatProps,
 } from "./layouts/floating-chat";
+export {
+  type ClaudeProviderOptions,
+  createClaudeProvider,
+} from "./providers/claude-provider";
 export type {
   ChatMessage,
   ChatProvider,
   ProviderReply,
   ToolCall,
 } from "./providers/provider";
-export {
-  createScriptedProvider,
-  type ScriptedProviderOptions,
-  type ScriptedRule,
-} from "./providers/scripted-provider";
+export { ProviderAuthError } from "./providers/provider";
 export {
   ToolCallLine,
   type ToolCallLineProps,

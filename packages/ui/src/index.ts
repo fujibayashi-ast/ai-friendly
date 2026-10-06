@@ -15,6 +15,7 @@ export {
   AlertDialogTrigger,
 } from "./components/ui/alert-dialog";
 export { Button, buttonVariants } from "./components/ui/button";
+export { Input } from "./components/ui/input";
 export { Textarea } from "./components/ui/textarea";
 export { Toggle, toggleVariants } from "./components/ui/toggle";
 export { ToggleGroup, ToggleGroupItem } from "./components/ui/toggle-group";

@@ -23,3 +23,8 @@ export type ChatProvider = {
     tools: readonly AiTool[];
   }): Promise<ProviderReply>;
 };
+
+/** API キーが正しくないなど、プロバイダの認証で失敗した。チャットは「キーを確かめて」と知らせる */
+export class ProviderAuthError extends Error {
+  override name = "ProviderAuthError";
+}
