@@ -116,7 +116,7 @@ const session = createCommandSession({
 バッチの後に状態が外（画面の操作など）で変わっていたら、Undo / Redo は戻さずに `state_changed` を返す。人の変更を AI の Undo で上書きしないため。
 
 * Undo は、今の状態がそのバッチの後の状態と等しいときだけ戻す。Redo は、バッチの前の状態と等しいときだけやり直す
-* 比較は参照ではなく中身で行う。状態は JSON で表せる値（オブジェクト・配列・文字列・数値・真偽値・`null`）にする
+* 比較は参照ではなく中身で行う（[dequal](https://github.com/lukeed/dequal)。オブジェクト・配列のほか `Date`・`Map`・`Set` も比べられる）
 * 戻せなかったバッチは履歴に残る（`canUndo()` は `true` のまま）。状態が元に戻れば Undo できる
 
 ## 実行の流れ

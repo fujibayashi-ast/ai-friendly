@@ -1,4 +1,4 @@
-import { isJsonEqual } from "./equal";
+import { dequal } from "dequal";
 import type {
   Command,
   CommandDefinition,
@@ -16,7 +16,7 @@ export type ConfirmHandler = (
 
 /**
  * アプリが持つ状態をセッションから読み書きするための口（React の state と setter など）
- * 状態は JSON で表せる値にする（Undo / Redo で、外で変わったかを中身で比べるため）
+ * Undo / Redo では、外で変わったかを参照ではなく中身で比べる
  * @see docs/commands.md
  */
 export type CommandStore<State> = {
@@ -170,8 +170,7 @@ export function createCommandSession<
           code: "nothing_to_undo",
           message: "nothing to undo",
         };
-      if (!isJsonEqual(store.getState(), entry.after))
-        return stateChanged("undo");
+      if (!dequal(store.getState(), entry.after)) return stateChanged("undo");
       future.push(entry);
       past.pop();
       setState(entry.before);
@@ -185,8 +184,7 @@ export function createCommandSession<
           code: "nothing_to_redo",
           message: "nothing to redo",
         };
-      if (!isJsonEqual(store.getState(), entry.before))
-        return stateChanged("redo");
+      if (!dequal(store.getState(), entry.before)) return stateChanged("redo");
       past.push(entry);
       future.pop();
       setState(entry.after);
