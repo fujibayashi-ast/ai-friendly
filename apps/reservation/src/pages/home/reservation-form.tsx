@@ -11,12 +11,14 @@ import {
 } from "@ai-friendly/ui";
 import { type ChangeEvent, type FormEvent, useId } from "react";
 import { Controller, useFormContext } from "react-hook-form";
+import { formatList } from "../../i18n/format";
 import { isMessageKey } from "../../i18n/messages";
 import { useI18n } from "../../i18n/use-i18n";
 import { availableTimes, times } from "../../reservation/availability";
 import { isDate } from "../../reservation/dates";
 import { useReservation } from "../../reservation/reservation-context";
 import {
+  missingFields,
   partySizes,
   type ReservationField,
   type ReservationValues,
@@ -25,7 +27,7 @@ import {
 import { FormField } from "./form-field";
 
 export function ReservationFormView() {
-  const { t } = useI18n();
+  const { language, t } = useI18n();
   const { today, values, submitting, showWeek, submit } = useReservation();
   const { control, register, formState } = useFormContext<ReservationValues>();
   const id = useId();
@@ -34,6 +36,9 @@ export function ReservationFormView() {
     return isMessageKey(key) ? t(key) : undefined;
   };
   const open = isDate(values.date) ? availableTimes(values.date) : times;
+  const missing = missingFields(values, today).map((field) =>
+    t(`form.${field}`),
+  );
 
   const handleDateChange = (event: ChangeEvent<HTMLInputElement>) => {
     showWeek(event.target.value);
@@ -171,10 +176,15 @@ export function ReservationFormView() {
               {...register("couponCode")}
             />
           </FormField>
-          <div className="flex items-end sm:col-span-2">
+          <div className="flex flex-col gap-2 sm:col-span-2 sm:flex-row sm:items-center sm:gap-4">
             <Button type="submit" className="w-full sm:w-auto">
               {submitting ? t("form.submitting") : t("form.submit")}
             </Button>
+            {missing.length > 0 && (
+              <p className="text-sm text-muted-foreground">
+                {t("form.missing", { fields: formatList(language, missing) })}
+              </p>
+            )}
           </div>
         </fieldset>
       </form>

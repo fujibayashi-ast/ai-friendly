@@ -8,10 +8,15 @@ import type { z } from "zod";
 export type ArgsSchema = z.ZodObject;
 
 /**
- * `run` の戻り値。成功なら何も返さない
+ * `run` の戻り値。成功なら何も返さなくてよい
  * ドメイン上のエラー（存在しない ID など）は `{ ok: false, message }` で返す。`message` は LLM が読んで直せる英文にする
+ * 成功でも AI に次の一手を伝えたいとき（まだ送っていない、など）は `{ ok: true, message }` で返す
+ * @see docs/commands.md
  */
-export type RunResult = undefined | { ok: false; message: string };
+export type RunResult =
+  | undefined
+  | { ok: true; message: string }
+  | { ok: false; message: string };
 
 /**
  * AI が実行する前に、確認フックで承認を得るか。関数なら引数で判定する
@@ -69,5 +74,5 @@ export type ConfirmHandler = (
 export type ErrorCode = "invalid_command" | "rejected" | "domain_error";
 
 export type ExecuteResult =
-  | { ok: true }
+  | { ok: true; message?: string }
   | { ok: false; code: ErrorCode; message: string };

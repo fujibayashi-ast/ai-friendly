@@ -30,12 +30,9 @@ export async function runCommand(
   }
 
   const result = await definition.run(args);
-  if (result) {
-    return {
-      ok: false,
-      code: "domain_error",
-      message: `${definition.type}: ${result.message}`,
-    };
-  }
-  return { ok: true };
+  if (!result) return { ok: true };
+  const message = `${definition.type}: ${result.message}`;
+  return result.ok
+    ? { ok: true, message }
+    : { ok: false, code: "domain_error", message };
 }

@@ -48,9 +48,10 @@ React では、状態が変わるたびに Command とツールを作り直す�
 | `args` | 引数の定義（下の「引数の書き方」） |
 | `requiresConfirmation` | 実行の前に確認フックで承認を得るか。`true` / `false`、または `(args) => boolean` |
 | `confirmation` | 確認で見せる文言。`(args) => { title, description, confirmLabel }`。訳した文字列を返す。省略できる |
-| `run(args)` | サイトの関数を呼ぶ。`args` は検証済み。成功なら何も返さない。ドメイン上のエラー（存在しない ID など）は `{ ok: false, message }` を返す。Promise でもよい |
+| `run(args)` | サイトの関数を呼ぶ。`args` は検証済み。成功なら何も返さなくてよい。ドメイン上のエラー（存在しない ID など）は `{ ok: false, message }` を返す。成功でも AI に伝えたいことがあれば `{ ok: true, message }` を返す。Promise でもよい |
 
 * `message` は LLM が読んで直せる英文にする（`todo "1" not found`）
+* 成功の `message` は、AI が次の一手を決めるための短い英文にする（`filled in; not sent yet. still missing: party_size, seat`）。小さいモデルは `{ ok: true }` だけを見て「完了しました」と返事をしがち。一覧などのデータは返さない（読むものは `get_state`）
 
 ### 条件付きの確認
 
@@ -128,7 +129,9 @@ flowchart TD
 ## 結果とエラー
 
 ```ts
-type ExecuteResult = { ok: true } | { ok: false; code: ErrorCode; message: string };
+type ExecuteResult =
+  | { ok: true; message?: string } // message は run が返したときだけ
+  | { ok: false; code: ErrorCode; message: string };
 ```
 
 | `code` | いつ | `message` の例 |
@@ -141,6 +144,7 @@ type ExecuteResult = { ok: true } | { ok: false; code: ErrorCode; message: strin
 | `domain_error` | `run` が失敗を返した | `add_todo: todo "1" already exists` |
 
 * `message` は LLM が読んで自分で直せるよう、英文で「どこの何が違うか」を書く
+* `run` が成功で返した `message` にも、失敗と同じく `<type>: ` を前に付ける（`fill_reservation_form: filled in; not sent yet. …`）
 * 型の違いなどは zod のメッセージに場所（`input.title`）を付けて返す。未定義のフィールド・必須項目の欠けは、使えるフィールドを添えた独自の英文にする
 
 ## 持たないもの

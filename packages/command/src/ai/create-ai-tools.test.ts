@@ -70,6 +70,23 @@ describe("command tools", () => {
       message: 'add_todo: todo "1" already exists',
     });
   });
+
+  test("returns the message of a success from run", async () => {
+    const [tool] = createAiTools({
+      commands: [
+        defineCommand({
+          type: "fill_form",
+          description: "Fill",
+          args: z.object({}),
+          run: () => ({ ok: true, message: "not sent yet" }),
+        }),
+      ],
+    });
+    expect(await tool?.execute({})).toEqual({
+      ok: true,
+      message: "fill_form: not sent yet",
+    });
+  });
 });
 
 describe("confirmation", () => {
@@ -196,7 +213,7 @@ describe("types", () => {
       type: "c",
       description: "C",
       args,
-      // @ts-expect-error only failures are returned
+      // @ts-expect-error a success needs a message
       run: () => ({ ok: true }),
     });
   });

@@ -38,7 +38,7 @@ controller.abort();
 | `get_state` | `getState()` の結果を返す。`readOnlyHint: true`。`getState` を渡したときだけ作る |
 
 * 実行は「引数の検証 → 確認 → `run`」の順に進む（[commands.md](commands.md) の「実行の流れ」）
-* 戻り値は `ExecuteResult`（`{ ok: true }` / `{ ok: false, code, message }`）
+* 戻り値は `ExecuteResult`（`{ ok: true }` / `{ ok: true, message }` / `{ ok: false, code, message }`）
 * `getState` は、AI が Command を組み立てるのに要る情報だけを返す（全部渡すとトークンが増える）
 * Command の `type` を `get_state` にしない（ツール名がぶつかる）
 

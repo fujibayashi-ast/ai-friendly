@@ -18,3 +18,10 @@ export function formatWeekday(language: Language, date: string): string {
     weekday: "short",
   }).format(dayjs(date).toDate());
 }
+
+/** 「人数、席」「party size and seat」 */
+export function formatList(language: Language, items: string[]): string {
+  return new Intl.ListFormat(locales[language], { type: "conjunction" }).format(
+    items,
+  );
+}

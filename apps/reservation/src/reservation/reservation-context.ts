@@ -20,7 +20,7 @@ export type ReservationContextValue = {
   /** 入力欄に入れる（変わった項目だけ渡す）。日付を変えたらカレンダーもその週にする */
   fill(patch: Partial<ReservationValues>): void;
   showWeek(date: string): void;
-  /** 「予約する」。エラーがあれば空の欄もエラーにして止め、エラーを返す */
+  /** 「予約する」。エラーがあれば空の欄もエラーにして止め、エラーを返す。受け付けたら予約番号を返す */
   submit(): Promise<FormResult>;
 };
 
