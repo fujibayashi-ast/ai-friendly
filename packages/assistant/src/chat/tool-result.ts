@@ -15,3 +15,12 @@ export function failureMessage(result: unknown): string {
     ? result.message
     : "";
 }
+
+export function isRejected(result: unknown): boolean {
+  return (
+    typeof result === "object" &&
+    result !== null &&
+    "code" in result &&
+    result.code === "rejected"
+  );
+}

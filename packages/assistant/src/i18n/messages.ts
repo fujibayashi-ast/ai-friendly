@@ -14,6 +14,8 @@ const ja = {
   "tool.done": "完了",
   "tool.failed": "失敗",
   "tool.running": "実行中",
+  "tool.rejected": "やめました",
+  "tool.error": "実行できませんでした",
   "scripted.done": "実行しました。",
   "scripted.failed": "うまくいきませんでした。",
   "scripted.fallback":
@@ -37,6 +39,8 @@ const en: Record<MessageKey, string> = {
   "tool.done": "Done",
   "tool.failed": "Failed",
   "tool.running": "Running",
+  "tool.rejected": "Cancelled",
+  "tool.error": "Couldn't run this",
   "scripted.done": "Done.",
   "scripted.failed": "That didn't work.",
   "scripted.fallback":

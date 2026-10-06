@@ -59,6 +59,7 @@ export function Ai() {
       provider={provider}
       tools={tools}
       language={language}
+      debug={import.meta.env.DEV}
       suggestions={[
         t("chat.suggest.theme"),
         t("chat.suggest.language"),

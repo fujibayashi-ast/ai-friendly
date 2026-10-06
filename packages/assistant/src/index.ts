@@ -5,7 +5,12 @@ export {
   runChat,
 } from "./chat/run-chat";
 export { ToolCallLine, type ToolCallView } from "./chat/tool-call-line";
-export { type ChatState, type ChatStatus, useChat } from "./chat/use-chat";
+export {
+  type ChatEntry,
+  type ChatNotice,
+  type ChatState,
+  useChat,
+} from "./chat/use-chat";
 export type { ChatLanguage } from "./i18n/messages";
 export {
   FloatingChat,

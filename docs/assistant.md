@@ -23,6 +23,7 @@ const provider = createScriptedProvider({ rules, language });
   tools={tools} // createAiTools の結果
   language={language} // "ja" | "en"。チャットの文言の言語
   suggestions={["ダークにして", "英語にして"]} // 何も話していないときに出す例
+  debug={import.meta.env.DEV} // 失敗の理由に LLM 向けの英文も出す（開発中だけなど）
 />;
 ```
 
@@ -73,11 +74,12 @@ const rules: ScriptedRule[] = [
 | --- | --- |
 | `FloatingChat` | 右下のボタンから開く浮いたパネル。スマホでは画面いっぱいに開く。会話は閉じても残る |
 | `Chat` | メッセージの一覧と入力欄。置き場所に依存しないので、ドロワーなど別の入れ物にも入れられる（`useChat` の結果を渡す） |
-| `ToolCallLine` | ツールの実行の既定の見せ方。黄の地のブロックに `✓ set_theme(theme: "dark")`（失敗は ✗ と英文のメッセージ）。`renderToolCall` で差し替えられる |
+| `ToolCallLine` | ツールの実行の既定の見せ方。`✓ set_theme(theme: "dark")` のブロックで、実行中は灰、成功は黄、失敗は赤の地。失敗は「やめました」（確認で拒否）/「実行できませんでした」と出し、`debug` のときは LLM 向けの英文のメッセージも出す。`renderToolCall` で差し替えられる |
 
 * 開くと入力欄にフォーカスし、Esc か × で閉じてボタンにフォーカスを戻す
 * Enter で送信、Shift+Enter で改行。日本語の変換を確定する Enter では送らない
 * 実行中は「考えています…」を出し、送信できない
+* 返事を受け取れなかった・ステップ数の上限で止めた、は会話の流れの中にお知らせとして残す（LLM には送らない）
 * 確認が要る Command は、アプリが `createAiTools` に渡した `confirm` で確認する（チャット内の確認は #10）
 * ツールの結果は、AI のメッセージの直後に続く `tool` メッセージから探す（ローカル LLM などはターンをまたいで同じ ID を使うことがあるため）
 

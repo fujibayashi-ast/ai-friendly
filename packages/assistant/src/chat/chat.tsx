@@ -9,10 +9,10 @@ import {
   useState,
 } from "react";
 import type { Translate } from "../i18n/messages";
-import type { ChatMessage, ToolCall } from "../providers/provider";
+import type { ToolCall } from "../providers/provider";
 import { resultsAfter } from "./results-after";
 import { ToolCallLine, type ToolCallView } from "./tool-call-line";
-import type { ChatState } from "./use-chat";
+import type { ChatEntry, ChatState } from "./use-chat";
 
 export type ChatProps = {
   chat: ChatState;
@@ -21,6 +21,8 @@ export type ChatProps = {
   suggestions?: readonly string[];
   /** ツールの実行の見せ方。既定は Command 名の小さな行 */
   renderToolCall?: ComponentType<ToolCallView>;
+  /** 失敗の理由に、LLM 向けの英文のメッセージも出す */
+  debug?: boolean;
   inputRef?: Ref<HTMLTextAreaElement>;
 };
 
@@ -30,17 +32,18 @@ export function Chat({
   t,
   suggestions = [],
   renderToolCall: ToolCallView = ToolCallLine,
+  debug = false,
   inputRef,
 }: ChatProps) {
   const [draft, setDraft] = useState("");
   const listRef = useRef<HTMLDivElement>(null);
-  const running = chat.status === "running";
+  const { running } = chat;
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: 新しいメッセージ・状態のたびに下までスクロールする
   useEffect(() => {
     const list = listRef.current;
     if (list) list.scrollTop = list.scrollHeight;
-  }, [chat.messages, chat.status]);
+  }, [chat.entries, running]);
 
   const submit = (text: string) => {
     if (running || !text.trim()) return;
@@ -68,7 +71,7 @@ export function Chat({
         aria-live="polite"
         className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-4 py-4"
       >
-        {chat.messages.length === 0 && (
+        {chat.entries.length === 0 && (
           <div className="flex flex-col gap-3">
             <p className="text-sm text-muted-foreground">{t("empty")}</p>
             {suggestions.length > 0 && (
@@ -88,26 +91,20 @@ export function Chat({
             )}
           </div>
         )}
-        {chat.messages.map((message, index) => (
-          <MessageView
-            // biome-ignore lint/suspicious/noArrayIndexKey: メッセージは追記だけで並びが変わらない
+        {chat.entries.map((entry, index) => (
+          <EntryView
+            // biome-ignore lint/suspicious/noArrayIndexKey: 追記だけで並びが変わらない
             key={index}
-            message={message}
-            results={resultsAfter(chat.messages, index)}
+            entry={entry}
+            results={resultsAfter(chat.entries, index)}
             t={t}
+            debug={debug}
             ToolCallView={ToolCallView}
           />
         ))}
         {running && (
           <p className="text-sm text-muted-foreground motion-safe:animate-pulse">
             {t("thinking")}
-          </p>
-        )}
-        {(chat.status === "failed" || chat.status === "too_many_steps") && (
-          <p className="text-sm text-destructive">
-            {t(
-              chat.status === "failed" ? "error.failed" : "error.tooManySteps",
-            )}
           </p>
         )}
       </div>
@@ -142,18 +139,27 @@ export function Chat({
   );
 }
 
-function MessageView({
-  message,
+function EntryView({
+  entry: message,
   results,
   t,
+  debug,
   ToolCallView,
 }: {
-  message: ChatMessage;
+  entry: ChatEntry;
   results: ReadonlyMap<string, unknown>;
   t: Translate;
+  debug: boolean;
   ToolCallView: ComponentType<ToolCallView>;
 }) {
   if (message.role === "tool") return null;
+  if (message.role === "notice") {
+    return (
+      <p className="text-sm text-destructive">
+        {t(message.kind === "failed" ? "error.failed" : "error.tooManySteps")}
+      </p>
+    );
+  }
   if (message.role === "user") {
     return (
       <div className="flex justify-end">
@@ -172,6 +178,7 @@ function MessageView({
           call={call}
           result={results.get(call.id)}
           t={t}
+          debug={debug}
         />
       ))}
       {message.content && (

@@ -3,11 +3,18 @@ import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import type { ChatMessage, ChatProvider } from "../providers/provider";
 import { runChat } from "./run-chat";
 
-export type ChatStatus = "idle" | "running" | "failed" | "too_many_steps";
+/** 画面にだけ出すお知らせ（LLM には送らない） */
+export type ChatNotice = {
+  role: "notice";
+  kind: "failed" | "too_many_steps";
+};
+
+/** 画面に並べるもの: 会話のメッセージとお知らせ */
+export type ChatEntry = ChatMessage | ChatNotice;
 
 export type ChatState = {
-  messages: readonly ChatMessage[];
-  status: ChatStatus;
+  entries: readonly ChatEntry[];
+  running: boolean;
   send(text: string): Promise<void>;
 };
 
@@ -22,10 +29,10 @@ export function useChat({
   provider: ChatProvider;
   tools: readonly AiTool[];
 }): ChatState {
-  const [messages, setMessages] = useState<readonly ChatMessage[]>([]);
-  const [status, setStatus] = useState<ChatStatus>("idle");
+  const [entries, setEntries] = useState<readonly ChatEntry[]>([]);
+  const [running, setRunning] = useState(false);
   const history = useRef<readonly ChatMessage[]>([]);
-  const running = useRef(false);
+  const busy = useRef(false);
   const latest = useRef({ provider, tools });
   useLayoutEffect(() => {
     latest.current = { provider, tools };
@@ -33,15 +40,16 @@ export function useChat({
 
   const send = useCallback(async (text: string) => {
     const content = text.trim();
-    if (!content || running.current) return;
-    running.current = true;
+    if (!content || busy.current) return;
+    busy.current = true;
 
+    const show = (entry: ChatEntry) => setEntries((list) => [...list, entry]);
     const append = (message: ChatMessage) => {
       history.current = [...history.current, message];
-      setMessages(history.current);
+      show(message);
     };
     append({ role: "user", content });
-    setStatus("running");
+    setRunning(true);
     try {
       const result = await runChat({
         // 言語の切り替えなどでプロバイダが作り直されても、次のステップから最新を使う
@@ -52,13 +60,16 @@ export function useChat({
         getTools: () => latest.current.tools,
         onMessage: append,
       });
-      setStatus(result === "done" ? "idle" : "too_many_steps");
+      if (result === "too_many_steps") {
+        show({ role: "notice", kind: "too_many_steps" });
+      }
     } catch {
-      setStatus("failed");
+      show({ role: "notice", kind: "failed" });
     } finally {
-      running.current = false;
+      busy.current = false;
+      setRunning(false);
     }
   }, []);
 
-  return { messages, status, send };
+  return { entries, running, send };
 }

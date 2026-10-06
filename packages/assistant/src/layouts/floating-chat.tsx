@@ -14,6 +14,8 @@ export type FloatingChatProps = {
   language: ChatLanguage;
   suggestions?: readonly string[];
   renderToolCall?: ComponentType<ToolCallView>;
+  /** 失敗の理由に、LLM 向けの英文のメッセージも出す（開発中など） */
+  debug?: boolean;
 };
 
 /**
@@ -29,6 +31,7 @@ export function FloatingChat({
   language,
   suggestions,
   renderToolCall,
+  debug,
 }: FloatingChatProps) {
   const t = createTranslate(language);
   const chat = useChat({ provider, tools });
@@ -76,6 +79,7 @@ export function FloatingChat({
             t={t}
             suggestions={suggestions}
             renderToolCall={renderToolCall}
+            debug={debug}
             inputRef={inputRef}
           />
         </section>
