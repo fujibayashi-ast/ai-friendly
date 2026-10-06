@@ -73,7 +73,7 @@ const rules: ScriptedRule[] = [
 | --- | --- |
 | `FloatingChat` | 右下のボタンから開く浮いたパネル。スマホでは画面いっぱいに開く。会話は閉じても残る |
 | `Chat` | メッセージの一覧と入力欄。置き場所に依存しないので、ドロワーなど別の入れ物にも入れられる（`useChat` の結果を渡す） |
-| `ToolCallLine` | ツールの実行の既定の見せ方。黄の地のブロックに `✓ set_theme  theme: "dark"`（失敗は ✗ と英文のメッセージ）。`renderToolCall` で差し替えられる |
+| `ToolCallLine` | ツールの実行の既定の見せ方。黄の地のブロックに `✓ set_theme(theme: "dark")`（失敗は ✗ と英文のメッセージ）。`renderToolCall` で差し替えられる |
 
 * 開くと入力欄にフォーカスし、Esc か × で閉じてボタンにフォーカスを戻す
 * Enter で送信、Shift+Enter で改行。日本語の変換を確定する Enter では送らない

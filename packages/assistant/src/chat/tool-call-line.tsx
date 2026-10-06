@@ -10,7 +10,7 @@ export type ToolCallView = {
   t: Translate;
 };
 
-/** ツールの実行を 1 行で見せる: `✓ set_theme  theme: "dark"` */
+/** ツールの実行を 1 行で見せる: `✓ set_theme(theme: "dark")` */
 export function ToolCallLine({ call, result, t }: ToolCallView) {
   const running = result === undefined;
   const failed = !running && isFailure(result);
@@ -33,12 +33,10 @@ export function ToolCallLine({ call, result, t }: ToolCallView) {
                 : "size-3.5 shrink-0 translate-y-0.5"
           }
         />
-        <span className="flex min-w-0 flex-wrap items-baseline gap-x-2 font-mono">
-          <code className="font-semibold">{call.name}</code>
-          <span className="break-all opacity-75">
-            {formatInput(call.input)}
-          </span>
-        </span>
+        <code className="min-w-0 break-all font-mono">
+          <span className="font-semibold">{call.name}</span>
+          <span className="opacity-75">({formatInput(call.input)})</span>
+        </code>
       </div>
       {failed && (
         <p className="mt-1 ml-5.5 break-words opacity-75">
