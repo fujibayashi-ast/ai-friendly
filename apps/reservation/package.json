@@ -9,8 +9,13 @@
   },
   "dependencies": {
     "@ai-friendly/ui": "workspace:*",
+    "@hookform/resolvers": "5.9.1",
+    "dayjs": "1.11.23",
+    "lucide-react": "1.52.0",
     "react": "19.3.0",
-    "react-dom": "19.3.0"
+    "react-dom": "19.3.0",
+    "react-hook-form": "7.89.0",
+    "zod": "4.6.5"
   },
   "devDependencies": {
     "@tailwindcss/vite": "4.3.3",
