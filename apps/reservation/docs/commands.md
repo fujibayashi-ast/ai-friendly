@@ -47,7 +47,7 @@ src/
   * 入力の値はどれも文字列（選んでいなければ `""`）
 * ルールは zod の `superRefine` で書く。項目をまたぐもの（席と人数・時刻と日付）もここ。エラーの `message` はエラーの種類（`closed` など）で、画面は `error.<項目>.<種類>` の文言にする
 * `useReservation` の `fill(patch)` は、変わった項目だけを React Hook Form の `setValue` で入れる（カレンダーの日を押したとき）
-* `useReservation` の `submit()` は「予約する」と同じ `handleSubmit` を通り、結果（成功・送信中・入力のエラー）を返す。画面は返り値を使わない
+* `useReservation` の `submit()` は「予約する」と同じ `handleSubmit` を通り、結果（受け付けた予約番号・送信中・入力のエラー）を返す。画面は返り値を使わない
 
 ## Command
 
@@ -60,6 +60,14 @@ src/
 | `submit_reservation` | なし | 「予約する」（同じ `submit()` を呼ぶ） | 入力にエラーがあれば確認せずに失敗を返す（同じ処理なので画面にも空の欄のエラーが出る）。なければ確認ダイアログ（「10月7日(水) 19:00、2 名、テーブル席で予約します。」） |
 
 * `fill_reservation_form` は、入れた値にエラーがあっても値は残し（人が入力したときと同じ）、失敗としてエラーを返す: `the form was filled in, but coupon_code: use half-width uppercase letters and digits (got "tomari10")`
+* 成功したときも、AI が次の一手を決めるための英文を返す（小さいモデルが、入れただけで「予約しました」と言わないように）
+
+  | Command | いつ | message |
+  | --- | --- | --- |
+  | `fill_reservation_form` | 足りない項目がある | `filled in; not sent yet. still missing: party_size, seat (ask the user for them one at a time)` |
+  | | すべて埋まった | `filled in; not sent yet. all fields are filled; ask the user whether to book it` |
+  | `submit_reservation` | 受け付けた | `reservation 1001 was made for 2026-10-08 19:00, 2 people, table` |
+
 * エラーの英文（`describeError`）
 
   | エラー | message |
@@ -89,7 +97,7 @@ src/
 
 * システムプロンプト: 今日の日付と曜日（小さいモデルは `get_state` を読まずに日付を作りがちなので、プロンプトにも書く）・分かった項目から入れる・足りない項目は 1 つずつ聞く・エラーは直すか聞く・すべて埋まってユーザーが望んだら送る・ほかの週は `show_availability` の後に `get_state` を読む・予約と関係のない頼みは短く断る
 * 話しかけ方の例: 「明日の 19 時に予約したい」「来週の空いている日は？」「クーポン ｔｏｍａｒｉ１０ を使いたい」
-* 小さいローカル LLM（Qwen3.5 4B）は、足りない項目を聞き返す対話が苦手（`docs/history/2026-10-06-reservation-app.md`）。一度に全部伝えると入れられる。改善は #77、全サイトでの比べは #78
+* 小さいローカル LLM（Qwen3.5 4B）は、足りない項目を聞き返す対話が苦手（`docs/history/2026-10-06-reservation-app.md`）。一度に全部伝えると入れられる。成功の結果で「まだ送っていない・足りない項目」を返すようにした（#77）。全サイトでの比べは #78
 
 ## 開発
 

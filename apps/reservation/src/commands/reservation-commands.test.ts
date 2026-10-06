@@ -34,7 +34,7 @@ const setup = ({
     const errors = formErrors(form, today);
     return errors.length > 0
       ? { ok: false, reason: "invalid", errors }
-      : { ok: true };
+      : { ok: true, number: "1001" };
   };
   const actions = {
     fill: mock((_: Partial<ReservationValues>) => {}),
@@ -66,13 +66,28 @@ describe("reservation commands", () => {
         date: "2026-10-07",
         party_size: 2,
       }),
-    ).toEqual({ ok: true });
+    ).toEqual({
+      ok: true,
+      message:
+        "fill_reservation_form: filled in; not sent yet. still missing: time, seat (ask the user for them one at a time)",
+    });
     expect(s.fill).toHaveBeenCalledWith({
       date: "2026-10-07",
       time: undefined,
       partySize: "2",
       seat: undefined,
       couponCode: undefined,
+    });
+  });
+
+  test("tell that the form is not sent yet when every field is filled", async () => {
+    const s = setup({ values: filled });
+    expect(
+      await s.run("fill_reservation_form", { party_size: 3 }),
+    ).toMatchObject({
+      ok: true,
+      message:
+        "fill_reservation_form: filled in; not sent yet. all fields are filled; ask the user whether to book it",
     });
   });
 
@@ -123,7 +138,11 @@ describe("reservation commands", () => {
 
   test("send after confirming the reservation", async () => {
     const s = setup({ values: filled });
-    expect(await s.run("submit_reservation", {})).toEqual({ ok: true });
+    expect(await s.run("submit_reservation", {})).toEqual({
+      ok: true,
+      message:
+        "submit_reservation: reservation 1001 was made for 2026-10-09 18:00, 2 people, table",
+    });
     expect(s.confirm.mock.calls[0]?.[1]).toMatchObject({
       description: "Fri, October 9 at 18:00, party of 2, Table.",
     });

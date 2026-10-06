@@ -110,9 +110,9 @@ export function reservationSchema(today: string) {
 
 export type FormError = { field: ReservationField; code: string };
 
-/** 入力欄に入れた・送ったときの結果 */
+/** 送ったときの結果。受け付けたら予約番号を返す */
 export type FormResult =
-  | { ok: true }
+  | { ok: true; number: string }
   | { ok: false; reason: "submitting" }
   | { ok: false; reason: "invalid"; errors: FormError[] };
 

@@ -15,9 +15,19 @@ import {
   type FormError,
   type FormResult,
   formErrors,
+  type ReservationField,
   type ReservationValues,
   seats,
 } from "../reservation/reservation-form";
+
+/** 入力欄の名前を、Command の引数の名前にする */
+const argNames: Record<ReservationField, string> = {
+  date: "date",
+  time: "time",
+  partySize: "party_size",
+  seat: "seat",
+  couponCode: "coupon_code",
+};
 
 type ReservationActions = Pick<
   ReservationContextValue,
@@ -78,6 +88,7 @@ export function createReservationCommands({
   t,
 }: ReservationActions) {
   const fail = (message: string) => ({ ok: false as const, message });
+  const done = (message: string) => ({ ok: true as const, message });
   // 画面と同じく、送信中はフォームを受け付けない
   const sending = () =>
     fail("a reservation is being sent; try again after it finishes");
@@ -85,7 +96,12 @@ export function createReservationCommands({
     errors.map((error) => describeError(error, form, today)).join("; ");
   /** サイトの関数（submit）の結果を、AI が読んで直せる英文にする */
   const toRunResult = (result: FormResult) => {
-    if (result.ok) return;
+    if (result.ok) {
+      const { date, time, partySize, seat } = values;
+      return done(
+        `reservation ${result.number} was made for ${date} ${time}, ${partySize} people, ${seat}`,
+      );
+    }
     if (result.reason === "submitting") return sending();
     return fail(describe(result.errors, values));
   };
@@ -124,6 +140,15 @@ export function createReservationCommands({
         if (errors.length > 0) {
           return fail(`the form was filled in, but ${describe(errors, form)}`);
         }
+        // 小さいモデルは、入れただけで「予約しました」と言いがちなので、まだ送っていないことと次の一手を伝える
+        const missing = formErrors(form, today).map(
+          (error) => argNames[error.field],
+        );
+        return done(
+          missing.length > 0
+            ? `filled in; not sent yet. still missing: ${missing.join(", ")} (ask the user for them one at a time)`
+            : "filled in; not sent yet. all fields are filled; ask the user whether to book it",
+        );
       },
     }),
     defineCommand({

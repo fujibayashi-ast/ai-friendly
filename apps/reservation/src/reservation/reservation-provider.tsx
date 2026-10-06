@@ -57,12 +57,14 @@ export function ReservationProvider({ children }: { children: ReactNode }) {
 
   const submit = useCallback(async (): Promise<FormResult> => {
     if (submitting) return { ok: false, reason: "submitting" };
-    let result: FormResult = { ok: true };
+    // handleSubmit は、通れば 1 つ目、通らなければ 2 つ目の関数を呼ぶ。どちらかで上書きされる
+    let result: FormResult = { ok: false, reason: "invalid", errors: [] };
     await handleSubmit(
       async (submitted) => {
         const response = await sendReservation(submitted);
         setCompleted({ number: response.number, values: submitted });
         reset(emptyValues);
+        result = { ok: true, number: response.number };
       },
       (fieldErrors) => {
         const errors: FormError[] = reservationFields.flatMap((field) => {
