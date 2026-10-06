@@ -21,7 +21,7 @@ flowchart LR
 * AI の操作は Command を通る。Command は引数を検証し、ボタンと同じ `setTheme` / `setLanguage` を呼ぶ
 * 状態が変わるたびに、Command と AI 向けツールを作り直して登録し直す（`get_state` が今の設定を返すように）
 * 確認が要る Command（`reset_settings`）は、サイトの確認ダイアログ（`useConfirm`）で承認を得てから実行する
-* `app.tsx` から `<Ai />` を外しても、サイトはそのまま動く（AI から操作できなくなるだけ）
+* `app.tsx` から `<Ai />` を外しても、サイトはそのまま動く（チャットがなくなり、AI から操作できなくなるだけ）
 
 ## Command
 
@@ -68,7 +68,7 @@ src/
   i18n/                 # 文言の辞書と useI18n
   confirm/              # 確認ダイアログ（useConfirm）
   commands/             # AI が実行できる Command（機能ごとにファイル）
-  ai/                   # <Ai />: Command を AI 向けツールにして登録する
+  ai/                   # <Ai />: Command を AI 向けツールにし、チャットと WebMCP から使えるようにする
 ```
 
 | ファイル | 役割 |
@@ -80,13 +80,27 @@ src/
 | `i18n/language-names.ts` | 言語名（JA / 日本語）。表示中の言語に関係なくその言語で書くので、辞書に入れない |
 | `confirm/confirm-provider.tsx` / `use-confirm.ts` | `await confirm({ title, description, confirmLabel })` で確認ダイアログを出し、承認されたら `true`。文言は辞書のキーで渡す |
 | `commands/settings-commands.ts` | 設定の Command。`useTheme` / `useI18n` の setter を呼ぶ（`useSettingsCommands`） |
-| `ai/ai.tsx` | `<Ai />`。Command を AI 向けツールにし、確認を `useConfirm` につなぎ、WebMCP に登録する。描画はしない |
+| `ai/ai.tsx` | `<Ai />`。Command を AI 向けツールにし、確認を `useConfirm` につなぎ、WebMCP に登録し、右下のチャット（`FloatingChat`）を置く |
+| `ai/scripted-rules.ts` | 仮のボットが反応する言い回し |
 
 * 機能やページを増やすときは、まず普通のサイトとして作る。AI から操作したいものだけ、その機能の setter を呼ぶ Command を `commands/` に足し、`<Ai />` に渡す
 * 確認待ちの間に次の確認が来たら、前のものは拒否する
 * `<Ai />` は `get_state` が今の設定を返すよう、設定が変わるたびにツールを作り直す。設定の切り替えは時々なので軽い。入力のたびに状態が変わるような題材で作り直しが気になるときは、`get_state` だけ ref から読む形にする
 
 ## AI から操作する
+
+右下のボタンからチャットを開き、話しかけて操作する。今は LLM の代わりに、決まった言い回しで動く仮のボット（`ai/scripted-rules.ts`）が答える。
+
+| 言い回し（例） | 呼ぶツール |
+| --- | --- |
+| ダーク / 暗く / dark | `set_theme`（dark） |
+| ライト / 明るく / light | `set_theme`（light） |
+| 英語 / english | `set_language`（en） |
+| 日本語 / japanese | `set_language`（ja） |
+| リセット / reset | `reset_settings`（確認ダイアログが出る） |
+
+* 1 つの文に複数の言い回しがあれば、すべて実行する（「英語にしてダークにして」）
+* チャットとは別に、同じツールを WebMCP にも登録している
 
 | ツール | 内容 |
 | --- | --- |

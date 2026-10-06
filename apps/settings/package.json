@@ -8,6 +8,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@ai-friendly/assistant": "workspace:*",
     "@ai-friendly/command": "workspace:*",
     "@ai-friendly/ui": "workspace:*",
     "lucide-react": "1.52.0",
