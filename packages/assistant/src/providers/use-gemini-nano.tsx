@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { ProviderOption } from "../chat/chat";
 import { type ChatLanguage, createTranslate } from "../i18n/messages";
-import { GeminiNanoSetup } from "../ui/gemini-nano-setup";
+import { ModelSetup } from "../ui/model-setup";
 import { createGeminiNanoProvider } from "./gemini-nano-provider";
 import { getLanguageModel, languageModelOptions } from "./language-model";
 
@@ -79,17 +79,23 @@ export function useGeminiNano({
     label: "Gemini Nano",
     provider,
     setup: status !== "available" && (
-      <GeminiNanoSetup
-        status={status}
+      <ModelSetup
+        status={
+          status === "downloadable"
+            ? "ready"
+            : status === "downloading"
+              ? "loading"
+              : status
+        }
         progress={progress}
         failed={failed}
-        onDownload={() => void download()}
+        onLoad={() => void download()}
         texts={{
           description: t("nano.description"),
-          download: t("nano.download"),
-          downloadNote: t("nano.downloadNote"),
-          downloading: t("nano.downloading"),
-          downloadFailed: t("nano.downloadFailed"),
+          action: t("nano.download"),
+          note: t("nano.downloadNote"),
+          loading: t("nano.downloading"),
+          failed: t("nano.downloadFailed"),
           unavailable: t("nano.unavailable"),
         }}
       />

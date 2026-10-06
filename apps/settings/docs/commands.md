@@ -80,7 +80,7 @@ src/
 | `i18n/language-names.ts` | 言語名（JA / 日本語）。表示中の言語に関係なくその言語で書くので、辞書に入れない |
 | `confirm/confirm-provider.tsx` / `use-confirm.ts` | `await confirm({ title, description, confirmLabel })` で確認ダイアログを出し、承認されたら `true`。文言は辞書のキーで渡す |
 | `commands/settings-commands.ts` | 設定の Command。`useTheme` / `useI18n` の setter を呼ぶ（`useSettingsCommands`） |
-| `ai/ai.tsx` | `<Ai />`。Command を AI 向けツールにし、確認を `useConfirm` につなぎ、WebMCP に登録し、右下のチャット（`FloatingChat`・Claude / Gemini Nano）を置く |
+| `ai/ai.tsx` | `<Ai />`。Command を AI 向けツールにし、確認を `useConfirm` につなぎ、WebMCP に登録し、右下のチャット（`FloatingChat`・Claude / Gemini Nano / Qwen3.5 4B）を置く |
 
 * 機能やページを増やすときは、まず普通のサイトとして作る。AI から操作したいものだけ、その機能の setter を呼ぶ Command を `commands/` に足し、`<Ai />` に渡す
 * 確認待ちの間に次の確認が来たら、前のものは拒否する
@@ -94,11 +94,12 @@ src/
 | --- | --- |
 | Claude（`claude-haiku-4-5`） | API キーを入れる |
 | Gemini Nano（Chrome の Prompt API） | パソコン版の Chrome 148 以降。モデルがなければ「モデルをダウンロード」を押す |
+| Qwen3.5 4B（WebLLM） | WebGPU が使えるブラウザ。「モデルを読み込む」を押す（初回は約 2.4 GB をダウンロード） |
 
 * Claude の API キーは React の state に持つだけで保存しない（再読み込みで消える）。見出しの「キーを変更」で入れ直せる
-* システムプロンプトは両方で共通。「ツールでサイトを操作する・「ダークにして」「英語にして」のような頼みはサイトのことなのでツールを使う・必要なら get_state で今の設定を見る・サイトの設定と関係のない頼みは、このサイトのことしか手伝えないと短く断る・ユーザーの言語で短く返事する」
+* システムプロンプトは 3 つで共通。「ツールでサイトを操作する・「ダークにして」「英語にして」のような頼みはサイトのことなのでツールを使う・必要なら get_state で今の設定を見る・サイトの設定と関係のない頼みは、このサイトのことしか手伝えないと短く断る・ユーザーの言語で短く返事する」
   * 断るのはプロンプトで頼んでいるだけなので、完全には防げない。AI ができること自体は Command・引数の検証・確認でコードが閉じている
-* ブラウザから Claude API を直接呼ぶ（サーバーを通さない）。通信するのはキーを入れて話しかけたときだけ。Gemini Nano は通信しない（モデルのダウンロードは Chrome が行う）
+* ブラウザから Claude API を直接呼ぶ（サーバーを通さない）。通信するのはキーを入れて話しかけたときだけ。Gemini Nano は通信しない（モデルのダウンロードは Chrome が行う）。Qwen は「モデルを読み込む」を押したときだけ、初回にモデルをダウンロードする
 * チャットとは別に、同じツールを WebMCP にも登録している
 * 開発中（`bun run dev`）は、失敗の理由に LLM 向けの英文も出す（`debug`）
 

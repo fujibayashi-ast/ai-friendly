@@ -5,7 +5,7 @@ AI が操作しやすいサイトのサンプル集。
 普通のサイトに、サイトの関数を **Command** として包む層を足すだけで、サイト内の AI チャット・WebMCP（ブラウザの AI エージェント）から操作できるようにする設計パターンを示す。題材の異なる複数のサイトで、共通の基盤がそのまま使えることを見せる。
 
 - サーバーなしの SPA（API はダミー）
-- AI チャットの LLM は、利用者の API キーで Claude API をブラウザから直接呼ぶか、Chrome に入っている Gemini Nano を使う（入力欄で切り替える）
+- AI チャットの LLM は、利用者の API キーで Claude API をブラウザから直接呼ぶか、ブラウザの中の LLM（Chrome の Gemini Nano・WebLLM の Qwen）を使う（入力欄で切り替える）
 - WebMCP（`document.modelContext`）が主流になるまでのつなぎであり、そのまま WebMCP にもつながる構成
 
 ## 構成
@@ -29,7 +29,7 @@ bun run dev   # テーマ・言語の切り替えサイト（apps/settings）を
 表示された URL（`http://localhost:5173/` など）を開く。
 
 * テーマと言語を右上のボタンで切り替えられる
-* 右下のボタンからチャットを開き、Claude の API キーを入れるか、入力欄の左下で Gemini Nano（パソコン版の Chrome 148 以降）に切り替えると、話しかけて操作できる
+* 右下のボタンからチャットを開き、Claude の API キーを入れるか、入力欄の左下で Gemini Nano（パソコン版の Chrome 148 以降）か Qwen3.5 4B（WebGPU が使えるブラウザ）に切り替えると、話しかけて操作できる
 * 開発中は devtools のコンソールで `window.__aiTools` から同じツールを呼べる（[apps/settings/docs/commands.md](apps/settings/docs/commands.md)）
 
 ### チェック

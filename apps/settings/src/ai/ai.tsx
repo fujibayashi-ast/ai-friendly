@@ -3,6 +3,7 @@ import {
   createClaudeProvider,
   FloatingChat,
   useGeminiNano,
+  useQwen,
 } from "@ai-friendly/assistant";
 import { type AiTool, createAiTools } from "@ai-friendly/command";
 import { registerWebMcpTools } from "@ai-friendly/command/webmcp";
@@ -61,6 +62,7 @@ export function Ai() {
     [apiKey],
   );
   const geminiNano = useGeminiNano({ system, language });
+  const qwen = useQwen({ system, language });
 
   return (
     <FloatingChat
@@ -71,6 +73,7 @@ export function Ai() {
           setup: <ApiKeyForm language={language} onSubmit={setApiKey} />,
         },
         geminiNano,
+        qwen,
       ]}
       actions={
         apiKey && (

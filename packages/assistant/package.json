@@ -15,6 +15,7 @@
   "dependencies": {
     "@ai-friendly/command": "workspace:*",
     "@ai-friendly/ui": "workspace:*",
+    "@mlc-ai/web-llm": "0.2.85",
     "lucide-react": "1.52.0"
   },
   "devDependencies": {
