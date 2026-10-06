@@ -14,9 +14,5 @@ export type Language = Settings["language"];
 
 export const defaultSettings: Settings = {
   theme: "light",
-  language: detectLanguage(),
+  language: "ja",
 };
-
-function detectLanguage(): Language {
-  return globalThis.navigator?.language?.startsWith("ja") ? "ja" : "en";
-}

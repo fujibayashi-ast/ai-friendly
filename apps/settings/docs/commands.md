@@ -52,7 +52,7 @@ type Settings = {
 };
 ```
 
-* 初期値は `theme: "light"`、`language` はブラウザの言語（`ja` で始まれば `ja`、それ以外は `en`）
+* 初期値は `theme: "light"`、`language: "ja"`
 * localStorage（`ai-friendly:settings`）に保存する。読み込むときに検証し、壊れていれば初期値に戻す
 
 ## コードの構成
