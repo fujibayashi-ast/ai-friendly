@@ -14,11 +14,14 @@
   - [2026-10-05-command-core.md](history/2026-10-05-command-core.md) — Command 基盤の設計（スナップショット方式の Undo・zod の引数・条件付きの確認）
   - [2026-10-05-ai-tools.md](history/2026-10-05-ai-tools.md) — AI 向けツールの置き場所と粒度
   - [2026-10-05-ui-package.md](history/2026-10-05-ui-package.md) — 共通 UI（shadcn・アクセントの黄・標準から変えたところ）
+  - [2026-10-05-settings-app.md](history/2026-10-05-settings-app.md) — 最初の題材（テーマ・言語の切り替え・i18n・確認ダイアログ）
   - [2026-10-06-command-store.md](history/2026-10-06-command-store.md) — アプリの状態にセッションをつなぐ（`store`）
   - [2026-10-06-remove-undo.md](history/2026-10-06-remove-undo.md) — Command 基盤から Undo / Redo と操作の履歴を外した理由
   - [2026-10-06-minimal-command.md](history/2026-10-06-minimal-command.md) — Command をサイトの関数を呼ぶ形にし、バッチ・状態を外した理由
 
 題材ごとの仕様は `apps/<題材>/docs/` に置く。
+
+- [apps/settings/docs/commands.md](../apps/settings/docs/commands.md) — テーマ・言語の切り替えサイトの Command
 
 ## Claude / 運用向け（`docs/claude/`）
 
