@@ -10,7 +10,6 @@ import {
 } from "react";
 import type { Translate } from "../i18n/messages";
 import type { ToolCall } from "../providers/provider";
-import { resultsAfter } from "./results-after";
 import { ToolCallLine, type ToolCallView } from "./tool-call-line";
 import type { ChatEntry, ChatState } from "./use-chat";
 
@@ -38,6 +37,11 @@ export function Chat({
   const [draft, setDraft] = useState("");
   const listRef = useRef<HTMLDivElement>(null);
   const { running } = chat;
+  const results = new Map(
+    chat.entries.flatMap((entry) =>
+      entry.role === "tool" ? [[entry.toolCallId, entry.result] as const] : [],
+    ),
+  );
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: 新しいメッセージ・状態のたびに下までスクロールする
   useEffect(() => {
@@ -96,7 +100,7 @@ export function Chat({
             // biome-ignore lint/suspicious/noArrayIndexKey: 追記だけで並びが変わらない
             key={index}
             entry={entry}
-            results={resultsAfter(chat.entries, index)}
+            results={results}
             t={t}
             debug={debug}
             ToolCallView={ToolCallView}

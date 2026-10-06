@@ -1,5 +1,6 @@
 import type { AiTool } from "@ai-friendly/command";
 
+/** `id` は会話の中で一意にする（結果をこの `id` で探すため） */
 export type ToolCall = { id: string; name: string; input: unknown };
 
 export type ChatMessage =
