@@ -23,6 +23,16 @@ const ja = {
   "apiKey.note":
     "キーはサーバーを通さず、このブラウザから Claude API に直接送られます。",
   "apiKey.save": "保存",
+  provider: "使う AI",
+  "nano.description":
+    "Chrome に入っている Gemini Nano を使います。API キーは要りません。",
+  "nano.download": "モデルをダウンロード",
+  "nano.downloadNote": "初回だけ、モデル（数 GB）をダウンロードします。",
+  "nano.downloading": "ダウンロードしています…",
+  "nano.downloadFailed":
+    "ダウンロードできませんでした。もう一度試してください。",
+  "nano.unavailable":
+    "このブラウザでは使えません。パソコン版の Chrome（148 以降）で開いてください。",
 };
 
 export type MessageKey = keyof typeof ja;
@@ -50,6 +60,15 @@ const en: Record<MessageKey, string> = {
   "apiKey.note":
     "The key is sent directly from this browser to the Claude API, not through a server.",
   "apiKey.save": "Save",
+  provider: "AI to use",
+  "nano.description": "Uses Gemini Nano built into Chrome. No API key needed.",
+  "nano.download": "Download the model",
+  "nano.downloadNote":
+    "The model (a few GB) is downloaded only the first time.",
+  "nano.downloading": "Downloading…",
+  "nano.downloadFailed": "Couldn't download the model. Try again.",
+  "nano.unavailable":
+    "Not available in this browser. Open this site in Chrome 148 or later on a computer.",
 };
 
 /** チャットの表示言語。サイトの言語を渡す */

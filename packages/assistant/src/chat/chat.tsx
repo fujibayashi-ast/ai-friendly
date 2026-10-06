@@ -5,6 +5,7 @@ import {
   type RefObject,
   useEffect,
   useRef,
+  useState,
 } from "react";
 import {
   failureMessage,
@@ -17,15 +18,24 @@ import type { ChatProvider, ToolCall } from "../providers/provider";
 import { AssistantMessage } from "../ui/assistant-message";
 import { Composer } from "../ui/composer";
 import { Notice } from "../ui/notice";
+import { ProviderSelect } from "../ui/provider-select";
 import { Suggestions } from "../ui/suggestions";
 import { ToolCallLine, type ToolCallLineProps } from "../ui/tool-call-line";
 import { UserMessage } from "../ui/user-message";
 
-export type ChatProps = {
-  /** 省略すると、会話の代わりに `setup` を出す（API キーの入力待ちなど） */
+/** 使う LLM の候補 */
+export type ProviderOption = {
+  /** 切り替えに出す名前。候補の中で重ならないようにする */
+  label: string;
+  /** ないと、この候補を選んだときは会話の代わりに `setup` を出す（API キーの入力待ちなど） */
   provider?: ChatProvider;
   /** `provider` がないときに出すもの（`ApiKeyForm` など） */
   setup?: ReactNode;
+};
+
+export type ChatProps = {
+  /** 使う LLM の候補。2 つ以上あると入力欄の左下で切り替えられる。最初は先頭を使う */
+  providers: readonly ProviderOption[];
   /** `createAiTools` の結果。作り直されてよい（会話のループは毎回最新を使う） */
   tools: readonly AiTool[];
   language: ChatLanguage;
@@ -43,12 +53,11 @@ export type ChatProps = {
  * 置き場所には依存しないので、ページの中・ドロワー・浮いたパネル（`FloatingChat`）などに入れる
  *
  * @example
- * <Chat provider={provider} tools={tools} language="ja" suggestions={["ダークにして"]} />
+ * <Chat providers={[{ label: "Claude", provider }]} tools={tools} language="ja" suggestions={["ダークにして"]} />
  * @see docs/assistant.md
  */
 export function Chat({
-  provider,
-  setup,
+  providers,
   tools,
   language,
   suggestions = [],
@@ -57,19 +66,22 @@ export function Chat({
   inputRef,
 }: ChatProps) {
   const t = createTranslate(language);
+  const [selected, setSelected] = useState(0);
+  const option = providers[selected] ?? providers[0];
+  const provider = option?.provider;
   const { entries, running, send } = useChat({ provider, tools });
   const listRef = useRef<HTMLDivElement>(null);
   const ownInputRef = useRef<HTMLTextAreaElement>(null);
   const input = inputRef ?? ownInputRef;
   const setupRef = useRef<HTMLDivElement>(null);
 
-  // キーを保存した・変更を押した、で入力欄が入れ替わるので、新しい入力欄にフォーカスを移す
+  // キーを保存した・変更を押した・LLM を切り替えた、で入力欄が入れ替わるので、新しい入力欄にフォーカスを移す
   const hadProvider = useRef(Boolean(provider));
   useEffect(() => {
     const hasProvider = Boolean(provider);
     if (hasProvider !== hadProvider.current) {
       if (hasProvider) input.current?.focus();
-      else setupRef.current?.querySelector("input")?.focus();
+      else focusSetup(setupRef.current);
     }
     hadProvider.current = hasProvider;
   }, [provider, input]);
@@ -102,10 +114,28 @@ export function Chat({
     };
   };
 
+  const providerSelect = (
+    <ProviderSelect
+      labels={providers.map((option) => option.label)}
+      selected={selected}
+      onSelect={setSelected}
+      label={t("provider")}
+    />
+  );
+
   if (!provider) {
     return (
-      <div ref={setupRef} className="min-h-0 flex-1 overflow-y-auto">
-        {setup}
+      <div className="flex min-h-0 flex-1 flex-col">
+        <div
+          ref={setupRef}
+          data-chat-setup=""
+          className="min-h-0 flex-1 overflow-y-auto"
+        >
+          {option?.setup}
+        </div>
+        {providers.length > 1 && (
+          <div className="border-t p-3">{providerSelect}</div>
+        )}
       </div>
     );
   }
@@ -171,9 +201,19 @@ export function Chat({
         disabled={running}
         onSubmit={(text) => void send(text)}
         inputRef={input}
+        start={providerSelect}
       />
     </div>
   );
+}
+
+/** `setup` の最初の入力・ボタンにフォーカスを移す。なければ何もしない */
+export function focusSetup(root: ParentNode | null | undefined) {
+  root
+    ?.querySelector<HTMLElement>(
+      "[data-chat-setup] input, [data-chat-setup] button",
+    )
+    ?.focus();
 }
 
 const noticeMessages = {
