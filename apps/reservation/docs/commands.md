@@ -47,6 +47,7 @@ src/
   * `mode: "onChange"`: 値を変えた欄はその場で、空の欄は「予約する」（`handleSubmit`）のときにエラーを出す
   * 入力の値はどれも文字列（選んでいなければ `""`）
 * ルールは zod の `superRefine` で書く。項目をまたぐもの（席と人数・時刻と日付）もここ。エラーの `message` はエラーの種類（`closed` など）で、画面は `error.<項目>.<種類>` の文言にする
+* `useReservation` の `showWeek(date)` は、今週より前・日付でないものを断り、`{ ok: false, reason: "past" | "invalid" }` を返す（`weekError`）。カレンダーの「前の週」も同じ `weekError` で押せなくする
 * `useReservation` の `fill(patch)` は、変わった項目だけを React Hook Form の `setValue` で入れる（カレンダーの日を押したとき）
 * `useReservation` の `submit()` は「予約する」と同じ `handleSubmit` を通り、結果（受け付けた予約番号・送信中・入力のエラー）を返す。画面は返り値を使わない
 
@@ -57,7 +58,7 @@ src/
 | Command | 引数 | 画面の同じ操作 | AI が実行するとき |
 | --- | --- | --- | --- |
 | `fill_reservation_form` | `date?`（YYYY-MM-DD）・`time?`（HH:MM）・`party_size?`・`seat?`（`table` / `counter` / `private`）・`coupon_code?` | 入力欄に入れる（React Hook Form の `setValue`。人は入力欄から 1 項目ずつ、AI は `fill(patch)` で分かった項目をまとめて） | そのまま実行 |
-| `show_availability` | `week_of`（YYYY-MM-DD） | カレンダーの前の週・次の週 | そのまま実行。今週より前は失敗 |
+| `show_availability` | `week_of`（YYYY-MM-DD） | カレンダーの前の週・次の週（同じ `showWeek` を呼ぶ） | そのまま実行。今週より前・日付でないものは、`showWeek` が断った理由を英文にして返す |
 | `submit_reservation` | なし | 「予約する」（同じ `submit()` を呼ぶ） | 入力にエラーがあれば確認せずに失敗を返す（同じ処理なので画面にも空の欄のエラーが出る）。なければ確認ダイアログ（「10月7日(水) 19:00、2 名、テーブル席で予約します。」） |
 
 * `fill_reservation_form` は、入れた値にエラーがあっても値は残し（人が入力したときと同じ）、失敗としてエラーを返す: `the form was filled in, but coupon_code: use half-width uppercase letters and digits (got "tomari10")`

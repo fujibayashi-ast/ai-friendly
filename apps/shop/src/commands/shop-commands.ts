@@ -5,14 +5,17 @@ import { formatPrice } from "../i18n/format";
 import type { Language, Translate } from "../i18n/messages";
 import { useI18n } from "../i18n/use-i18n";
 import {
-  cartQuantity,
   cartTotal,
   categoryFilters,
-  findProduct,
-  productStatus,
+  orderError,
+  type ShopError,
   sortOrders,
 } from "../shop/shop";
-import { type ShopContextValue, useShop } from "../shop/shop-context";
+import {
+  type ShopContextValue,
+  type ShopResult,
+  useShop,
+} from "../shop/shop-context";
 
 type ShopActions = Pick<
   ShopContextValue,
@@ -36,35 +39,31 @@ export function createShopCommands({
   language,
   t,
 }: ShopActions) {
-  const fail = (message: string) => ({ ok: false as const, message });
-  const notFound = (id: string) =>
-    fail(
-      `product "${id}" not found (ids: ${state.products.map((product) => product.id).join(", ")})`,
-    );
-  const notInCart = (id: string) =>
-    fail(
-      `product "${id}" is not in the cart (cart: ${state.cart.map((item) => item.productId).join(", ") || "empty"})`,
-    );
-  // 画面のボタンと同じく、注文の送信中はカートと注文を受け付けない（サイトの関数も何もしない）
-  const busy = () =>
-    state.ordering
-      ? fail("an order is being placed; try again after it finishes")
-      : undefined;
-  /** 販売中で、カートの分と合わせて在庫に収まるか。だめなら理由を返す */
-  const checkStock = (id: string, quantity: number) => {
-    const product = findProduct(state, id);
-    if (!product) return notFound(id);
-    const status = productStatus(product);
-    if (status === "coming_soon") {
-      return fail(
-        `product "${id}" is not on sale yet (release date: ${product.releaseDate})`,
-      );
-    }
-    if (status === "sold_out") return fail(`product "${id}" is sold out`);
-    if (quantity > product.stock) {
-      return fail(`only ${product.stock} left for product "${id}"`);
+  /** サイトの関数が返した理由を、AI が読んで直せる英文にする */
+  const describe = (error: ShopError, id = "") => {
+    switch (error.code) {
+      case "ordering":
+        return "an order is being placed; try again after it finishes";
+      case "not_found":
+        return `product "${id}" not found (ids: ${state.products.map((product) => product.id).join(", ")})`;
+      case "coming_soon":
+        return `product "${id}" is not on sale yet (release date: ${error.releaseDate})`;
+      case "sold_out":
+        return `product "${id}" is sold out`;
+      case "over_stock":
+        return `only ${error.stock} left for product "${id}"`;
+      case "not_in_cart":
+        return `product "${id}" is not in the cart (cart: ${state.cart.map((item) => item.productId).join(", ") || "empty"})`;
+      case "invalid_quantity":
+        return "quantity must be 1 or more";
+      case "empty_cart":
+        return "the cart is empty";
     }
   };
+  const toRunResult = (result: ShopResult, id?: string) =>
+    result.ok
+      ? undefined
+      : { ok: false as const, message: describe(result.error, id) };
 
   return [
     defineCommand({
@@ -89,13 +88,8 @@ export function createShopCommands({
         product_id: z.string(),
         quantity: z.number().int().min(1),
       }),
-      run: ({ product_id, quantity }) => {
-        const error =
-          busy() ??
-          checkStock(product_id, cartQuantity(state, product_id) + quantity);
-        if (error) return error;
-        addToCart(product_id, quantity);
-      },
+      run: ({ product_id, quantity }) =>
+        toRunResult(addToCart(product_id, quantity), product_id),
     }),
     defineCommand({
       type: "set_cart_quantity",
@@ -105,32 +99,22 @@ export function createShopCommands({
         product_id: z.string(),
         quantity: z.number().int().min(1),
       }),
-      run: ({ product_id, quantity }) => {
-        const error = busy();
-        if (error) return error;
-        if (cartQuantity(state, product_id) === 0) return notInCart(product_id);
-        const stockError = checkStock(product_id, quantity);
-        if (stockError) return stockError;
-        setCartQuantity(product_id, quantity);
-      },
+      run: ({ product_id, quantity }) =>
+        toRunResult(setCartQuantity(product_id, quantity), product_id),
     }),
     defineCommand({
       type: "remove_from_cart",
       description: "Remove a product from the cart.",
       args: z.object({ product_id: z.string() }),
-      run: ({ product_id }) => {
-        const error = busy();
-        if (error) return error;
-        if (cartQuantity(state, product_id) === 0) return notInCart(product_id);
-        removeFromCart(product_id);
-      },
+      run: ({ product_id }) =>
+        toRunResult(removeFromCart(product_id), product_id),
     }),
     defineCommand({
       type: "place_order",
       description: "Place an order for everything in the cart.",
       args: z.object({}),
       // 空のカートは確認せずに知らせる
-      requiresConfirmation: () => !state.ordering && state.cart.length > 0,
+      requiresConfirmation: () => !orderError(state),
       confirmation: () => ({
         title: t("order.title"),
         description: t("order.description", {
@@ -139,10 +123,10 @@ export function createShopCommands({
         confirmLabel: t("order.confirm"),
       }),
       run: async () => {
-        const error = busy();
-        if (error) return error;
-        if (state.cart.length === 0) return fail("the cart is empty");
-        await placeOrder();
+        const result = await placeOrder();
+        return result.ok
+          ? { ok: true, message: `order ${result.orderNumber} was placed` }
+          : toRunResult(result);
       },
     }),
   ];

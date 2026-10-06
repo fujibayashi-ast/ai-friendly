@@ -1,6 +1,7 @@
 import { describe, expect, mock, test } from "bun:test";
 import { type ConfirmHandler, createAiTools } from "@ai-friendly/command";
 import { createTranslate } from "../i18n/messages";
+import { weekError } from "../reservation/dates";
 import {
   emptyValues,
   type FormResult,
@@ -38,7 +39,10 @@ const setup = ({
   };
   const actions = {
     fill: mock((_: Partial<ReservationValues>) => {}),
-    showWeek: mock((_: string) => {}),
+    showWeek: mock((date: string) => {
+      const reason = weekError(date, today);
+      return reason ? { ok: false as const, reason } : { ok: true as const };
+    }),
     submit: mock(async () => check(values)),
   };
   const confirmMock = mock(confirm ?? (async () => true));

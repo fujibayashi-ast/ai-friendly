@@ -6,6 +6,11 @@ export type CompletedReservation = {
   values: ReservationValues;
 };
 
+/** カレンダーの週を送ったときの結果。今週より前には戻らない */
+export type WeekResult =
+  | { ok: true }
+  | { ok: false; reason: "invalid" | "past" };
+
 export type ReservationContextValue = {
   /** 開いたときの今日（YYYY-MM-DD） */
   today: string;
@@ -19,7 +24,8 @@ export type ReservationContextValue = {
   completed: CompletedReservation | null;
   /** 入力欄に入れる（変わった項目だけ渡す）。日付を変えたらカレンダーもその週にする */
   fill(patch: Partial<ReservationValues>): void;
-  showWeek(date: string): void;
+  /** その日を含む週をカレンダーに出す */
+  showWeek(date: string): WeekResult;
   /** 「予約する」。エラーがあれば空の欄もエラーにして止め、エラーを返す。受け付けたら予約番号を返す */
   submit(): Promise<FormResult>;
 };

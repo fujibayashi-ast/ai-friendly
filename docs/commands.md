@@ -151,3 +151,4 @@ type ExecuteResult =
 
 * **バッチ**（複数の Command をまとめて実行・全部か何もしないか）と **Undo / Redo**: 工夫の 1 つで、なくても成り立つ。要るサイトは外側に足す（[docs/history/2026-10-06-minimal-command.md](history/2026-10-06-minimal-command.md)）
 * **状態**: 状態はサイトが持つ。Command はサイトの関数を呼ぶだけ
+* **守り**: 処理中は受け付けない・入力のルールなどは、サイトの関数に置く（画面から呼ばれても AI から呼ばれても同じ挙動にする）。サイトの関数は結果（だめな理由・番号など）を多めに返し、Command はそれを AI 向けの英文にするだけ（[docs/history/2026-10-07-guards-in-site.md](history/2026-10-07-guards-in-site.md)）

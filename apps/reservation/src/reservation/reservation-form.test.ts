@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { availableTimes, dayStatus } from "./availability";
-import { addDays, isDate, weekdayOf, weekStart } from "./dates";
+import { addDays, isDate, weekdayOf, weekError, weekStart } from "./dates";
 import {
   emptyValues,
   formErrors,
@@ -30,6 +30,12 @@ describe("dates", () => {
     expect(addDays("2026-10-31", 1)).toBe("2026-11-01");
     expect(isDate("2026-02-30")).toBe(false);
     expect(isDate("2026/10/07")).toBe(false);
+  });
+
+  test("show weeks from this week on", () => {
+    expect(weekError("2026-10-05", today)).toBeUndefined();
+    expect(weekError("2026-10-04", today)).toBe("past");
+    expect(weekError("next week", today)).toBe("invalid");
   });
 });
 

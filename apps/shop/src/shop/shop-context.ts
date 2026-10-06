@@ -1,5 +1,11 @@
 import { createContext, useContext } from "react";
-import type { CategoryFilter, ShopState, SortOrder } from "./shop";
+import type { CategoryFilter, ShopError, ShopState, SortOrder } from "./shop";
+
+/** カートを変えた・注文したときの結果。画面は使わなくてよい */
+export type ShopResult = { ok: true } | { ok: false; error: ShopError };
+export type OrderResult =
+  | { ok: true; orderNumber: string }
+  | { ok: false; error: ShopError };
 
 export type ShopContextValue = {
   state: ShopState;
@@ -7,10 +13,10 @@ export type ShopContextValue = {
   orderNumber: string | null;
   setCategory(category: CategoryFilter): void;
   setOrder(order: SortOrder): void;
-  addToCart(id: string, quantity: number): void;
-  setCartQuantity(id: string, quantity: number): void;
-  removeFromCart(id: string): void;
-  placeOrder(): Promise<void>;
+  addToCart(id: string, quantity: number): ShopResult;
+  setCartQuantity(id: string, quantity: number): ShopResult;
+  removeFromCart(id: string): ShopResult;
+  placeOrder(): Promise<OrderResult>;
 };
 
 export const ShopContext = createContext<ShopContextValue | null>(null);

@@ -5,7 +5,7 @@ import { formatDate } from "../i18n/format";
 import { isMessageKey, type Language, type Translate } from "../i18n/messages";
 import { useI18n } from "../i18n/use-i18n";
 import { availableTimes } from "../reservation/availability";
-import { isDate, weekStart } from "../reservation/dates";
+import { isDate } from "../reservation/dates";
 import {
   type ReservationContextValue,
   useReservation,
@@ -159,15 +159,13 @@ export function createReservationCommands({
         "Show the week that includes this date in the availability calendar (week_of: YYYY-MM-DD).",
       args: z.object({ week_of: z.string() }),
       run: ({ week_of }) => {
-        if (!isDate(week_of)) {
-          return fail(`week_of: "${week_of}" is not a date (use YYYY-MM-DD)`);
-        }
-        if (weekStart(week_of) < weekStart(today)) {
-          return fail(
-            `week_of: ${week_of} is before this week (today: ${today})`,
-          );
-        }
-        showWeek(week_of);
+        const result = showWeek(week_of);
+        if (result.ok) return;
+        return fail(
+          result.reason === "invalid"
+            ? `week_of: "${week_of}" is not a date (use YYYY-MM-DD)`
+            : `week_of: ${week_of} is before this week (today: ${today})`,
+        );
       },
     }),
     defineCommand({
