@@ -47,6 +47,22 @@
         "vite": "8.3.2",
       },
     },
+    "apps/shop": {
+      "name": "@ai-friendly/shop",
+      "dependencies": {
+        "@ai-friendly/ui": "workspace:*",
+        "react": "19.3.0",
+        "react-dom": "19.3.0",
+      },
+      "devDependencies": {
+        "@tailwindcss/vite": "4.3.3",
+        "@types/react": "19.3.0",
+        "@types/react-dom": "19.3.0",
+        "@vitejs/plugin-react": "6.1.2",
+        "tailwindcss": "4.3.3",
+        "vite": "8.3.2",
+      },
+    },
     "apps/tasks": {
       "name": "@ai-friendly/tasks",
       "dependencies": {
@@ -123,6 +139,8 @@
     "@ai-friendly/home": ["@ai-friendly/home@workspace:apps/home"],
 
     "@ai-friendly/settings": ["@ai-friendly/settings@workspace:apps/settings"],
+
+    "@ai-friendly/shop": ["@ai-friendly/shop@workspace:apps/shop"],
 
     "@ai-friendly/tasks": ["@ai-friendly/tasks@workspace:apps/tasks"],
 
