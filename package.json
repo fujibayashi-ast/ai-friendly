@@ -7,6 +7,7 @@
     "packages/*"
   ],
   "scripts": {
+    "dev": "bun run --filter @ai-friendly/settings dev",
     "typecheck": "bun run --workspaces --if-present typecheck",
     "build": "bun run --workspaces --if-present build",
     "check": "biome check",

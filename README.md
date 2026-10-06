@@ -11,7 +11,7 @@ AI が操作しやすいサイトのサンプル集。
 ## 構成
 
 ```
-apps/<題材>/         # 各サンプルサイト（Vite + React）
+apps/settings/       # 題材 1: テーマ・言語の切り替え（Vite + React）
 packages/command/    # Command の定義・検証・確認・AI 向けツール・WebMCP 登録（React / LLM に依存しない）
 packages/assistant/  # サイト内の AI チャット（チャット UI・LLM の切り替え）
 packages/ui/         # 共通 UI（shadcn/ui + Tailwind v4）
@@ -23,9 +23,13 @@ packages/ui/         # 共通 UI（shadcn/ui + Tailwind v4）
 
 ```sh
 bun install
+bun run dev   # テーマ・言語の切り替えサイト（apps/settings）を起動
 ```
 
-> 題材アプリは準備中。追加後は `bun run --filter <題材> dev` で起動する。
+表示された URL（`http://localhost:5173/` など）を開く。
+
+* テーマと言語を右上のボタンで切り替えられる
+* AI からの操作はサイト内のチャット（準備中）から行う。今は devtools のコンソールで `window.__aiTools` から同じツールを呼べる（[apps/settings/docs/commands.md](apps/settings/docs/commands.md)）
 
 ### チェック
 
