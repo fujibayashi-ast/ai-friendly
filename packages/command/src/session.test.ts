@@ -194,6 +194,48 @@ describe("subscribe", () => {
   });
 });
 
+describe("store", () => {
+  const createStore = () => {
+    let state: TodoState = { todos: [] };
+    const setState = mock((next: TodoState) => {
+      state = next;
+    });
+    return {
+      store: { getState: () => state, setState },
+      changeOutside: (next: TodoState) => {
+        state = next;
+      },
+    };
+  };
+
+  test("reads from and writes to the store", async () => {
+    const { store, changeOutside } = createStore();
+    const session = createCommandSession({ store, commands: todoCommands });
+    changeOutside({ todos: [{ id: "1", title: "a", done: false, tags: [] }] });
+
+    await session.execute({ type: "add_todo", id: "2", title: "b" });
+    expect(titles(store.getState())).toEqual(["a", "b"]);
+    expect(session.getState()).toBe(store.getState());
+
+    await session.execute({ type: "add_todo", id: "1", title: "dup" });
+    expect(store.setState).toHaveBeenCalledTimes(1);
+  });
+
+  test("passes the current state of the store to a confirmation rule", async () => {
+    const { store, changeOutside } = createStore();
+    const confirm = mock(() => true);
+    const session = createCommandSession({
+      store,
+      commands: todoCommands,
+      confirm,
+    });
+    changeOutside({ todos: [{ id: "1", title: "a", done: true, tags: [] }] });
+    await session.execute({ type: "delete_todo", id: "1" }, "ai");
+    expect(confirm).not.toHaveBeenCalled();
+    expect(store.getState().todos).toEqual([]);
+  });
+});
+
 describe("types", () => {
   test("execute only accepts defined commands", async () => {
     const session = createSession();
@@ -203,6 +245,18 @@ describe("types", () => {
     await session.execute({ type: "add_todo", id: "1", title: 1 });
     // @ts-expect-error level must be "low" | "high"
     await session.execute({ type: "set_priority", id: "1", level: "mid" });
+  });
+
+  test("takes either initialState or store", () => {
+    const store = { getState: (): TodoState => ({ todos: [] }), setState() {} };
+    // @ts-expect-error initialState and store are exclusive
+    createCommandSession({
+      initialState: { todos: [] },
+      store,
+      commands: todoCommands,
+    });
+    // @ts-expect-error one of them is required
+    createCommandSession({ commands: todoCommands });
   });
 
   test("accepts a command without arguments", async () => {

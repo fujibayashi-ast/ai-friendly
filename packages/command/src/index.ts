@@ -9,6 +9,7 @@ export { defineCommand } from "./define-command";
 export {
   type CommandSession,
   type CommandSessionOptions,
+  type CommandStore,
   type ConfirmHandler,
   createCommandSession,
 } from "./session";

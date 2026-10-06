@@ -13,22 +13,34 @@ export type ConfirmHandler = (
   commands: readonly Command[],
 ) => boolean | Promise<boolean>;
 
+/**
+ * アプリが持つ状態をセッションから読み書きするための口（React の state と setter など）
+ * @see docs/commands.md
+ */
+export type CommandStore<State> = {
+  getState(): State;
+  setState(next: State): void;
+};
+
 export type CommandSessionOptions<
   State,
   Defs extends readonly CommandDefinition<State>[],
 > = {
-  initialState: State;
   commands: Defs;
   /** 省略すると、確認が必要な AI のバッチはすべて `rejected` になる */
   confirm?: ConfirmHandler;
-};
+} & (
+  | { initialState: State; store?: never }
+  /** 状態をアプリが持つ。セッションは実行のたびにここから読み、結果を書く */
+  | { store: CommandStore<State>; initialState?: never }
+);
 
 export type CommandSession<
   State,
   Defs extends readonly CommandDefinition<State>[],
 > = {
   definitions: Defs;
-  /** 変わらない限り同じ参照を返す */
+  /** `initialState` のときは、変わらない限り同じ参照を返す。`store` のときは `store.getState()` */
   getState(): State;
   /**
    * 定義済みの Command を実行する。配列は 1 バッチで、1 つでも失敗したら状態を変えない
@@ -48,8 +60,8 @@ export type CommandSession<
   /** 実行したバッチの一覧（古い順）。Undo したものは含まない */
   getHistory(): HistoryEntry[];
   /**
-   * 状態が変わったら `listener` を呼ぶ。戻り値は解除する関数
-   * React では `useSyncExternalStore(session.subscribe, session.getState)` で使える
+   * Command の実行・Undo / Redo で状態が変わったら `listener` を呼ぶ。戻り値は解除する関数
+   * `store` の外での変更は通知しない
    */
   subscribe(listener: () => void): () => void;
 };
@@ -57,7 +69,8 @@ export type CommandSession<
 type Entry<State> = HistoryEntry & { before: State; after: State };
 
 /**
- * Command を実行するセッションを作る。状態の変更はすべてここを通す
+ * Command を実行するセッションを作る
+ * 状態はセッションが持つ（`initialState`）か、アプリが持つものを読み書きする（`store`）
  *
  * @example
  * const session = createCommandSession({
@@ -67,6 +80,9 @@ type Entry<State> = HistoryEntry & { before: State; after: State };
  * });
  * await session.execute({ type: "add_todo", id: crypto.randomUUID(), title: "Buy milk" });
  * await session.executeRaw(jsonFromLlm, "ai");
+ *
+ * // アプリの状態に AI の操作をつなぐ
+ * const session = createCommandSession({ store: { getState, setState }, commands });
  * @see docs/commands.md
  */
 export function createCommandSession<
@@ -77,10 +93,10 @@ export function createCommandSession<
   const listeners = new Set<() => void>();
   const past: Entry<State>[] = [];
   let future: Entry<State>[] = [];
-  let state = options.initialState;
+  const store = options.store ?? createLocalStore<State>(options.initialState);
 
   const setState = (next: State) => {
-    state = next;
+    store.setState(next);
     for (const listener of listeners) listener();
   };
 
@@ -98,7 +114,9 @@ export function createCommandSession<
       source === "ai" &&
       validated.commands.some(({ definition, args }) => {
         const rule = definition.requiresConfirmation;
-        return typeof rule === "function" ? rule(state, args) : rule === true;
+        return typeof rule === "function"
+          ? rule(store.getState(), args)
+          : rule === true;
       });
     if (needsConfirmation && !(await options.confirm?.(commands))) {
       return {
@@ -108,8 +126,8 @@ export function createCommandSession<
       };
     }
 
-    const before = state;
-    let next = state;
+    const before = store.getState();
+    let next = before;
     for (const [
       index,
       { command, args, definition },
@@ -133,7 +151,7 @@ export function createCommandSession<
 
   return {
     definitions: options.commands,
-    getState: () => state,
+    getState: () => store.getState(),
     execute: (commands, source = "user") => executeRaw(commands, source),
     executeRaw,
     undo() {
@@ -167,6 +185,16 @@ export function createCommandSession<
     subscribe(listener) {
       listeners.add(listener);
       return () => listeners.delete(listener);
+    },
+  };
+}
+
+function createLocalStore<State>(initialState: State): CommandStore<State> {
+  let state = initialState;
+  return {
+    getState: () => state,
+    setState: (next) => {
+      state = next;
     },
   };
 }

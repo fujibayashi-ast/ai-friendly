@@ -1,6 +1,8 @@
 # Command 基盤（`@ai-friendly/command`）
 
-状態を変更する唯一の入口。画面の操作・AI チャット・WebMCP はすべてここを通す。React / LLM には依存しない。
+Command を検証・実行し、Undo / Redo できるようにする。AI チャット・WebMCP（画面の操作も、望むなら）はここを通す。React / LLM には依存しない。
+
+状態はセッションが持つ（`initialState`）か、アプリが持つものを読み書きする（`store`。下の「アプリの状態につなぐ」）。
 
 ## 使い方
 
@@ -85,9 +87,30 @@ args: z.object({
 | `executeRaw(input, source)` | 型の分からない入力（LLM の JSON など）を受け取る。検証は `execute` と同じ |
 | `undo()` / `redo()` | バッチ単位で戻す / やり直す |
 | `canUndo()` / `canRedo()` | 戻せるか / やり直せるか |
-| `getState()` | 今の状態。変わらない限り同じ参照を返す |
+| `getState()` | 今の状態。`initialState` のときは変わらない限り同じ参照を返す。`store` のときは `store.getState()` |
 | `getHistory()` | 実行したバッチ（`{ commands, source }`）の一覧。Undo したものは含まない |
-| `subscribe(listener)` | 状態が変わったら呼ぶ。戻り値は解除する関数（`useSyncExternalStore` で使える） |
+| `subscribe(listener)` | Command の実行・Undo / Redo で状態が変わったら呼ぶ。戻り値は解除する関数。`store` の外での変更は通知しない |
+
+## アプリの状態につなぐ（`store`）
+
+すでに状態を持っているサイトに、AI からの操作を足すときに使う。サイトの状態の持ち主はアプリのままで、セッションは読み書きするだけ。セッションを外してもサイトは動く。
+
+```ts
+const session = createCommandSession({
+  store: {
+    getState: () => current, // アプリの今の状態
+    setState: (next) => apply(next), // アプリの setter に書く
+  },
+  commands: [setTheme, setLanguage],
+  confirm,
+});
+```
+
+* `initialState` と `store` はどちらか一方だけ渡す
+* セッションは実行のたびに `store.getState()` を読む（確認の判定・`apply` の起点）。成功したら `store.setState(next)` を 1 回呼ぶ
+* `getState()` は、`setState` の直後に呼ばれても新しい状態を返すようにする（React の state の反映を待つと、続けて実行したバッチが古い状態から始まるため。ref などで持つ）
+* 画面の操作は Command を通さず、アプリの setter を直接呼んでよい。その操作は Command の履歴に残らない
+
 
 ## 実行の流れ
 
