@@ -23,6 +23,7 @@ const ja = {
   "apiKey.note":
     "キーはサーバーを通さず、このブラウザから Claude API に直接送られます。",
   "apiKey.save": "保存",
+  "apiKey.change": "キーを変更",
   provider: "使う AI",
   "nano.description":
     "Chrome に入っている Gemini Nano を使います。API キーは要りません。",
@@ -70,6 +71,7 @@ const en: Record<MessageKey, string> = {
   "apiKey.note":
     "The key is sent directly from this browser to the Claude API, not through a server.",
   "apiKey.save": "Save",
+  "apiKey.change": "Change key",
   provider: "AI to use",
   "nano.description": "Uses Gemini Nano built into Chrome. No API key needed.",
   "nano.download": "Download the model",

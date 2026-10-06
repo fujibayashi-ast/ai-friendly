@@ -15,7 +15,6 @@ const ja = {
   "chat.suggest.theme": "ダークにして",
   "chat.suggest.language": "サイトを英語にして",
   "chat.suggest.reset": "設定をリセットして",
-  "chat.changeKey": "キーを変更",
 };
 
 export type MessageKey = keyof typeof ja;
@@ -35,7 +34,6 @@ const en: Record<MessageKey, string> = {
   "chat.suggest.theme": "Switch to dark",
   "chat.suggest.language": "Show this site in Japanese",
   "chat.suggest.reset": "Reset the settings",
-  "chat.changeKey": "Change key",
 };
 
 export const messages: Record<Language, Record<MessageKey, string>> = {

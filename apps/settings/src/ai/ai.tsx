@@ -1,13 +1,11 @@
 import {
-  ApiKeyForm,
-  createClaudeProvider,
   FloatingChat,
+  useClaude,
   useGeminiNano,
   useQwen,
 } from "@ai-friendly/assistant";
 import { type AiTool, createAiTools } from "@ai-friendly/command";
 import { registerWebMcpTools } from "@ai-friendly/command/webmcp";
-import { Button } from "@ai-friendly/ui";
 import { useEffect, useMemo, useState } from "react";
 import { useSettingsCommands } from "../commands/settings-commands";
 import { useConfirm } from "../confirm/use-confirm";
@@ -57,31 +55,18 @@ export function Ai() {
 
   // 再読み込みで消える。保存はしない
   const [apiKey, setApiKey] = useState<string | null>(null);
-  const claude = useMemo(
-    () => (apiKey ? createClaudeProvider({ apiKey, system }) : undefined),
-    [apiKey],
-  );
+  const claude = useClaude({
+    apiKey,
+    onApiKeyChange: setApiKey,
+    system,
+    language,
+  });
   const geminiNano = useGeminiNano({ system, language });
   const qwen = useQwen({ system, language });
 
   return (
     <FloatingChat
-      providers={[
-        {
-          label: "Claude",
-          provider: claude,
-          setup: <ApiKeyForm language={language} onSubmit={setApiKey} />,
-        },
-        geminiNano,
-        qwen,
-      ]}
-      actions={
-        apiKey && (
-          <Button variant="ghost" size="sm" onClick={() => setApiKey(null)}>
-            {t("chat.changeKey")}
-          </Button>
-        )
-      }
+      providers={[claude, geminiNano, qwen]}
       tools={tools}
       language={language}
       debug={import.meta.env.DEV}
