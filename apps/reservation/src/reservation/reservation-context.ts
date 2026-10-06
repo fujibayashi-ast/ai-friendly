@@ -1,5 +1,5 @@
 import { createContext, useContext } from "react";
-import type { ReservationValues } from "./reservation-form";
+import type { FormResult, ReservationValues } from "./reservation-form";
 
 export type CompletedReservation = {
   number: string;
@@ -20,8 +20,8 @@ export type ReservationContextValue = {
   /** 入力欄に入れる（変わった項目だけ渡す）。日付を変えたらカレンダーもその週にする */
   fill(patch: Partial<ReservationValues>): void;
   showWeek(date: string): void;
-  /** 「予約する」と同じ。エラーがあれば空の欄もエラーにして止める */
-  submit(): Promise<void>;
+  /** 「予約する」。エラーがあれば空の欄もエラーにして止め、エラーを返す */
+  submit(): Promise<FormResult>;
 };
 
 export const ReservationContext = createContext<ReservationContextValue | null>(

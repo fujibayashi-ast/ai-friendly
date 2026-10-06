@@ -3,6 +3,8 @@ import { type ConfirmHandler, createAiTools } from "@ai-friendly/command";
 import { createTranslate } from "../i18n/messages";
 import {
   emptyValues,
+  type FormResult,
+  formErrors,
   type ReservationValues,
 } from "../reservation/reservation-form";
 import { createReservationCommands } from "./reservation-commands";
@@ -26,10 +28,18 @@ const setup = ({
   submitting?: boolean;
   confirm?: ConfirmHandler;
 } = {}) => {
+  // サイトの submit と同じ結果を返す
+  const check = (form: ReservationValues): FormResult => {
+    if (submitting) return { ok: false, reason: "submitting" };
+    const errors = formErrors(form, today);
+    return errors.length > 0
+      ? { ok: false, reason: "invalid", errors }
+      : { ok: true };
+  };
   const actions = {
     fill: mock((_: Partial<ReservationValues>) => {}),
     showWeek: mock((_: string) => {}),
-    submit: mock(async () => {}),
+    submit: mock(async () => check(values)),
   };
   const confirmMock = mock(confirm ?? (async () => true));
   const tools = createAiTools({
@@ -59,7 +69,10 @@ describe("reservation commands", () => {
     ).toEqual({ ok: true });
     expect(s.fill).toHaveBeenCalledWith({
       date: "2026-10-07",
+      time: undefined,
       partySize: "2",
+      seat: undefined,
+      couponCode: undefined,
     });
   });
 
@@ -130,16 +143,13 @@ describe("reservation commands", () => {
 
   test("refuse while sending", async () => {
     const s = setup({ values: filled, submitting: true });
+    const message = "a reservation is being sent; try again after it finishes";
     expect(
       await s.run("fill_reservation_form", { party_size: 3 }),
-    ).toMatchObject({
-      message:
-        "fill_reservation_form: a reservation is being sent; try again after it finishes",
-    });
+    ).toMatchObject({ message: `fill_reservation_form: ${message}` });
     expect(await s.run("submit_reservation", {})).toMatchObject({
-      code: "domain_error",
+      message: `submit_reservation: ${message}`,
     });
-    expect(s.fill).not.toHaveBeenCalled();
-    expect(s.submit).not.toHaveBeenCalled();
+    expect(s.confirm).not.toHaveBeenCalled();
   });
 });

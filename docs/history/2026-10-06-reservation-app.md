@@ -26,6 +26,9 @@
   * 最初は自前の state と `updateForm(patch)`・`validate` で書いていた。実際の React のフォームは React Hook Form と zod で書かれていることが多く、自前の形だと「このサンプル用に作りやすくした」と見えるおそれがある。よくある書き方のフォームに、`setValue` を通して AI の層を足せることを見せる
   * エラーを出す時機（変えた欄はその場で、空の欄は送るとき）・送信中（`isSubmitting`）・受け付けの表示を消す時機（`isDirty`）は React Hook Form に任せた
   * ルールは zod の `superRefine` に書き、エラーの `message` をエラーの種類（`closed` など）にした。画面は文言に、Command は英文にする
+* `submit_reservation` は、画面の「予約する」と同じ `submit()`（`handleSubmit`）を呼び、サイトが返す結果（成功・送信中・入力のエラー）を英文にする（レビューで変えた）
+  * 最初は Command の中で入力を確かめ、エラーがあれば画面にエラーを出すためだけに `submit()` を呼んでいた。AI の送信が画面の送信と同じ処理を通らず、`run` も長かった
+  * `fill_reservation_form` は画面に同じ操作（まとめて入れる）がないので、エラーは Command の中で作る（`fill` は何も返さない画面の関数のまま）。React Hook Form の検証は次の描画で反映されるので、入れた値で同じルール（`formErrors`）を確かめる
 * 日付の計算は dayjs で行う。手で書くと時差のずれを避ける小細工が要り、読み手が引っかかりやすい。表示は `Intl`
 * 名前・電話番号は聞かない（個人情報を扱わない）
 

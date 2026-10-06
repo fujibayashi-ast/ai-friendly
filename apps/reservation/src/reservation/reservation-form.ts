@@ -37,6 +37,19 @@ export const emptyValues: ReservationValues = {
   couponCode: "",
 };
 
+/** 今の値に、渡した項目（undefined は変えない）を重ねる */
+export function applyPatch(
+  values: ReservationValues,
+  patch: Partial<ReservationValues>,
+): ReservationValues {
+  const next = { ...values };
+  for (const field of reservationFields) {
+    const value = patch[field];
+    if (value !== undefined) next[field] = value;
+  }
+  return next;
+}
+
 /**
  * 入力のルール。エラーの `message` はエラーの種類（`closed` など）で、画面と AI がそれぞれの文言にする
  * 今日によってルールが変わるので、今日を受け取って作る
@@ -96,6 +109,12 @@ export function reservationSchema(today: string) {
 }
 
 export type FormError = { field: ReservationField; code: string };
+
+/** 入力欄に入れた・送ったときの結果 */
+export type FormResult =
+  | { ok: true }
+  | { ok: false; reason: "submitting" }
+  | { ok: false; reason: "invalid"; errors: FormError[] };
 
 /** 入力のエラーの一覧。`required: false` なら空の欄のエラーは除く */
 export function formErrors(

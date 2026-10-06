@@ -11,7 +11,9 @@ import {
   useReservation,
 } from "../reservation/reservation-context";
 import {
+  applyPatch,
   type FormError,
+  type FormResult,
   formErrors,
   type ReservationValues,
   seats,
@@ -76,13 +78,17 @@ export function createReservationCommands({
   t,
 }: ReservationActions) {
   const fail = (message: string) => ({ ok: false as const, message });
-  // 画面と同じく、送信中はフォームを受け付けない（サイトの関数も何もしない）
-  const busy = () =>
-    submitting
-      ? fail("a reservation is being sent; try again after it finishes")
-      : undefined;
+  // 画面と同じく、送信中はフォームを受け付けない
+  const sending = () =>
+    fail("a reservation is being sent; try again after it finishes");
   const describe = (errors: FormError[], form: ReservationValues) =>
     errors.map((error) => describeError(error, form, today)).join("; ");
+  /** サイトの関数（submit）の結果を、AI が読んで直せる英文にする */
+  const toRunResult = (result: FormResult) => {
+    if (result.ok) return;
+    if (result.reason === "submitting") return sending();
+    return fail(describe(result.errors, values));
+  };
   const seatLabel = (seat: string) => {
     const key = `seat.${seat}`;
     return isMessageKey(key) ? t(key) : seat;
@@ -100,24 +106,20 @@ export function createReservationCommands({
         seat: z.enum(seats).optional(),
         coupon_code: z.string().optional(),
       }),
-      run: (args) => {
-        const error = busy();
-        if (error) return error;
-        // 入力欄の値は文字列なので、人数も文字列にして入れる
-        const patch: Partial<ReservationValues> = {};
-        if (args.date !== undefined) patch.date = args.date;
-        if (args.time !== undefined) patch.time = args.time;
-        if (args.party_size !== undefined) {
-          patch.partySize = String(args.party_size);
-        }
-        if (args.seat !== undefined) patch.seat = args.seat;
-        if (args.coupon_code !== undefined) patch.couponCode = args.coupon_code;
-        if (Object.keys(patch).length === 0) {
-          return fail("pass at least one field");
-        }
+      run: ({ date, time, party_size, seat, coupon_code }) => {
+        // 入力欄の名前と値（文字列）に合わせる。渡さなかった項目（undefined）は変えない
+        const patch = {
+          date,
+          time,
+          partySize: party_size?.toString(),
+          seat,
+          couponCode: coupon_code,
+        };
+        if (submitting) return sending();
         fill(patch);
+        // React Hook Form の検証は次の描画で反映されるので、入れた値で同じルールを確かめる
         // 人が入力したときと同じく、入れた値は残してエラーを伝える
-        const form = { ...values, ...patch };
+        const form = applyPatch(values, patch);
         const errors = formErrors(form, today, { required: false });
         if (errors.length > 0) {
           return fail(`the form was filled in, but ${describe(errors, form)}`);
@@ -145,7 +147,7 @@ export function createReservationCommands({
       type: "submit_reservation",
       description: "Send the reservation in the form.",
       args: z.object({}),
-      // エラーがあれば確認せずに知らせる
+      // エラーがあれば確認せずに知らせる（確認は run の前に決めるので、同じルールで先に確かめる）
       requiresConfirmation: () =>
         !submitting && formErrors(values, today).length === 0,
       confirmation: () => ({
@@ -158,17 +160,8 @@ export function createReservationCommands({
         }),
         confirmLabel: t("submit.confirm"),
       }),
-      run: async () => {
-        const error = busy();
-        if (error) return error;
-        const errors = formErrors(values, today);
-        if (errors.length > 0) {
-          // 画面でも「予約する」を押したときと同じく、空の欄のエラーを出す
-          void submit();
-          return fail(describe(errors, values));
-        }
-        await submit();
-      },
+      // 画面の「予約する」と同じ処理。エラーがあれば画面にも出る
+      run: async () => toRunResult(await submit()),
     }),
   ];
 }

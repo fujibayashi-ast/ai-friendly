@@ -9,6 +9,8 @@ import {
 } from "./reservation-context";
 import {
   emptyValues,
+  type FormError,
+  type FormResult,
   type ReservationValues,
   reservationFields,
   reservationSchema,
@@ -53,15 +55,25 @@ export function ReservationProvider({ children }: { children: ReactNode }) {
     [submitting, setValue, showWeek],
   );
 
-  const submit = useCallback(
-    () =>
-      handleSubmit(async (submitted) => {
-        const result = await sendReservation(submitted);
-        setCompleted({ number: result.number, values: submitted });
+  const submit = useCallback(async (): Promise<FormResult> => {
+    if (submitting) return { ok: false, reason: "submitting" };
+    let result: FormResult = { ok: true };
+    await handleSubmit(
+      async (submitted) => {
+        const response = await sendReservation(submitted);
+        setCompleted({ number: response.number, values: submitted });
         reset(emptyValues);
-      })(),
-    [handleSubmit, reset],
-  );
+      },
+      (fieldErrors) => {
+        const errors: FormError[] = reservationFields.flatMap((field) => {
+          const code = fieldErrors[field]?.message;
+          return code ? [{ field, code }] : [];
+        });
+        result = { ok: false, reason: "invalid", errors };
+      },
+    )();
+    return result;
+  }, [submitting, handleSubmit, reset]);
 
   // 受け付けの表示は、次に入力を変えるまで出す（reset の後は isDirty が false）
   const shown = formState.isDirty ? null : completed;
