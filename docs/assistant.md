@@ -103,7 +103,7 @@ Gemini Nano と WebLLM にはツールを呼ぶ仕組みがない（または使
 | `LanguageModel.availability()` | 出すもの |
 | --- | --- |
 | `"available"` | `provider`（そのまま話せる） |
-| `"downloadable"` / `"downloading"` | `setup` に「モデルをダウンロード」。押すと `create()` の `monitor` で進み具合（%）を出し、終わったら `provider` を返す |
+| `"downloadable"` / `"downloading"` | `setup` に「モデルをダウンロード」。押すと `create()` の `monitor` で進み具合（%）を出し、終わったら `provider` を返す。進み具合は段階（ダウンロード・GPU への読み込みなど）ごとに 0 から数え直すので、ダウンロード中は「ダウンロードしています…」、それ以外は「読み込んでいます…」と出す |
 | `"unavailable"`・`LanguageModel` がない | `setup` に「このブラウザでは使えません」 |
 
 * ダウンロードはユーザーが押したときだけ。失敗したら知らせて、もう一度押せるようにする
@@ -117,7 +117,7 @@ Gemini Nano と WebLLM にはツールを呼ぶ仕組みがない（または使
 | 状態 | 出すもの |
 | --- | --- |
 | WebGPU がない（`navigator.gpu?.requestAdapter()` が null） | `setup` に「このブラウザでは使えません」 |
-| WebGPU がある | `setup` に「モデルを読み込む」。押すと、初回はダウンロード（約 2.4 GB・Hugging Face から）と読み込み、2 回目からは読み込みだけ（キャッシュ）。進み具合（%）を出し、終わったら `provider` を返す |
+| WebGPU がある | `setup` に「モデルを読み込む」。押すと、初回はダウンロード（約 2.4 GB・Hugging Face から）と読み込み、2 回目からは読み込みだけ（キャッシュ）。進み具合（%）を出し、終わったら `provider` を返す。進み具合は段階（ダウンロード・GPU への読み込みなど）ごとに 0 から数え直すので、ダウンロード中は「ダウンロードしています…」、それ以外は「読み込んでいます…」と出す |
 
 * ページを開いただけでは読み込まない（GPU のメモリを使うので、押したときだけ）。失敗したら知らせて、もう一度押せるようにする
 * 推論は Web Worker（`providers/web-llm-worker.ts`）で動かす。WebLLM 本体は押したときに動的 import するので、選ばない人のページは重くならない

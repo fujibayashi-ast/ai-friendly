@@ -27,6 +27,8 @@ export function useQwen({
 }): ProviderOption {
   const [status, setStatus] = useState<Status>("checking");
   const [progress, setProgress] = useState(0);
+  // 進み具合はダウンロード・GPU への読み込みなどの段階ごとに 0 から数え直すので、段階で文言を変える
+  const [downloading, setDownloading] = useState(false);
   const [failed, setFailed] = useState(false);
   const [engine, setEngine] = useState<MLCEngineInterface>();
 
@@ -56,7 +58,10 @@ export function useQwen({
       });
       setEngine(
         await CreateWebWorkerMLCEngine(worker, modelId, {
-          initProgressCallback: (report) => setProgress(report.progress),
+          initProgressCallback: (report) => {
+            setDownloading(report.text.startsWith("Fetching"));
+            setProgress(report.progress);
+          },
         }),
       );
       setStatus("available");
@@ -86,7 +91,7 @@ export function useQwen({
           description: t("qwen.description"),
           action: t("qwen.load"),
           note: t("qwen.note"),
-          loading: t("qwen.loading"),
+          loading: t(downloading ? "qwen.downloading" : "qwen.loading"),
           failed: t("qwen.failed"),
           unavailable: t("qwen.unavailable"),
         }}

@@ -38,6 +38,7 @@ const ja = {
   "qwen.load": "モデルを読み込む",
   "qwen.note":
     "初回だけ、モデル（約 2.4 GB）をダウンロードします。メモリ 16 GB 程度の端末向けです。",
+  "qwen.downloading": "ダウンロードしています…",
   "qwen.loading": "読み込んでいます…",
   "qwen.failed": "読み込めませんでした。もう一度試してください。",
   "qwen.unavailable":
@@ -82,6 +83,7 @@ const en: Record<MessageKey, string> = {
   "qwen.load": "Load the model",
   "qwen.note":
     "The model (about 2.4 GB) is downloaded only the first time. Needs a device with about 16 GB of memory.",
+  "qwen.downloading": "Downloading…",
   "qwen.loading": "Loading…",
   "qwen.failed": "Couldn't load the model. Try again.",
   "qwen.unavailable":
