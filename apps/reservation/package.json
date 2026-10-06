@@ -8,6 +8,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@ai-friendly/assistant": "workspace:*",
+    "@ai-friendly/command": "workspace:*",
     "@ai-friendly/ui": "workspace:*",
     "@hookform/resolvers": "5.9.1",
     "dayjs": "1.11.23",
