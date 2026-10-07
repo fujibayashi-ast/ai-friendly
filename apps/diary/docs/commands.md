@@ -16,7 +16,7 @@
 ```
 src/
   main.tsx                # BrowserRouter（basename: /diary/）
-  app.tsx                 # I18nProvider > DiaryProvider > ルート（Layout の中に各ページ）
+  app.tsx                 # I18nProvider > DiaryProvider > ルート（Layout の中に各ページ）、<Ai />
   diary/                  # 普通のサイトの機能
     diary.ts              #   日記・書きかけの型・並び順・保存できない理由（missingFields）
     entries.ts            #   ダミーの日記
@@ -24,7 +24,9 @@ src/
     use-save-entry.ts     #   「保存」して一覧へ戻る（画面のボタンと AI の層が同じものを使う）
   i18n/                   # 文言（ja / en）・言語の state（I18nProvider・useI18n）
   layout/                 # ヘッダー（サイト名・言語の切り替え）
-  pages/                  # entries（日記の一覧）・new-entry（書く）
+  pages/                  # entries（日記の一覧）・new-entry（書く）・element-ids.ts（部品の id）
+  commands/               # 足した層: 日記の Command（run が受け取る pointer で押す先を指してから、useDiary の関数を呼ぶ）
+  ai/ai.tsx               # 足した層: <Ai />（AI 向けツール・WebMCP・右下のチャット）
 ```
 
 | URL | ページ |
@@ -33,5 +35,43 @@ src/
 | `/diary/new` | 書く |
 
 * `setDraftField(field, value)` は入力欄の 1 文字ごとにも呼ばれる。`save()` は空の項目があれば断り、`{ ok: false, missing }` を返す（画面は理由を出す）
+* `app.tsx` から `<Ai />` を外しても、サイトはそのまま動く
 * 公開時は、`/diary/*` のどの URL も `/diary/index.html` を返す設定が要る（管理画面と同じ）
+
+## Command
+
+どの Command も、カーソルで画面の同じ操作をして見せてから、画面と同じサイトの関数を呼ぶ。
+
+| Command | 引数 | 画面の同じ操作 | AI が実行するとき |
+| --- | --- | --- | --- |
+| `open_new_entry` | なし | 一覧の「書く」 | カーソルが「書く」を押し、書くページへ |
+| `fill_entry` | `title?`・`body?` | タイトル・本文の入力（`setDraftField`） | 書くページにいなければ、先に「書く」を押す。タイトル・本文の順に、欄を押して 1 文字ずつ打ち込む |
+| `save_entry` | なし | 「保存」（`useSaveEntry`） | カーソルが「保存」を押す。保存できたら一覧へ。空の項目があれば失敗 |
+
+* 成功の英文: `fill_entry` は `filled in; not saved yet. every field is filled, so save it now unless the user wants changes`（足りなければ `still missing: body`）。ツール名を書くと、小さいモデルが返事にそのまま出す（#77 と同じ）
+* `get_state`: `{ writing: { title, body, missing }, recent: [title] }`（一覧は新しい 5 件のタイトルだけ）
+
+## カーソルの演出
+
+Command は `run` の 2 つ目の引数の `pointer` で押す先を指す（[docs/commands.md](../../../docs/commands.md)）。チャットから実行するとカーソルが動く（動き・`prefers-reduced-motion` は [docs/assistant.md](../../../docs/assistant.md)）。日記で決めているのは、何をどの順に押すかだけ。WebMCP から呼ばれたときは動かない
+
+* 押す先は部品の id で指す。id は `pages/element-ids.ts` にまとめ、画面（`id` 属性・ラベルとのつながり）と Command の両方が使う
+
+  | id | 部品 |
+  | --- | --- |
+  | `write-entry` | 一覧の「書く」 |
+  | `entry-title` | タイトルの欄 |
+  | `entry-body` | 本文の欄 |
+  | `save-entry` | 「保存」 |
+
+
+## AI から操作する
+
+ほかの題材と同じ。右下のボタンからチャットを開き、Claude / Gemini Nano / Qwen3.5 4B を選んで話しかける。
+
+* システムプロンプト: 話を聞いたら短いタイトル・2〜4 文の本文（ユーザーの言葉で、一人称）を `fill_entry` で一度に入れ、`save_entry` で保存する・日記と関係のない頼みは短く断る
+* 話しかけ方の例: 「今日は雨で家にいた。カレーを作ったって日記を書いて」「晴れて散歩した日のことを書いて」
+
+## 開発
+
 * 開発: `bun run dev` → http://localhost:5173/diary/（直接は http://localhost:5179/diary/）

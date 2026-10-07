@@ -1,5 +1,5 @@
 import { describe, expect, mock, test } from "bun:test";
-import type { AiTool } from "@ai-friendly/command";
+import type { AiTool, Pointer } from "@ai-friendly/command";
 import type {
   ChatMessage,
   ChatProvider,
@@ -41,7 +41,10 @@ describe("runChat", () => {
     });
 
     expect(result).toBe("done");
-    expect(setTheme).toHaveBeenCalledWith({ theme: "dark" });
+    expect(setTheme).toHaveBeenCalledWith(
+      { theme: "dark" },
+      { pointer: undefined },
+    );
     expect(received).toEqual([
       {
         role: "assistant",
@@ -55,6 +58,25 @@ describe("runChat", () => {
       messages: [{ role: "user", content: "dark" }, ...received.slice(0, 2)],
       tools: expect.any(Array),
     });
+  });
+
+  test("passes the pointer to the tools, so the cursor can show the steps", async () => {
+    const execute = mock<AiTool["execute"]>(async () => ({ ok: true }));
+    const pointer: Pointer = {
+      click: async () => {},
+      type: async () => {},
+    };
+    await runChat({
+      provider: replies({
+        content: "",
+        toolCalls: [{ id: "1", name: "fill", input: {} }],
+      }),
+      messages: [{ role: "user", content: "write" }],
+      getTools: () => [tool("fill", execute)],
+      onMessage: () => {},
+      pointer,
+    });
+    expect(execute).toHaveBeenCalledWith({}, { pointer });
   });
 
   test("reads the latest tools at every step", async () => {

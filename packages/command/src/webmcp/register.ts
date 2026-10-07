@@ -27,7 +27,11 @@ export async function registerWebMcpTools(
   for (const tool of tools) {
     if (signal?.aborted) return false;
     try {
-      await modelContext.registerTool(tool, { signal });
+      // WebMCP は execute の 2 つ目に自分の client を渡すので、入力だけを渡す
+      await modelContext.registerTool(
+        { ...tool, execute: (input) => tool.execute(input) },
+        { signal },
+      );
     } catch (error) {
       // 解除（abort）は意図した動きなので、その失敗は受け止める
       if (signal?.aborted) return false;

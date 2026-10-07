@@ -13,6 +13,9 @@ export type {
   ConfirmationRule,
   ConfirmHandler,
   ErrorCode,
+  ExecuteOptions,
   ExecuteResult,
+  Pointer,
+  RunContext,
   RunResult,
 } from "./types";

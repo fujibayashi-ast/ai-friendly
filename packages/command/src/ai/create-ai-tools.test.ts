@@ -89,6 +89,48 @@ describe("command tools", () => {
   });
 });
 
+describe("pointer", () => {
+  const fillCommand = defineCommand({
+    type: "fill",
+    description: "Fill",
+    args: z.object({ title: z.string() }),
+    run: async ({ title }, { pointer }) => {
+      await pointer.click("open");
+      await pointer.type("title", title, (value) => written.push(value));
+    },
+  });
+  let written: string[] = [];
+
+  test("without a pointer, run without moving and write the whole text", async () => {
+    written = [];
+    const [tool] = createAiTools({ commands: [fillCommand] });
+    expect(await tool?.execute({ title: "rain" })).toEqual({ ok: true });
+    expect(written).toEqual(["rain"]);
+  });
+
+  test("use the pointer the caller passes", async () => {
+    written = [];
+    const pointed: string[] = [];
+    const [tool] = createAiTools({ commands: [fillCommand] });
+    await tool?.execute(
+      { title: "rain" },
+      {
+        pointer: {
+          click: async (id) => {
+            pointed.push(id);
+          },
+          type: async (id, text, write) => {
+            pointed.push(id);
+            for (const char of text) write(char);
+          },
+        },
+      },
+    );
+    expect(pointed).toEqual(["open", "title"]);
+    expect(written).toEqual(["r", "a", "i", "n"]);
+  });
+});
+
 describe("confirmation", () => {
   test("asks with the command and its confirmation before running", async () => {
     const confirm = mock(() => true);

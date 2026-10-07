@@ -1,4 +1,4 @@
-import type { AiTool } from "@ai-friendly/command";
+import type { AiTool, Pointer } from "@ai-friendly/command";
 import type { ChatMessage, ChatProvider } from "../providers/provider";
 
 export type RunChatOptions = {
@@ -7,6 +7,8 @@ export type RunChatOptions = {
   /** 状態が変わるとツールが作り直されるので、ステップごとに最新を読む */
   getTools: () => readonly AiTool[];
   onMessage: (message: ChatMessage) => void;
+  /** ツールの実行に渡す、押すふり・打ち込むふり（カーソルの演出） */
+  pointer?: Pointer;
   maxSteps?: number;
 };
 
@@ -18,6 +20,7 @@ export async function runChat({
   messages,
   getTools,
   onMessage,
+  pointer,
   maxSteps = 5,
 }: RunChatOptions): Promise<RunChatResult> {
   const history = [...messages];
@@ -38,7 +41,7 @@ export async function runChat({
       const tools = getTools();
       const tool = tools.find((t) => t.name === call.name);
       const result = tool
-        ? await tool.execute(call.input)
+        ? await tool.execute(call.input, { pointer })
         : {
             ok: false,
             code: "invalid_command",

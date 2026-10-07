@@ -29,10 +29,24 @@ test("registers every tool with the signal", async () => {
   expect(await registerWebMcpTools([a, b], { signal, modelContext })).toBe(
     true,
   );
-  expect(modelContext.registerTool.mock.calls).toEqual([
-    [a, { signal }],
-    [b, { signal }],
+  expect(
+    modelContext.registerTool.mock.calls.map(([t, options]) => [
+      t.name,
+      options,
+    ]),
+  ).toEqual([
+    ["a", { signal }],
+    ["b", { signal }],
   ]);
+});
+
+test("passes only the input to execute, not the WebMCP client", async () => {
+  const modelContext = mockModelContext();
+  const execute = mock<AiTool["execute"]>(async () => ({ ok: true }));
+  await registerWebMcpTools([{ ...tool("a"), execute }], { modelContext });
+  const registered = modelContext.registerTool.mock.calls[0]?.[0];
+  await registered?.execute({ x: 1 }, { requestUserInteraction() {} } as never);
+  expect(execute.mock.calls).toEqual([[{ x: 1 }]]);
 });
 
 test("finds document.modelContext", async () => {
