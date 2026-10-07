@@ -3,6 +3,7 @@ import {
   useClaude,
   useGeminiNano,
   useQwen,
+  webMcpPointer,
 } from "@ai-friendly/assistant";
 import { type AiTool, createAiTools } from "@ai-friendly/command";
 import { registerWebMcpTools } from "@ai-friendly/command/webmcp";
@@ -45,7 +46,10 @@ export function Ai() {
 
   useEffect(() => {
     const controller = new AbortController();
-    void registerWebMcpTools(tools, { signal: controller.signal });
+    void registerWebMcpTools(tools, {
+      signal: controller.signal,
+      pointer: webMcpPointer,
+    });
     if (import.meta.env.DEV) window.__aiTools = tools;
     return () => {
       controller.abort();

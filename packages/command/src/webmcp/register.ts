@@ -1,4 +1,5 @@
 import type { AiTool } from "../ai/create-ai-tools";
+import type { Pointer } from "../types";
 
 /** WebMCP の `modelContext` のうち、登録に使う部分 */
 export type ModelContext = {
@@ -10,6 +11,8 @@ export type RegisterWebMcpToolsOptions = {
   signal?: AbortSignal;
   /** 省略時は `document.modelContext`、なければ `navigator.modelContext` */
   modelContext?: ModelContext;
+  /** ツールの実行に渡す `pointer`。チャットと同じものを渡すと、同じ動きになる */
+  pointer?: Pointer;
 };
 
 /**
@@ -21,15 +24,15 @@ export async function registerWebMcpTools(
   tools: readonly AiTool[],
   options: RegisterWebMcpToolsOptions = {},
 ): Promise<boolean> {
-  const { signal } = options;
+  const { signal, pointer } = options;
   const modelContext = options.modelContext ?? findModelContext();
   if (!modelContext) return false;
   for (const tool of tools) {
     if (signal?.aborted) return false;
     try {
-      // WebMCP は execute の 2 つ目に自分の client を渡すので、入力だけを渡す
+      // WebMCP は execute の 2 つ目に自分の client を渡すので、入力と pointer だけを渡す
       await modelContext.registerTool(
-        { ...tool, execute: (input) => tool.execute(input) },
+        { ...tool, execute: (input) => tool.execute(input, { pointer }) },
         { signal },
       );
     } catch (error) {

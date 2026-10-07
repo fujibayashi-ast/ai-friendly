@@ -35,6 +35,7 @@
   - [2026-10-07-admin-api.md](history/2026-10-07-admin-api.md) — 管理画面のデータをダミーの API から取る（TanStack Query・キャッシュを画面と AI で共有）
   - [2026-10-07-webllm-string-id.md](history/2026-10-07-webllm-string-id.md) — Qwen（WebLLM）で数字の ID を文字列で書かせると JSON が壊れる（引数の型を見えている形とそろえる・upstream に報告）
   - [2026-10-07-diary-cursor.md](history/2026-10-07-diary-cursor.md) — おまけ: AI の操作をカーソルの動きで見せる（日記・押すふり・部品の id で指す・`run` の `pointer`）
+  - [2026-10-07-webmcp-pointer.md](history/2026-10-07-webmcp-pointer.md) — WebMCP から呼んでも、チャットと同じ動き（カーソル）にする（`webMcpPointer`・操作が止まったら隠す）
 
 題材ごとの仕様は `apps/<題材>/docs/` に置く。
 
