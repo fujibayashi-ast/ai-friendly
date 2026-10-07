@@ -8,11 +8,11 @@ import { type AiTool, createAiTools } from "@ai-friendly/command";
 import { registerWebMcpTools } from "@ai-friendly/command/webmcp";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
+import { orderQuery, ordersQuery, productsQuery } from "../admin/queries";
 import { useAdminCommands } from "../commands/admin-commands";
 import { useConfirm } from "../confirm/use-confirm";
 import { useI18n } from "../i18n/use-i18n";
 import { readCurrentPage } from "../routes/paths";
-import { pageState } from "./page-state";
 
 declare global {
   interface Window {
@@ -36,11 +36,26 @@ export function Ai() {
         // 文言は Command の定義が持つ。文言のない確認は出さずに拒否する
         confirm: (_, confirmation) =>
           confirmation ? confirm(confirmation) : false,
-        // ページが取ってきた分（画面に出ている分）だけ。ほかは、ページを移ってから読む
-        // ページは今の URL から読む（移った直後に続けて呼ばれても、描き直しを待たずに新しいページを返す）
-        getState: () => pageState(queryClient, currentPage(), language),
+        // 今のページと、そのページが取ってきた分（キャッシュ）だけ。ほかは、ページを移ってから読む
+        getState: () => {
+          const page = currentPage();
+          const key =
+            page.page === "orders"
+              ? ordersQuery(page.filters).queryKey
+              : page.page === "order"
+                ? orderQuery(page.id).queryKey
+                : page.page === "products"
+                  ? productsQuery(page.filters).queryKey
+                  : undefined;
+          if (!key) return page;
+          // 取れていなければ "pending"（読み込み中）か "error"
+          const data =
+            queryClient.getQueryData(key) ??
+            queryClient.getQueryState(key)?.status;
+          return { ...page, data };
+        },
       }),
-    [commands, confirm, queryClient, language],
+    [commands, confirm, queryClient],
   );
 
   useEffect(() => {
@@ -79,6 +94,7 @@ export function Ai() {
   );
 }
 
+/** 今のページ。呼ばれたときの URL から読む（移った直後に続けて呼ばれても、描き直しを待たずに新しいページを返す） */
 function currentPage() {
   const base = import.meta.env.BASE_URL.replace(/\/$/, "");
   const { pathname, search } = window.location;

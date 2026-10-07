@@ -29,7 +29,7 @@ src/
   pages/                  # orders（注文一覧）・order（注文の詳細）・products（商品・在庫）
   commands/               # 足した層: ページ遷移と操作の Command（paths.ts と navigate、queries.ts の取得・mutation を呼ぶ）
   confirm/                # 足した層: 確認ダイアログ（useConfirm）
-  ai/                     # 足した層: <Ai />（AI 向けツール・WebMCP・右下のチャット）・page-state.ts（get_state。今のページのキャッシュ）
+  ai/ai.tsx               # 足した層: <Ai />（AI 向けツール・get_state・WebMCP・右下のチャット）
 ```
 
 | URL | ページ |
@@ -76,14 +76,14 @@ src/
   | 存在しない商品 | `set_stock: product 99 not found; use show_products to find the id` |
   | 在庫の範囲 | `set_stock: stock must be a whole number from 0 to 999` |
 
-* `get_state` は今のページと、そのページが取ってきた分（キャッシュ）だけを返す（`ai/page-state.ts`）。手元にはそのページの分しかないので、自然に画面と一致する。ほかの行は、ページを移ってから読む
+* `get_state` は今のページと、そのページが取ってきた分（キャッシュ）をそのまま返す。手元にはそのページの分しかないので、自然に画面と一致する。ほかの行は、ページを移ってから読む
   * 今のページは、呼ばれたときの URL から読む（ページを移った直後に続けて呼ばれても、新しいページを返す）
-  * 読み込み中は `"loading"`
+  * `data` は API が返した形のまま（名前は `{ ja, en }`）。取れていなければ `"pending"`（読み込み中）か `"error"`（見つからないなど）
 
   ```ts
-  { page: "orders", filters: { status, query }, orders: [{ id, date, customer, total, status }] | "loading" }
-  { page: "order", order: { id, date, customer, items: [{ product_id, name, quantity, subtotal }], total, status } | null }
-  { page: "products", filters: { max_stock }, products: [{ id, name, price, stock }] | "loading" }
+  { page: "orders", filters: { status, query }, data: [{ id, date, customer, total, status }] }
+  { page: "order", id, data: { id, date, customer, items: [{ productId, name, quantity, subtotal }], total, status } }
+  { page: "products", filters: { maxStock }, data: [{ id, name, price, stock }] }
   ```
 
 * 注文番号・商品 ID は数値。Qwen3.5 4B（WebLLM）は、`"1026"` のような数字だけの文字列を書く途中で JSON が切れることがあった（#93・`docs/history/2026-10-07-admin-app.md`）
