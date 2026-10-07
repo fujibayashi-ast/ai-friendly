@@ -13,6 +13,8 @@ const ja = {
   "newEntry.body": "本文",
   "newEntry.save": "保存",
   "newEntry.required": "{field}を入れてください。",
+  "chat.suggest.rainy": "今日は雨で家にいた。カレーを作ったって日記を書いて",
+  "chat.suggest.walk": "晴れて散歩した日のことを書いて",
 };
 
 export type MessageKey = keyof typeof ja;
@@ -29,6 +31,9 @@ const en: Record<MessageKey, string> = {
   "newEntry.body": "Entry",
   "newEntry.save": "Save",
   "newEntry.required": "Enter the {field}.",
+  "chat.suggest.rainy":
+    "It rained and I stayed home and made curry. Write it in my diary",
+  "chat.suggest.walk": "Write about a sunny day when I went for a walk",
 };
 
 export const messages: Record<Language, Record<MessageKey, string>> = {

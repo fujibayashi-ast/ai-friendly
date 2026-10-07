@@ -32,6 +32,7 @@
   - [2026-10-07-admin-app.md](history/2026-10-07-admin-app.md) — 管理画面（React Router・ページ遷移の Command・見えている行だけの get_state・数値の ID）
   - [2026-10-07-admin-api.md](history/2026-10-07-admin-api.md) — 管理画面のデータをダミーの API から取る（TanStack Query・キャッシュを画面と AI で共有）
   - [2026-10-07-webllm-string-id.md](history/2026-10-07-webllm-string-id.md) — Qwen（WebLLM）で数字の ID を文字列で書かせると JSON が壊れる（引数の型を見えている形とそろえる・upstream に報告）
+  - [2026-10-07-diary-cursor.md](history/2026-10-07-diary-cursor.md) — おまけ: AI の操作をカーソルの動きで見せる（日記・押すふり・画面の名前で探す）
 
 題材ごとの仕様は `apps/<題材>/docs/` に置く。
 
