@@ -192,9 +192,9 @@ AI の操作を、仮のマウスカーソルが押す・打ち込む動きで�
 import { pointer } from "@ai-friendly/assistant/cursor";
 
 run: async ({ title }) => {
-  await pointer.click({ button: t("entries.write") }); // 「書く」を押すふり
-  navigate("/new");
-  await pointer.type({ field: t("newEntry.title.label") }, title, (value) =>
+  await pointer.click("write-entry"); // id が write-entry の「書く」を押すふり
+  navigate("/new"); // 操作は画面と同じサイトの関数で行う
+  await pointer.type("entry-title", title, (value) =>
     setDraftField("title", value), // 1 文字ずつサイトの関数に渡す
   );
 },
@@ -202,14 +202,15 @@ run: async ({ title }) => {
 
 | 公開するもの | 内容 |
 | --- | --- |
-| `pointer.click(target)` | 対象へ動いて押すふりをする |
-| `pointer.type(target, text, write)` | 入力欄を押してから、1 文字ずつ `write` に渡す |
-| `Target` | `{ button: "書く" }`（ボタン・リンクの文字か `aria-label`）/ `{ field: "タイトル" }`（入力欄の `<label>` の文字） |
+| `pointer.click(id)` | id の要素へ動いて押すふりをする |
+| `pointer.type(id, text, write)` | id の入力欄を押してから、1 文字ずつ `write` に渡す |
 | `Pointer` | `pointer` の型。テストでは一瞬で終わるものに差し替える |
 | `hideCursor()` | カーソルを隠す。`Chat` は AI の返事が終わったときに自分で呼ぶので、チャットを使うサイトは呼ばなくてよい（WebMCP だけで操作されるときに使う） |
 
 * 押すふり・打ち込むふりをするだけで、実際の DOM にクリック・入力のイベントは送らない。結果（だめな理由）を AI に返せるよう、操作はサイトの関数で行う
-* 押す先は、画面に出ている名前で探す（Playwright の `getByRole` / `getByLabel` と同じ考え）。サイト側に AI のための目印を足さない。見つからなければ動かずに進む
+* 押す先は要素の id で指す。チュートリアルのツアー（driver.js など）と同じく、サイトは部品に普通の id を付けるだけ。位置は動かす直前に `getBoundingClientRect()` で聞くので、スクロールや画面幅に追従する
+* ページを移った直後で要素がまだなければ、1 秒まで待つ。出てこなければ動かずに進む（`write` には全部渡す）
+* 動きを付けるかは Command が決める。`pointer` を呼ばなければ、動きなしでサイトの関数を呼ぶだけになる
 * 動き: 最初は画面の右下から出て、対象まで 0.5 秒で動き、押した印（`--primary` の輪）を出す。画面の外ならスクロールしてから動く
 * 打ち込み: 入力欄を押してから、カーソルを右下へよけ、1 文字ずつ `write` に渡す（人が打つと 1 文字ごとに `onChange` が呼ばれるのと同じ）。1 文字 45ms、全体で 4 秒まで
 * `prefers-reduced-motion` のときは、動きも打ち込みも省いて、すぐに `write` に全部渡す

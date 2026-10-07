@@ -3,11 +3,10 @@ import { defineCommand } from "@ai-friendly/command";
 import { useMemo } from "react";
 import { useNavigate } from "react-router";
 import { z } from "zod";
-import { type Draft, type DraftField, missingFields } from "../diary/diary";
+import { type Draft, missingFields } from "../diary/diary";
 import { type DiaryContextValue, useDiary } from "../diary/diary-context";
 import { useSaveEntry } from "../diary/use-save-entry";
-import type { Translate } from "../i18n/messages";
-import { useI18n } from "../i18n/use-i18n";
+import { elementIds } from "../pages/element-ids";
 
 type DiaryActions = Pick<DiaryContextValue, "draft" | "setDraftField"> & {
   /** React Router の navigate（画面のリンクと同じ） */
@@ -18,7 +17,6 @@ type DiaryActions = Pick<DiaryContextValue, "draft" | "setDraftField"> & {
   currentPath(): string;
   /** カーソルで押すふり・打ち込むふり */
   pointer: Pointer;
-  t: Translate;
 };
 
 export function createDiaryCommands({
@@ -28,22 +26,15 @@ export function createDiaryCommands({
   saveEntry,
   currentPath,
   pointer,
-  t,
 }: DiaryActions) {
   const done = (message: string) => ({ ok: true as const, message });
   const fail = (message: string) => ({ ok: false as const, message });
-  const labels: Record<DraftField, string> = {
-    title: t("newEntry.title.label"),
-    body: t("newEntry.body"),
-  };
 
   /** 一覧の「書く」を押して、書くページへ（もういれば何もしない） */
   const openWritePage = async () => {
     if (currentPath() === "/new") return;
-    await pointer.click({ button: t("entries.write") });
+    await pointer.click(elementIds.writeEntry);
     navigate("/new");
-    // 書くページが描かれてから、入力欄を探す
-    await new Promise((resolve) => setTimeout(resolve, 100));
   };
 
   return [
@@ -70,7 +61,7 @@ export function createDiaryCommands({
         for (const field of ["title", "body"] as const) {
           const text = input[field];
           if (text === undefined) continue;
-          await pointer.type({ field: labels[field] }, text, (value) =>
+          await pointer.type(elementIds[field], text, (value) =>
             setDraftField(field, value),
           );
         }
@@ -94,7 +85,7 @@ export function createDiaryCommands({
         if (currentPath() !== "/new") {
           return fail("the writing page is not open; use fill_entry first");
         }
-        await pointer.click({ button: t("newEntry.save") });
+        await pointer.click(elementIds.saveEntry);
         const result = saveEntry();
         return result.ok
           ? done("saved; the list now shows the entry at the top")
@@ -115,7 +106,6 @@ export function useDiaryCommands() {
   const { draft, setDraftField } = useDiary();
   const navigate = useNavigate();
   const saveEntry = useSaveEntry();
-  const { t } = useI18n();
   return useMemo(
     () =>
       createDiaryCommands({
@@ -125,8 +115,7 @@ export function useDiaryCommands() {
         saveEntry,
         currentPath,
         pointer,
-        t,
       }),
-    [draft, setDraftField, navigate, saveEntry, t],
+    [draft, setDraftField, navigate, saveEntry],
   );
 }

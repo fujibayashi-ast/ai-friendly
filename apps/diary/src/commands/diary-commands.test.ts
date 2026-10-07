@@ -1,9 +1,7 @@
 import { describe, expect, mock, test } from "bun:test";
-import type { Target } from "@ai-friendly/assistant/cursor";
 import { createAiTools } from "@ai-friendly/command";
 import { type Draft, emptyDraft } from "../diary/diary";
 import type { SaveResult } from "../diary/diary-context";
-import { createTranslate } from "../i18n/messages";
 import { createDiaryCommands } from "./diary-commands";
 
 const setup = ({
@@ -16,8 +14,6 @@ const setup = ({
   let current = path;
   // 押した先を順に記録し、打ち込みは一瞬で全部渡す
   const pointed: string[] = [];
-  const name = (target: Target) =>
-    "button" in target ? target.button : target.field;
   const actions = {
     setDraftField: mock((_: string, __: string) => {}),
     navigate: mock((to: string) => {
@@ -31,15 +27,14 @@ const setup = ({
       ...actions,
       currentPath: () => current,
       pointer: {
-        click: async (target) => {
-          pointed.push(name(target));
+        click: async (id) => {
+          pointed.push(id);
         },
-        type: async (target, text, write) => {
-          pointed.push(name(target));
+        type: async (id, text, write) => {
+          pointed.push(id);
           write(text);
         },
       },
-      t: createTranslate("en"),
     }),
   });
   const run = (tool: string, input: unknown) =>
@@ -60,7 +55,7 @@ describe("diary commands", () => {
       message:
         "fill_entry: filled in; not saved yet. every field is filled, so save it now unless the user wants changes",
     });
-    expect(s.pointed).toEqual(["Write", "Title", "Entry"]);
+    expect(s.pointed).toEqual(["write-entry", "entry-title", "entry-body"]);
     expect(s.navigate).toHaveBeenCalledWith("/new");
     expect(s.setDraftField.mock.calls).toEqual([
       ["title", "Curry day"],
@@ -82,7 +77,7 @@ describe("diary commands", () => {
       ok: true,
       message: "save_entry: saved; the list now shows the entry at the top",
     });
-    expect(s.pointed).toEqual(["Save"]);
+    expect(s.pointed).toEqual(["save-entry"]);
 
     const list = setup();
     expect(await list.run("save_entry", {})).toMatchObject({

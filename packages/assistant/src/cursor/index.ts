@@ -1,2 +1,2 @@
 export { hideCursor } from "./cursor";
-export { type Pointer, pointer, type Target } from "./pointer";
+export { type Pointer, pointer } from "./pointer";

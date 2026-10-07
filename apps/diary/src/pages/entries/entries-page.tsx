@@ -3,6 +3,7 @@ import { Link } from "react-router";
 import { sortEntries } from "../../diary/diary";
 import { useDiary } from "../../diary/diary-context";
 import { useI18n } from "../../i18n/use-i18n";
+import { elementIds } from "../element-ids";
 import { EntryItem } from "./entry-item";
 
 export function EntriesPage() {
@@ -15,7 +16,7 @@ export function EntriesPage() {
         <h1 className="text-2xl font-bold tracking-tight">
           {t("entries.title")}
         </h1>
-        <Link to="/new" className={buttonVariants()}>
+        <Link id={elementIds.writeEntry} to="/new" className={buttonVariants()}>
           {t("entries.write")}
         </Link>
       </div>

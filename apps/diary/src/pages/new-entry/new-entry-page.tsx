@@ -1,17 +1,17 @@
 import { Button, Input, Textarea } from "@ai-friendly/ui";
-import { type ChangeEvent, type FormEvent, useId, useState } from "react";
+import { type ChangeEvent, type FormEvent, useState } from "react";
 import { Link } from "react-router";
 import type { DraftField } from "../../diary/diary";
 import { useDiary } from "../../diary/diary-context";
 import { useSaveEntry } from "../../diary/use-save-entry";
 import { useI18n } from "../../i18n/use-i18n";
+import { elementIds } from "../element-ids";
 import { Field } from "./field";
 
 export function NewEntryPage() {
   const { t } = useI18n();
   const { draft, setDraftField } = useDiary();
   const saveEntry = useSaveEntry();
-  const id = useId();
   // 「保存」で断られた項目。直したら消す
   const [missing, setMissing] = useState<DraftField[]>([]);
 
@@ -49,39 +49,43 @@ export function NewEntryPage() {
       </h1>
       <form noValidate className="flex flex-col gap-5" onSubmit={handleSubmit}>
         <Field
-          id={`${id}-title`}
+          id={elementIds.title}
           label={labels.title}
           error={errorOf("title", labels.title)}
         >
           <Input
-            id={`${id}-title`}
+            id={elementIds.title}
             value={draft.title}
             onChange={handleTitleChange}
             aria-invalid={missing.includes("title")}
             aria-describedby={
-              missing.includes("title") ? `${id}-title-error` : undefined
+              missing.includes("title")
+                ? `${elementIds.title}-error`
+                : undefined
             }
           />
         </Field>
         <Field
-          id={`${id}-body`}
+          id={elementIds.body}
           label={labels.body}
           error={errorOf("body", labels.body)}
         >
           <Textarea
-            id={`${id}-body`}
+            id={elementIds.body}
             rows={8}
             value={draft.body}
             onChange={handleBodyChange}
             aria-invalid={missing.includes("body")}
             aria-describedby={
-              missing.includes("body") ? `${id}-body-error` : undefined
+              missing.includes("body") ? `${elementIds.body}-error` : undefined
             }
             className="min-h-48 leading-relaxed"
           />
         </Field>
         <div>
-          <Button type="submit">{t("newEntry.save")}</Button>
+          <Button id={elementIds.saveEntry} type="submit">
+            {t("newEntry.save")}
+          </Button>
         </div>
       </form>
     </div>
