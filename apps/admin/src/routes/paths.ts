@@ -1,3 +1,4 @@
+import { matchPath } from "react-router";
 import {
   type OrderFilters,
   orderStatuses,
@@ -41,4 +42,24 @@ export function readProductFilters(params: URLSearchParams): ProductFilters {
 function withParams(path: string, params: URLSearchParams): string {
   const search = params.toString();
   return search ? `${path}?${search}` : path;
+}
+
+/** 今のページ。URL のパスと検索条件から読む */
+export type CurrentPage =
+  | { page: "orders"; filters: OrderFilters }
+  | { page: "order"; id: number }
+  | { page: "products"; filters: ProductFilters }
+  | { page: "other" };
+
+export function readCurrentPage(pathname: string, search: string): CurrentPage {
+  const params = new URLSearchParams(search);
+  if (matchPath("/orders", pathname)) {
+    return { page: "orders", filters: readOrderFilters(params) };
+  }
+  const order = matchPath("/orders/:id", pathname);
+  if (order?.params.id) return { page: "order", id: Number(order.params.id) };
+  if (matchPath("/products", pathname)) {
+    return { page: "products", filters: readProductFilters(params) };
+  }
+  return { page: "other" };
 }
