@@ -53,3 +53,9 @@ bunx shadcn@latest add <component>
 * `package.json` に意図しない依存が足されていないか確認する（CLI が `utils` の別名を読み違え、無関係の `cn` パッケージを足したことがある）
 * `focus-visible:ring-ring/50` は `focus-visible:ring-ring` にする（半透明だとフォーカスが見えにくい）
 * `src/index.ts` から export する
+
+### 手を入れた部品
+
+CLI で入れ直すと上書きされるので、入れ直したら同じ手を入れる。
+
+* `toggle-group`: 枠線つき（`variant="outline"`）・すき間なし（`spacing` 0）の項目は、左の線を消す（`border-l-0`）代わりに 1px 重ね（`-ml-px`）、選んだ項目を上に出す（`data-[state=on]:z-10`）。左の線を消すと、2 つ目以降を選んだときに濃い線が欠ける（#95）
