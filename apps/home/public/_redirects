@@ -1,0 +1,4 @@
+/admin/orders     /admin/ 200
+/admin/orders/*   /admin/ 200
+/admin/products   /admin/ 200
+/diary/new        /diary/ 200

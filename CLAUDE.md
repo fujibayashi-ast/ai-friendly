@@ -142,7 +142,7 @@ packages/
 
 ## Deploy
 
-* Cloudflare Pages に SPA として公開する（設定は Issue で行う）
+* Cloudflare Pages に SPA として公開する（Git 連携。設定と `_redirects` は [docs/deploy.md](docs/deploy.md)）
 * GitHub Release / バージョニング / npm 公開は行わない
 
 ## Issue / PR Rules

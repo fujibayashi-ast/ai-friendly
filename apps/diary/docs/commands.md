@@ -36,7 +36,7 @@ src/
 
 * `setDraftField(field, value)` は入力欄の 1 文字ごとにも呼ばれる。`save()` は空の項目があれば断り、`{ ok: false, missing }` を返す（画面は理由を出す）
 * `app.tsx` から `<Ai />` を外しても、サイトはそのまま動く
-* 公開時は、`/diary/*` のどの URL も `/diary/index.html` を返す設定が要る（管理画面と同じ）
+* 公開時に、`/diary/new` を直接開いた・再読み込みしたときも表示できるよう、`_redirects` に書いている（管理画面と同じ。[docs/deploy.md](../../../docs/deploy.md)）
 
 ## Command
 

@@ -45,7 +45,7 @@ src/
 * だめな理由（存在しない注文・発送済み・在庫の範囲）は API が判定し、`ApiError`（`error.code`）で断る。本物ではサーバーの役目。画面は理由を出す
 * API に断られたもの（存在しない ID など）は、何度試しても同じなので取り直さない（`createQueryClient` の `retry`）
 * `app.tsx` から `<Ai />` を外しても、サイトはそのまま動く
-* 公開時は、`/admin/*` のどの URL も `/admin/index.html` を返す設定が要る（直接開いた・再読み込みしたとき）。設定は公開の Issue で行う
+* 公開時に、ページを直接開いた・再読み込みしたときも表示できるよう、`_redirects` にページの URL を書いている。ルートを足したらそこにも足す（[docs/deploy.md](../../../docs/deploy.md)）
 
 ## Command
 
