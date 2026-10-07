@@ -5,7 +5,7 @@ import type {
   ConfirmHandler,
   ExecuteOptions,
 } from "../types";
-import { confirmationMark } from "./describe-commands";
+import { confirmationMark } from "./confirmation-mark";
 
 /** AI に渡すツール。WebMCP の `registerTool` にもそのまま渡せる形 */
 export type AiTool = {
