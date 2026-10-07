@@ -20,7 +20,7 @@ import { Button, ToggleGroup, ToggleGroupItem } from "@ai-friendly/ui";
 
 | 部品 | 用途 |
 | --- | --- |
-| `Button` | ボタン（`variant`: default / destructive / outline / secondary / ghost / link） |
+| `Button` / `buttonVariants` | ボタン（`variant`: default / destructive / outline / secondary / ghost / link）。`buttonVariants` はリンクをボタンの見た目にするとき（`<Link className={buttonVariants()}>`） |
 | `ToggleGroup` / `ToggleGroupItem` / `Toggle` | テーマ・言語などの選択 |
 | `Input` | 1 行の入力欄（API キーの入力など） |
 | `Select` | 選択肢から 1 つ選ぶ（チャットの LLM の切り替えなど） |

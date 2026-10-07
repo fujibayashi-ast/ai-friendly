@@ -1,6 +1,6 @@
 # テーマ・言語の切り替えサイト
 
-テーマ（ライト / ダーク / システム）と言語（日本語 / English）を切り替えるだけの、一般的なサイト。普通の React のサイトに AI の層を足し、AI からもサイトの関数（`setTheme` / `setLanguage`）で設定を変えられるようにしている。
+テーマ（ライト / ダーク）と言語（日本語 / English）を切り替えるだけの、一般的なサイト。普通の React のサイトに AI の層を足し、AI からもサイトの関数（`setTheme` / `setLanguage`）で設定を変えられるようにしている。
 
 ## しくみ
 
@@ -74,6 +74,7 @@ src/
 | ファイル | 役割 |
 | --- | --- |
 | `settings/settings.ts` | 設定の型と初期値 |
+| `settings/settings-context.ts` | 設定の Context と `useSettings`（`SettingsProvider` の外で使うとエラー） |
 | `settings/settings-provider.tsx` | 設定を `useState` で持ち、テーマ（`.dark`）と言語（`lang`・`<title>`）を `<html>` に反映する |
 | `settings/use-theme.ts` / `i18n/use-i18n.ts` | 画面から使うフック（`{ theme, setTheme }` / `{ language, setLanguage, t }`） |
 | `i18n/messages.ts` | 文言の辞書（ja / en）。日本語のキーから型を作り、英語の訳し忘れを型エラーにする |

@@ -37,7 +37,7 @@ flowchart LR
 
 * `command` は単体でも成立させる。チャットを使わず WebMCP だけで操作される場合も、`command` だけで AI から操作できる
 * チャット（`assistant`）と WebMCP は同じツールを使い、どちらも「引数の検証 → 確認 → `run`」を通る
-* 状態は各題材の React の state に持ち、保存しない（再読み込みで消える）
+* 状態は各題材の React の state に持ち、保存しない（再読み込みで消える）。管理画面は、ダミーの API（モジュールの中のデータ）と TanStack Query のキャッシュに持つ
 
 ## 1 つのサイトとして開発・公開する
 
@@ -46,13 +46,10 @@ flowchart LR
 | | トップ | 各題材 |
 | --- | --- | --- |
 | 開発（`bun run dev`） | `http://localhost:5173/` | `http://localhost:5173/<id>/`（トップの開発サーバーが各題材の開発サーバー `5174〜` に転送する） |
-| 公開（`bun run build` → `dist/`） | `/` | `/<id>/` |
+| 公開（`bun run build` → `dist/`。Cloudflare Pages。[deploy.md](deploy.md)） | `/` | `/<id>/` |
 
 * サンプルの一覧は `apps/home/samples.ts`（`id`・開発サーバーのポート・カードに載せる Command の例）。カード・開発時の転送・公開用のまとめはここから作る
 * 題材を足すとき: `samples.ts` に 1 行、カードの文言（`apps/home/src/i18n/messages.ts`）、題材の `vite.config.ts` の `base`（`/<id>/`）と `server.port`
-* 各題材の中のリンクは `import.meta.env.BASE_URL` から作る（`/` はトップになるため）
-
-## 未定
-
-* 題材 3・4（ネットショップ #45・予約フォーム #46）
-* i18n の実装方法
+* 各題材の中のリンクは `import.meta.env.BASE_URL` から作る（`/` はトップになるため）。React Router を使う題材は `basename` に入れる
+* ページ遷移のある題材を足したら、公開の `_redirects` にもページの URL を足す（[deploy.md](deploy.md)）
+* i18n はライブラリを使わず、各題材が文言の辞書（`i18n/messages.ts`・ja / en）と `useI18n` を持つ。チャットの文言は assistant が持つ

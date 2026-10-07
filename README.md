@@ -19,7 +19,7 @@ apps/reservation/    # 題材 4: 予約フォーム（Vite + React）
 apps/admin/          # 題材 5: 管理画面（Vite + React + React Router）
 apps/diary/          # おまけ: 日記（AI の操作をカーソルの動きで見せる）
 packages/command/    # Command の定義・検証・確認・AI 向けツール・WebMCP 登録（React / LLM に依存しない）
-packages/assistant/  # サイト内の AI チャット（チャット UI・LLM の切り替え）
+packages/assistant/  # サイト内の AI チャット（チャット UI・LLM の切り替え・AI の操作を見せるカーソル）
 packages/ui/         # 共通 UI（shadcn/ui + Tailwind v4）
 ```
 
@@ -34,7 +34,7 @@ bun run dev   # トップと各サンプルをまとめて起動
 
 `http://localhost:5173/` を開くと、トップページにサンプルが並ぶ。カードから各サンプル（`/settings/` など）を開く。
 
-* テーマと言語を右上のボタンで切り替えられる
+* 言語を右上のボタンで切り替えられる（テーマ・言語の切り替えサイトではテーマも）
 * 右下のボタンからチャットを開き、Claude の API キーを入れるか、入力欄の左下で Gemini Nano（パソコン版の Chrome 148 以降）か Qwen3.5 4B（WebGPU が使えるブラウザ）に切り替えると、話しかけて操作できる
 * 開発中は devtools のコンソールで `window.__aiTools` から同じツールを呼べる（[apps/settings/docs/commands.md](apps/settings/docs/commands.md)）
 
@@ -50,7 +50,13 @@ bun run build      # 各アプリをビルドし、公開用に dist/ にまと�
 
 ## 技術スタック
 
-TypeScript / React / Vite / shadcn/ui / Tailwind v4 / zod / bun（workspaces）/ Biome / localStorage
+TypeScript / React / Vite / shadcn/ui / Tailwind v4 / zod / bun（workspaces）/ Biome
+
+題材ごとに: React Router・TanStack Query（管理画面・日記は React Router のみ）/ React Hook Form・dayjs（予約フォーム）/ WebLLM（チャットの Qwen）
+
+## 公開
+
+Cloudflare Pages に公開している: https://ai-friendly-2i0.pages.dev/ （main にマージすると更新される。設定は [docs/deploy.md](docs/deploy.md)）
 
 ## ドキュメント
 
