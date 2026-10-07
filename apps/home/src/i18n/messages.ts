@@ -31,7 +31,7 @@ const ja = {
   "sample.diary.title": "にっき",
   "sample.diary.description":
     "AI が日記を書くようすを、カーソルの動きと打ち込みで見せる小さな日記のサイト。",
-  "sample.diary.example": "今日は雨だった、と日記を書いて",
+  "sample.diary.example": "雨の日にカレーを作ったことを日記に書いて",
 };
 
 export type MessageKey = keyof typeof ja;
@@ -66,7 +66,7 @@ const en: Record<MessageKey, string> = {
   "sample.diary.title": "Diary",
   "sample.diary.description":
     "A small diary site that shows the AI writing an entry with a moving cursor and typing.",
-  "sample.diary.example": "Write today's entry: it rained",
+  "sample.diary.example": "Write in my diary that I made curry on a rainy day",
 };
 
 export const messages: Record<Language, Record<MessageKey, string>> = {
