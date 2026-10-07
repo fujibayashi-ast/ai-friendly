@@ -17,6 +17,7 @@ apps/tasks/          # 題材 2: やることリスト（Vite + React）
 apps/shop/           # 題材 3: ネットショップ（Vite + React）
 apps/reservation/    # 題材 4: 予約フォーム（Vite + React）
 apps/admin/          # 題材 5: 管理画面（Vite + React + React Router）
+apps/diary/          # おまけ: 日記（AI の操作をカーソルの動きで見せる）
 packages/command/    # Command の定義・検証・確認・AI 向けツール・WebMCP 登録（React / LLM に依存しない）
 packages/assistant/  # サイト内の AI チャット（チャット UI・LLM の切り替え）
 packages/ui/         # 共通 UI（shadcn/ui + Tailwind v4）

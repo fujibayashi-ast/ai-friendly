@@ -1,6 +1,5 @@
 import { ToggleGroup, ToggleGroupItem } from "@ai-friendly/ui";
 import { useEffect, useState } from "react";
-import { samples } from "../samples";
 import {
   type Language,
   languageNames,
@@ -8,7 +7,7 @@ import {
   type MessageKey,
   messages,
 } from "./i18n/messages";
-import { SampleCard } from "./sample-card";
+import { SampleList } from "./sample-list";
 
 export function App() {
   const [language, setLanguage] = useState<Language>("ja");
@@ -61,19 +60,16 @@ export function App() {
           <h1 id="samples" className="text-2xl font-bold tracking-tight">
             {t("samples")}
           </h1>
-          <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {samples.map((sample) => (
-              <li key={sample.id}>
-                <SampleCard
-                  href={`/${sample.id}/`}
-                  title={t(`sample.${sample.id}.title`)}
-                  description={t(`sample.${sample.id}.description`)}
-                  example={t(`sample.${sample.id}.example`)}
-                  call={sample.example}
-                />
-              </li>
-            ))}
-          </ul>
+          <SampleList group="main" t={t} />
+        </section>
+        <section aria-labelledby="extras" className="mt-16">
+          <h2 id="extras" className="text-xl font-bold tracking-tight">
+            {t("extras")}
+          </h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            {t("extras.description")}
+          </p>
+          <SampleList group="extra" t={t} />
         </section>
       </main>
     </div>
