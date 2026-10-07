@@ -25,7 +25,7 @@ src/
   i18n/                   # 文言（ja / en）・言語の state（I18nProvider・useI18n）
   layout/                 # ヘッダー（サイト名・言語の切り替え）
   pages/                  # entries（日記の一覧）・new-entry（書く）・element-ids.ts（部品の id）
-  commands/               # 足した層: 日記の Command（@ai-friendly/assistant/cursor の pointer でカーソルを動かしてから、useDiary の関数を呼ぶ）
+  commands/               # 足した層: 日記の Command（run が受け取る pointer で押す先を指してから、useDiary の関数を呼ぶ）
   ai/ai.tsx               # 足した層: <Ai />（AI 向けツール・WebMCP・右下のチャット）
 ```
 
@@ -53,7 +53,7 @@ src/
 
 ## カーソルの演出
 
-カーソルは `@ai-friendly/assistant/cursor` の `pointer` を使う（動き・押す先の探し方・`prefers-reduced-motion` は [docs/assistant.md](../../../docs/assistant.md)）。日記で決めているのは、何をどの順に押すかだけ。
+Command は `run` の 2 つ目の引数の `pointer` で押す先を指す（[docs/commands.md](../../../docs/commands.md)）。チャットから実行するとカーソルが動く（動き・`prefers-reduced-motion` は [docs/assistant.md](../../../docs/assistant.md)）。日記で決めているのは、何をどの順に押すかだけ。WebMCP から呼ばれたときは動かない
 
 * 押す先は部品の id で指す。id は `pages/element-ids.ts` にまとめ、画面（`id` 属性・ラベルとのつながり）と Command の両方が使う
 
@@ -64,7 +64,6 @@ src/
   | `entry-body` | 本文の欄 |
   | `save-entry` | 「保存」 |
 
-* AI の返事が終わったら、チャット（`Chat`）がカーソルを隠す
 
 ## AI から操作する
 

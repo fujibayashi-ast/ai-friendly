@@ -14,10 +14,13 @@
 * 押す先は部品の id で指す（`pointer.click("write-entry")`）。チュートリアルのツアーと同じく、サイトは部品に普通の id を付けるだけで、AI の層を参照しない。動き・押した印・打ち込みは package に持ち、Command は id を渡すかどうかで動きを付けるかを決める
   * 最初は画面に出ている名前（ボタンの文字・`aria-label`・`<label>`）で探していたが、レビューで id にした。後から層を足すのに、id を付けるくらいはよい。名前の一致を探す処理がいらず、言語の切り替えや同じ名前の部品にも左右されない
 * 打ち込みは 1 文字ずつサイトの関数（`setDraftField`）に渡す。人が打つと 1 文字ごとに `onChange` が呼ばれるのと同じなので、「画面と AI は同じ関数」のまま
-* カーソルの部品は `packages/assistant` に置き、`@ai-friendly/assistant/cursor` として出す。サイトに依存しない作りで、チャットと同じく「AI の操作を見せる」画面の表現のため。使うのは日記だけで、本編の題材には付けない
-  * 最初は日記の中（`apps/diary/src/ai/cursor/`）に置いていたが、レビューで package に出すことにした
-  * AI の返事が終わったら `Chat` がカーソルを隠す。サイトが `onRunningChange` で隠さなくてよい
-* Command はカーソル（`pointer`）を受け取る。テストでは一瞬で終わるものに差し替える
+* カーソルの動きは `packages/assistant` に置き、チャットがツールの実行（`execute(input, { pointer })`）に渡す。Command は `run` の 2 つ目の引数で受け取り、押す先の id を指すだけ。サイトもアプリも、カーソルのために何も import しない
+  * `packages/command` には `Pointer` の型と、動きなしの既定（`click` はすぐ終わる・`type` は全部まとめて渡す）だけを置く。確認フック（`confirm`）と同じく、実行する側が渡すもの
+  * WebMCP は `execute` の 2 つ目に自分の client を渡すので、登録するときに入力だけを渡すように包む。WebMCP から呼ばれたときはカーソルは動かない
+  * AI の返事が終わったら `Chat` がカーソルを隠す
+  * 経緯: 最初は日記の中（`apps/diary/src/ai/cursor/`）に置いていた。レビューで package に出し（`@ai-friendly/assistant/cursor`）、さらに Command・アプリの import もなくしたいとなり、今の形にした
+  * 使うのは日記だけで、本編の題材には付けない
+* テストでは、押した順を記録するだけの `pointer` を `execute` に渡す
 
 ## 比べた案
 
@@ -31,6 +34,8 @@
 | カーソルを React の state で動かす | 動きの間に何度も描き直す。DOM を直接動かす方が軽い |
 | カーソルを `packages/command` に置く | `command` はチャットなしの WebMCP だけでも使う純粋なロジック。画面の演出が混ざる |
 | カーソル用の package（`packages/cursor`）を作る | package が増えるわりに得るものが少ない |
+| Command やアプリが `@ai-friendly/assistant/cursor` を import して使う | 動かすたびに import とつなぎが要る。チャットが渡せば、Command は押す先を指すだけで済む |
+| `command` の既定の `pointer` をカーソルにする（WebMCP でも動く） | `command` に DOM の演出が入る |
 
 ## Qwen3.5 4B での結果
 

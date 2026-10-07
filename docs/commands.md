@@ -48,7 +48,7 @@ React では、状態が変わるたびに Command とツールを作り直す�
 | `args` | 引数の定義（下の「引数の書き方」） |
 | `requiresConfirmation` | 実行の前に確認フックで承認を得るか。`true` / `false`、または `(args) => boolean` |
 | `confirmation` | 確認で見せる文言。`(args) => { title, description, confirmLabel }`。訳した文字列を返す。省略できる |
-| `run(args)` | サイトの関数を呼ぶ。`args` は検証済み。成功なら何も返さなくてよい。ドメイン上のエラー（存在しない ID など）は `{ ok: false, message }` を返す。成功でも AI に伝えたいことがあれば `{ ok: true, message }` を返す。Promise でもよい |
+| `run(args, { pointer })` | サイトの関数を呼ぶ。`args` は検証済み。`pointer` は下の「押すふり・打ち込むふり」。成功なら何も返さなくてよい。ドメイン上のエラー（存在しない ID など）は `{ ok: false, message }` を返す。成功でも AI に伝えたいことがあれば `{ ok: true, message }` を返す。Promise でもよい |
 
 * `message` は LLM が読んで直せる英文にする（`todo "1" not found`）
 * 成功の `message` は、AI が次の一手を決めるための短い英文にする（`filled in; not sent yet. still missing: party_size, seat`）。小さいモデルは `{ ok: true }` だけを見て「完了しました」と返事をしがち。一覧などのデータは返さない（読むものは `get_state`）
@@ -87,6 +87,33 @@ const deleteTodoCommand = defineCommand({
 * 文言は Command の定義に持たせる。確認フックは受け取った文言を出すだけにし、Command の種類で分けない（Command を足すときに定義だけ書けば済む）
 * package は i18n を知らないので、アプリが訳した文字列を返す。言語が変わったら Command を作り直す
 * `confirmation` があるだけでは確認しない。確認するかは `requiresConfirmation` で決める
+
+### 押すふり・打ち込むふり（`pointer`）
+
+`run` の 2 つ目の引数の `pointer` で、AI の操作を画面の上で見せられる。押す先は要素の id で指す。
+
+```ts
+const fillEntryCommand = defineCommand({
+  type: "fill_entry",
+  // ...
+  run: async ({ title }, { pointer }) => {
+    await pointer.click("write-entry"); // 「書く」を押すふり
+    navigate("/new"); // 操作は画面と同じサイトの関数で行う
+    await pointer.type("entry-title", title, (value) =>
+      setDraftField("title", value), // 1 文字ずつサイトの関数に渡す
+    );
+  },
+});
+```
+
+| | 内容 |
+| --- | --- |
+| `pointer.click(id)` | id の要素を押すふりをする |
+| `pointer.type(id, text, write)` | id の入力欄に打ち込むふりをし、途中の文字列を `write` に渡す |
+
+* `pointer` はツールを実行する側が `execute(input, { pointer })` で渡す。サイト内のチャット（`@ai-friendly/assistant`）はカーソルを渡すので、仮のカーソルが動く（[assistant.md](assistant.md)）
+* 渡されなければ動きなし: `click` はすぐ終わり、`type` は `write(text)` を 1 回呼ぶ。WebMCP・テストからはこちら。結果は同じになる
+* 使わない Command は 2 つ目の引数を受け取らなくてよい
 
 ### 引数の書き方
 

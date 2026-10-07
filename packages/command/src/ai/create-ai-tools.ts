@@ -1,6 +1,10 @@
 import { z } from "zod";
 import { runCommand } from "../run-command";
-import type { CommandDefinition, ConfirmHandler } from "../types";
+import type {
+  CommandDefinition,
+  ConfirmHandler,
+  ExecuteOptions,
+} from "../types";
 import { confirmationMark } from "./describe-commands";
 
 /** AI に渡すツール。WebMCP の `registerTool` にもそのまま渡せる形 */
@@ -8,7 +12,8 @@ export type AiTool = {
   name: string;
   description: string;
   inputSchema: Record<string, unknown>;
-  execute(input: unknown): Promise<unknown>;
+  /** `options` は実行する側（チャット）が渡す。WebMCP からは渡らない */
+  execute(input: unknown, options?: ExecuteOptions): Promise<unknown>;
   annotations?: { readOnlyHint?: boolean };
 };
 
@@ -40,7 +45,8 @@ export function createAiTools(options: AiToolsOptions): AiTool[] {
       name: definition.type,
       description: definition.description + confirmationMark(definition),
       inputSchema: z.toJSONSchema(definition.args, { io: "input" }),
-      execute: (input) => runCommand(definition, input, options.confirm),
+      execute: (input, executeOptions) =>
+        runCommand(definition, input, options.confirm, executeOptions),
     }),
   );
 

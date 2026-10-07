@@ -1,5 +1,5 @@
 import { describe, expect, mock, test } from "bun:test";
-import { createAiTools } from "@ai-friendly/command";
+import { createAiTools, type Pointer } from "@ai-friendly/command";
 import { type Draft, emptyDraft } from "../diary/diary";
 import type { SaveResult } from "../diary/diary-context";
 import { createDiaryCommands } from "./diary-commands";
@@ -21,24 +21,25 @@ const setup = ({
     }),
     saveEntry: mock((): SaveResult => ({ ok: true, id: 6 })),
   };
+  // チャットが渡すカーソルの代わり
+  const pointer: Pointer = {
+    click: async (id) => {
+      pointed.push(id);
+    },
+    type: async (id, text, write) => {
+      pointed.push(id);
+      write(text);
+    },
+  };
   const tools = createAiTools({
     commands: createDiaryCommands({
       draft,
       ...actions,
       currentPath: () => current,
-      pointer: {
-        click: async (id) => {
-          pointed.push(id);
-        },
-        type: async (id, text, write) => {
-          pointed.push(id);
-          write(text);
-        },
-      },
     }),
   });
   const run = (tool: string, input: unknown) =>
-    tools.find((t) => t.name === tool)?.execute(input);
+    tools.find((t) => t.name === tool)?.execute(input, { pointer });
   return { ...actions, pointed, run };
 };
 

@@ -39,6 +39,7 @@ controller.abort();
 
 * 実行は「引数の検証 → 確認 → `run`」の順に進む（[commands.md](commands.md) の「実行の流れ」）
 * 戻り値は `ExecuteResult`（`{ ok: true }` / `{ ok: true, message }` / `{ ok: false, code, message }`）
+* `execute(input, { pointer })` の 2 つ目は、実行する側が渡すもの。サイト内のチャットはカーソル（`pointer`）を渡す（[commands.md](commands.md) の「押すふり・打ち込むふり」）
 * `getState` は、AI が Command を組み立てるのに要る情報だけを返す（全部渡すとトークンが増える）
 * Command の `type` を `get_state` にしない（ツール名がぶつかる）
 
@@ -61,5 +62,6 @@ set_priority(id: string, level: "low"|"high", order?: integer, meta?: { note: st
 * `document.modelContext` を使い、なければ `navigator.modelContext`（Chromium 150 で deprecated）を使う
 * WebMCP が使えないブラウザでは何もせず `false` を返す
 * 解除は `signal` を abort する（WebMCP には `unregisterTool` がない）
+* WebMCP は `execute` の 2 つ目に自分の client を渡すので、入力だけを渡すように包んで登録する
 * 登録の途中で abort されたとき（React の StrictMode・ツールの作り直し）は、残りの登録をやめて `false` を返す。abort による失敗は投げない（abort 以外の失敗は投げる）
 * WebMCP の仕様はまだ変わるため、登録まわりはこのサブパスに閉じ込めている

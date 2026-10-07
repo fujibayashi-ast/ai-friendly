@@ -1,5 +1,6 @@
 import type { AiTool } from "@ai-friendly/command";
 import { useCallback, useLayoutEffect, useRef, useState } from "react";
+import { pointer } from "../cursor/pointer";
 import {
   type ChatMessage,
   type ChatProvider,
@@ -68,6 +69,8 @@ export function useChat({
         messages: history.current,
         getTools: () => latest.current.tools,
         onMessage: append,
+        // Command が pointer で押す先を指していれば、カーソルが動く
+        pointer,
       });
       if (result === "too_many_steps") {
         show({ role: "notice", kind: "too_many_steps" });

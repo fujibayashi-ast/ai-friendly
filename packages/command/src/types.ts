@@ -41,11 +41,28 @@ export type CommandDefinition<
   confirmation?: {
     bivarianceHack(args: z.output<Schema>): Confirmation;
   }["bivarianceHack"];
-  /** サイトの関数（setter など）を呼ぶ。`args` は検証済み */
+  /** サイトの関数（setter など）を呼ぶ。`args` は検証済み。`context` は実行する側（チャットなど）が渡すもの */
   run(
     args: z.output<Schema>,
+    context: RunContext,
   ): void | RunResult | Promise<RunResult> | Promise<void>;
 };
+
+/**
+ * AI の操作を見せる、押すふり・打ち込むふり。押す先は要素の id で指す
+ * チャット（`@ai-friendly/assistant`）が実行するときはカーソルが動く。それ以外（WebMCP・テスト）では動きなしで、`type` は `write` に全部渡す
+ * @see docs/commands.md
+ */
+export type Pointer = {
+  click(id: string): Promise<void>;
+  type(id: string, text: string, write: (value: string) => void): Promise<void>;
+};
+
+/** `run` の 2 つ目の引数。実行する側が渡す */
+export type RunContext = { pointer: Pointer };
+
+/** ツールを実行する側が渡せるもの（`AiTool.execute` の 2 つ目の引数） */
+export type ExecuteOptions = { pointer?: Pointer };
 
 /** 確認で見せる文言（ダイアログ・チャット内の確認ボタンなど） */
 export type Confirmation = {

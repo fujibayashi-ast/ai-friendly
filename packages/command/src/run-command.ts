@@ -1,10 +1,17 @@
-import type { CommandDefinition, ConfirmHandler, ExecuteResult } from "./types";
+import { noPointer } from "./pointer";
+import type {
+  CommandDefinition,
+  ConfirmHandler,
+  ExecuteOptions,
+  ExecuteResult,
+} from "./types";
 import { validateArgs } from "./validate";
 
 export async function runCommand(
   definition: CommandDefinition,
   input: unknown,
   confirm: ConfirmHandler | undefined,
+  options: ExecuteOptions = {},
 ): Promise<ExecuteResult> {
   const validated = validateArgs(input, definition);
   if (!validated.ok) {
@@ -29,7 +36,9 @@ export async function runCommand(
     };
   }
 
-  const result = await definition.run(args);
+  const result = await definition.run(args, {
+    pointer: options.pointer ?? noPointer,
+  });
   if (!result) return { ok: true };
   const message = `${definition.type}: ${result.message}`;
   return result.ok

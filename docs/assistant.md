@@ -152,7 +152,7 @@ src/
   layouts/floating-chat.tsx  # FloatingChat: Chat を右下のパネルに入れる
   ui/                        # 見た目だけの部品。props だけで描画し、会話の状態や i18n を知らない
   conversation/              # 会話の状態（useChat）とループ（runChat）。画面なし
-  cursor/                    # AI の操作を見せる仮のカーソル（@ai-friendly/assistant/cursor）
+  cursor/                    # AI の操作を見せる仮のカーソル（チャットがツールの実行に渡す pointer）
   providers/                 # プロバイダの型・Claude API（useClaude）・Gemini Nano（useGeminiNano）・WebLLM（useQwen）・JSON でツールを呼ぶ共通部分
   i18n/                      # チャットの文言（ja / en）
 ```
@@ -184,38 +184,20 @@ const [aiRunning, setAiRunning] = useState(false);
 * オーバーレイは、チャットのパネル（`z-50`）と確認ダイアログより下に重ねる。確認が要る Command は、AI の実行中に確認ダイアログを出すため
 * settings サイトでは使っていない
 
-## AI の操作を見せるカーソル（`@ai-friendly/assistant/cursor`）
+## AI の操作を見せるカーソル
 
-AI の操作を、仮のマウスカーソルが押す・打ち込む動きで見せる。使いたいサイトだけが、Command の `run` で `pointer` を待ってから、画面と同じサイトの関数を呼ぶ（日記で使っている。[apps/diary/docs/commands.md](../apps/diary/docs/commands.md)）。
-
-```ts
-import { pointer } from "@ai-friendly/assistant/cursor";
-
-run: async ({ title }) => {
-  await pointer.click("write-entry"); // id が write-entry の「書く」を押すふり
-  navigate("/new"); // 操作は画面と同じサイトの関数で行う
-  await pointer.type("entry-title", title, (value) =>
-    setDraftField("title", value), // 1 文字ずつサイトの関数に渡す
-  );
-},
-```
-
-| 公開するもの | 内容 |
-| --- | --- |
-| `pointer.click(id)` | id の要素へ動いて押すふりをする |
-| `pointer.type(id, text, write)` | id の入力欄を押してから、1 文字ずつ `write` に渡す |
-| `Pointer` | `pointer` の型。テストでは一瞬で終わるものに差し替える |
-| `hideCursor()` | カーソルを隠す。`Chat` は AI の返事が終わったときに自分で呼ぶので、チャットを使うサイトは呼ばなくてよい（WebMCP だけで操作されるときに使う） |
+チャットがツールを実行するときに、仮のマウスカーソル（`pointer`）を渡す。Command が `run` の 2 つ目の引数の `pointer` で押す先を指すと、カーソルが押す・打ち込む動きで見せる（[commands.md](commands.md) の「押すふり・打ち込むふり」）。サイトもアプリも、カーソルのために何も import しない。指さない Command では何も起きないので、本編の題材は変わらない（使っているのは日記だけ）。
 
 * 押すふり・打ち込むふりをするだけで、実際の DOM にクリック・入力のイベントは送らない。結果（だめな理由）を AI に返せるよう、操作はサイトの関数で行う
 * 押す先は要素の id で指す。チュートリアルのツアー（driver.js など）と同じく、サイトは部品に普通の id を付けるだけ。位置は動かす直前に `getBoundingClientRect()` で聞くので、スクロールや画面幅に追従する
 * ページを移った直後で要素がまだなければ、1 秒まで待つ。出てこなければ動かずに進む（`write` には全部渡す）
-* 動きを付けるかは Command が決める。`pointer` を呼ばなければ、動きなしでサイトの関数を呼ぶだけになる
 * 動き: 最初は画面の右下から出て、対象まで 0.5 秒で動き、押した印（`--primary` の輪）を出す。画面の外ならスクロールしてから動く
 * 打ち込み: 入力欄を押してから、カーソルを右下へよけ、1 文字ずつ `write` に渡す（人が打つと 1 文字ごとに `onChange` が呼ばれるのと同じ）。1 文字 45ms、全体で 4 秒まで
 * `prefers-reduced-motion` のときは、動きも打ち込みも省いて、すぐに `write` に全部渡す
+* AI の返事が終わったら、`Chat` がカーソルを隠す
 * 動きの間に何度も描き直さないよう、React ではなく DOM を直接動かす
-* `command` には置かない。`command` はチャットなしの WebMCP だけでも使う純粋なロジックで、画面の演出は持たない（[docs/history/2026-10-07-diary-cursor.md](history/2026-10-07-diary-cursor.md)）
+* WebMCP から呼ばれたときは、カーソルは動かない（動きなしの `pointer` で同じ結果になる）
+* カーソルの動きは assistant に置き、`command` には型（`Pointer`）と動きなしの既定だけを置く。`command` はチャットなしの WebMCP だけでも使う純粋なロジックで、画面の演出は持たない（[docs/history/2026-10-07-diary-cursor.md](history/2026-10-07-diary-cursor.md)）
 
 ## 文言
 

@@ -1,5 +1,4 @@
-import { type Pointer, pointer } from "@ai-friendly/assistant/cursor";
-import { defineCommand } from "@ai-friendly/command";
+import { defineCommand, type Pointer } from "@ai-friendly/command";
 import { useMemo } from "react";
 import { useNavigate } from "react-router";
 import { z } from "zod";
@@ -15,8 +14,6 @@ type DiaryActions = Pick<DiaryContextValue, "draft" | "setDraftField"> & {
   saveEntry: ReturnType<typeof useSaveEntry>;
   /** 今のページ（`/` か `/new`） */
   currentPath(): string;
-  /** カーソルで押すふり・打ち込むふり */
-  pointer: Pointer;
 };
 
 export function createDiaryCommands({
@@ -25,13 +22,12 @@ export function createDiaryCommands({
   navigate,
   saveEntry,
   currentPath,
-  pointer,
 }: DiaryActions) {
   const done = (message: string) => ({ ok: true as const, message });
   const fail = (message: string) => ({ ok: false as const, message });
 
   /** 一覧の「書く」を押して、書くページへ（もういれば何もしない） */
-  const openWritePage = async () => {
+  const openWritePage = async (pointer: Pointer) => {
     if (currentPath() === "/new") return;
     await pointer.click(elementIds.writeEntry);
     navigate("/new");
@@ -42,8 +38,8 @@ export function createDiaryCommands({
       type: "open_new_entry",
       description: "Open the page to write a new diary entry.",
       args: z.object({}),
-      run: async () => {
-        await openWritePage();
+      run: async (_, { pointer }) => {
+        await openWritePage(pointer);
         return done("the writing page is open; fill it in with fill_entry");
       },
     }),
@@ -55,8 +51,8 @@ export function createDiaryCommands({
         title: z.string().optional(),
         body: z.string().optional(),
       }),
-      run: async (input) => {
-        await openWritePage();
+      run: async (input, { pointer }) => {
+        await openWritePage(pointer);
         // 画面の上から順に打ち込む
         for (const field of ["title", "body"] as const) {
           const text = input[field];
@@ -81,7 +77,7 @@ export function createDiaryCommands({
       type: "save_entry",
       description: "Save the diary entry on the writing page.",
       args: z.object({}),
-      run: async () => {
+      run: async (_, { pointer }) => {
         if (currentPath() !== "/new") {
           return fail("the writing page is not open; use fill_entry first");
         }
@@ -114,7 +110,6 @@ export function useDiaryCommands() {
         navigate,
         saveEntry,
         currentPath,
-        pointer,
       }),
     [draft, setDraftField, navigate, saveEntry],
   );
