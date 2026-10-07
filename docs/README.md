@@ -29,6 +29,7 @@
   - [2026-10-06-reservation-app.md](history/2026-10-06-reservation-app.md) — 予約フォーム（フォームを埋める Command・入力のエラーを直す・小さいモデルの対話の限界）
   - [2026-10-07-run-success-message.md](history/2026-10-07-run-success-message.md) — 成功したときにも AI 向けの英文を返す（`{ ok: true, message }`）
   - [2026-10-07-guards-in-site.md](history/2026-10-07-guards-in-site.md) — 守りをサイトの関数に置き、結果を多めに返す（画面と AI で同じ挙動）
+  - [2026-10-07-admin-app.md](history/2026-10-07-admin-app.md) — 管理画面（React Router・ページ遷移の Command・見えている行だけの get_state・数値の ID）
 
 題材ごとの仕様は `apps/<題材>/docs/` に置く。
 

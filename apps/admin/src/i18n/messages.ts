@@ -39,6 +39,13 @@ const ja = {
   "products.stock": "在庫",
   "products.stockLabel": "「{name}」の在庫",
   "products.save": "保存",
+  "confirm.cancel": "やめる",
+  "ship.title": "発送済みにしますか？",
+  "ship.description": "注文 {id}（{customer} さま）を発送済みにします。",
+  "ship.confirm": "発送済みにする",
+  "chat.suggest.ship": "渡辺さんの注文を発送済みにして",
+  "chat.suggest.stock": "在庫が 5 個以下の商品を見せて",
+  "chat.suggest.pending": "未発送の注文は何件？",
 };
 
 export type MessageKey = keyof typeof ja;
@@ -81,6 +88,13 @@ const en: Record<MessageKey, string> = {
   "products.stock": "Stock",
   "products.stockLabel": "Stock of {name}",
   "products.save": "Save",
+  "confirm.cancel": "Cancel",
+  "ship.title": "Mark as shipped?",
+  "ship.description": "Order {id} ({customer}) will be marked as shipped.",
+  "ship.confirm": "Mark as shipped",
+  "chat.suggest.ship": "Mark Watanabe's order as shipped",
+  "chat.suggest.stock": "Show products with 5 or fewer in stock",
+  "chat.suggest.pending": "How many orders are not shipped yet?",
 };
 
 export const messages: Record<Language, Record<MessageKey, string>> = {

@@ -3,6 +3,7 @@ import {
   orderPath,
   ordersPath,
   productsPath,
+  readCurrentPage,
   readOrderFilters,
   readProductFilters,
 } from "./paths";
@@ -36,5 +37,21 @@ describe("paths", () => {
     expect(readProductFilters(params("?max_stock="))).toEqual({
       maxStock: undefined,
     });
+  });
+
+  test("read the current page", () => {
+    expect(readCurrentPage("/orders", "?status=shipped")).toEqual({
+      page: "orders",
+      filters: { status: "shipped", query: undefined },
+    });
+    expect(readCurrentPage("/orders/1026", "")).toEqual({
+      page: "order",
+      id: 1026,
+    });
+    expect(readCurrentPage("/products", "?max_stock=0")).toEqual({
+      page: "products",
+      filters: { maxStock: 0 },
+    });
+    expect(readCurrentPage("/", "")).toEqual({ page: "other" });
   });
 });
