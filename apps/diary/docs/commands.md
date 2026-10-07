@@ -50,11 +50,11 @@ src/
 | Command | 引数 | 画面の同じ操作 | AI が実行するとき |
 | --- | --- | --- | --- |
 | `open_new_entry` | なし | 一覧の「書く」 | カーソルが「書く」を押し、書くページへ |
-| `fill_entry` | `date?`（YYYY-MM-DD）・`weather?`（`sunny` / `cloudy` / `rainy` / `snowy`）・`title?`・`body?` | 天気のボタン・タイトル・本文の入力（`setDraftField`） | 書くページにいなければ、先に「書く」を押す。上から順に、日付の欄を押す → 天気のボタンを押す → タイトル・本文を 1 文字ずつ打ち込む |
+| `fill_entry` | `title?`・`body?` | タイトル・本文の入力（`setDraftField`） | 書くページにいなければ、先に「書く」を押す。タイトル・本文の順に、欄を押して 1 文字ずつ打ち込む |
 | `save_entry` | なし | 「保存」（`useSaveEntry`） | カーソルが「保存」を押す。保存できたら一覧へ。空の項目があれば失敗 |
 
-* 成功の英文: `fill_entry` は `filled in; not saved yet. every field is filled, so save it now unless the user wants changes`（足りなければ `still missing: weather, body`）。ツール名を書くと、小さいモデルが返事にそのまま出す（#77 と同じ）
-* `get_state`: `{ today, writing: { date, weather, title, body, missing }, recent: [{ date, weather, title }] }`（一覧は新しい 5 件・本文は省く）
+* 成功の英文: `fill_entry` は `filled in; not saved yet. every field is filled, so save it now unless the user wants changes`（足りなければ `still missing: body`）。ツール名を書くと、小さいモデルが返事にそのまま出す（#77 と同じ）
+* `get_state`: `{ writing: { title, body, missing }, recent: [title] }`（一覧は新しい 5 件のタイトルだけ）
 
 ## カーソルの演出
 
@@ -69,7 +69,7 @@ src/
 
 ほかの題材と同じ。右下のボタンからチャットを開き、Claude / Gemini Nano / Qwen3.5 4B を選んで話しかける。
 
-* システムプロンプト: 今日の日付・話を聞いたら日付・天気・短いタイトル・2〜4 文の本文（ユーザーの言葉で、一人称）を `fill_entry` で一度に入れ、`save_entry` で保存する・天気がわからなければ聞く・日記と関係のない頼みは短く断る
+* システムプロンプト: 話を聞いたら短いタイトル・2〜4 文の本文（ユーザーの言葉で、一人称）を `fill_entry` で一度に入れ、`save_entry` で保存する・日記と関係のない頼みは短く断る
 * 話しかけ方の例: 「今日は雨で家にいた。カレーを作ったって日記を書いて」「晴れて散歩した日のことを書いて」
 
 ## 開発

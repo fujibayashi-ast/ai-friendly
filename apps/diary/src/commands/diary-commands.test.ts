@@ -8,7 +8,7 @@ import { createDiaryCommands } from "./diary-commands";
 
 const setup = ({
   path = "/",
-  draft = emptyDraft("2026-10-07"),
+  draft = emptyDraft(),
 }: {
   path?: string;
   draft?: Draft;
@@ -52,7 +52,6 @@ describe("diary commands", () => {
     const s = setup();
     expect(
       await s.run("fill_entry", {
-        weather: "rainy",
         title: "Curry day",
         body: "It rained all day.",
       }),
@@ -61,10 +60,9 @@ describe("diary commands", () => {
       message:
         "fill_entry: filled in; not saved yet. every field is filled, so save it now unless the user wants changes",
     });
-    expect(s.pointed).toEqual(["Write", "Rainy", "Title", "Entry"]);
+    expect(s.pointed).toEqual(["Write", "Title", "Entry"]);
     expect(s.navigate).toHaveBeenCalledWith("/new");
     expect(s.setDraftField.mock.calls).toEqual([
-      ["weather", "rainy"],
       ["title", "Curry day"],
       ["body", "It rained all day."],
     ]);
@@ -73,8 +71,7 @@ describe("diary commands", () => {
   test("tell what is still missing", async () => {
     const s = setup({ path: "/new" });
     expect(await s.run("fill_entry", { title: "Walk" })).toMatchObject({
-      message:
-        "fill_entry: filled in; not saved yet. still missing: weather, body",
+      message: "fill_entry: filled in; not saved yet. still missing: body",
     });
     expect(s.navigate).not.toHaveBeenCalled();
   });

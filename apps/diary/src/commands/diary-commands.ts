@@ -3,12 +3,7 @@ import { useMemo } from "react";
 import { useNavigate } from "react-router";
 import { z } from "zod";
 import { type Pointer, pointer } from "../ai/cursor/pointer";
-import {
-  type Draft,
-  type DraftField,
-  missingFields,
-  weathers,
-} from "../diary/diary";
+import { type Draft, type DraftField, missingFields } from "../diary/diary";
 import { type DiaryContextValue, useDiary } from "../diary/diary-context";
 import { useSaveEntry } from "../diary/use-save-entry";
 import type { Translate } from "../i18n/messages";
@@ -38,8 +33,6 @@ export function createDiaryCommands({
   const done = (message: string) => ({ ok: true as const, message });
   const fail = (message: string) => ({ ok: false as const, message });
   const labels: Record<DraftField, string> = {
-    date: t("newEntry.date"),
-    weather: t("newEntry.weather"),
     title: t("newEntry.title.label"),
     body: t("newEntry.body"),
   };
@@ -66,28 +59,14 @@ export function createDiaryCommands({
     defineCommand({
       type: "fill_entry",
       description:
-        "Write the diary entry on the writing page (opens it if needed). Pass only the fields to change (date: YYYY-MM-DD; weather: sunny, cloudy, rainy or snowy; title; body).",
+        "Write the diary entry on the writing page (opens it if needed). Pass only the fields to change.",
       args: z.object({
-        date: z
-          .string()
-          .regex(/^\d{4}-\d{2}-\d{2}$/)
-          .optional(),
-        weather: z.enum(weathers).optional(),
         title: z.string().optional(),
         body: z.string().optional(),
       }),
       run: async (input) => {
         await openWritePage();
-        const { date, weather, title, body } = input;
-        // 画面の上から順に入れる
-        if (date !== undefined) {
-          await pointer.click({ field: labels.date });
-          setDraftField("date", date);
-        }
-        if (weather !== undefined) {
-          await pointer.click({ button: t(`weather.${weather}`) });
-          setDraftField("weather", weather);
-        }
+        // 画面の上から順に打ち込む
         for (const field of ["title", "body"] as const) {
           const text = input[field];
           if (text === undefined) continue;
@@ -96,10 +75,8 @@ export function createDiaryCommands({
           );
         }
         const next: Draft = {
-          date: date ?? draft.date,
-          weather: weather ?? draft.weather,
-          title: title ?? draft.title,
-          body: body ?? draft.body,
+          title: input.title ?? draft.title,
+          body: input.body ?? draft.body,
         };
         const missing = missingFields(next);
         return done(

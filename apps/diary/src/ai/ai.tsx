@@ -22,7 +22,7 @@ declare global {
 
 /** サイトの関数を Command として AI（チャット・WebMCP）から呼べるようにする。操作はカーソルの動きで見せる */
 export function Ai() {
-  const { today, entries, draft } = useDiary();
+  const { entries, draft } = useDiary();
   const { language, t } = useI18n();
   const commands = useDiaryCommands();
 
@@ -31,7 +31,6 @@ export function Ai() {
       createAiTools({
         commands,
         getState: () => ({
-          today,
           writing: {
             ...draft,
             missing: missingFields(draft),
@@ -39,10 +38,10 @@ export function Ai() {
           // 一覧は新しい 5 件だけ（本文は省く）
           recent: sortEntries(entries)
             .slice(0, 5)
-            .map(({ date, weather, title }) => ({ date, weather, title })),
+            .map(({ title }) => title),
         }),
       }),
-    [commands, today, entries, draft],
+    [commands, entries, draft],
   );
 
   useEffect(() => {
@@ -60,7 +59,6 @@ export function Ai() {
     if (!running) hideCursor();
   }, []);
 
-  const system = useMemo(() => systemPrompt(today), [today]);
   // 再読み込みで消える。保存はしない
   const [apiKey, setApiKey] = useState<string | null>(null);
   const claude = useClaude({
@@ -84,6 +82,5 @@ export function Ai() {
   );
 }
 
-const systemPrompt = (today: string) =>
-  `Today is ${today}. ` +
-  "You write diary entries on this diary site with the tools. When the user tells you about their day, call fill_entry once with today's date, the weather, a short title and a body of 2 to 4 sentences written in the user's language as if the user wrote it (first person, casual). Then call save_entry. If the weather is unknown, ask the user. If the user asks about anything other than this diary, say briefly that you can only help with this website. Reply briefly in the same language as the user.";
+const system =
+  "You write diary entries on this diary site with the tools. When the user tells you about their day, call fill_entry once with a short title and a body of 2 to 4 sentences written in the user's language as if the user wrote it (first person, casual). Then call save_entry. If the user asks about anything other than this diary, say briefly that you can only help with this website. Reply briefly in the same language as the user.";
