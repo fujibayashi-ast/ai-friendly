@@ -7,8 +7,6 @@ export type SaveResult =
   | { ok: false; missing: DraftField[] };
 
 export type DiaryContextValue = {
-  /** 開いたときの今日（YYYY-MM-DD） */
-  today: string;
   entries: readonly Entry[];
   draft: Draft;
   /** 書きかけの項目を変える（入力欄の 1 文字ごとにも呼ばれる） */

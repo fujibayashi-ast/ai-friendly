@@ -1,22 +1,15 @@
-import {
-  Button,
-  Input,
-  Textarea,
-  ToggleGroup,
-  ToggleGroupItem,
-} from "@ai-friendly/ui";
+import { Button, Input, Textarea } from "@ai-friendly/ui";
 import { type ChangeEvent, type FormEvent, useId, useState } from "react";
 import { Link } from "react-router";
-import { type DraftField, weathers } from "../../diary/diary";
+import type { DraftField } from "../../diary/diary";
 import { useDiary } from "../../diary/diary-context";
 import { useSaveEntry } from "../../diary/use-save-entry";
 import { useI18n } from "../../i18n/use-i18n";
-import { WeatherIcon } from "../weather-icon";
 import { Field } from "./field";
 
 export function NewEntryPage() {
   const { t } = useI18n();
-  const { today, draft, setDraftField } = useDiary();
+  const { draft, setDraftField } = useDiary();
   const saveEntry = useSaveEntry();
   const id = useId();
   // 「保存」で断られた項目。直したら消す
@@ -26,19 +19,9 @@ export function NewEntryPage() {
     setDraftField(field, value);
     setMissing((current) => current.filter((item) => item !== field));
   };
-  const errorOf = (field: DraftField, label: string) => {
-    if (!missing.includes(field)) return "";
-    return field === "weather"
-      ? t("newEntry.weatherRequired")
-      : t("newEntry.required", { field: label });
-  };
+  const errorOf = (field: DraftField, label: string) =>
+    missing.includes(field) ? t("newEntry.required", { field: label }) : "";
 
-  const handleDateChange = (event: ChangeEvent<HTMLInputElement>) => {
-    change("date", event.target.value);
-  };
-  const handleWeatherChange = (value: string) => {
-    if (value) change("weather", value);
-  };
   const handleTitleChange = (event: ChangeEvent<HTMLInputElement>) => {
     change("title", event.target.value);
   };
@@ -52,8 +35,6 @@ export function NewEntryPage() {
   };
 
   const labels = {
-    date: t("newEntry.date"),
-    weather: t("newEntry.weather"),
     title: t("newEntry.title.label"),
     body: t("newEntry.body"),
   };
@@ -67,41 +48,6 @@ export function NewEntryPage() {
         {t("newEntry.title")}
       </h1>
       <form noValidate className="flex flex-col gap-5" onSubmit={handleSubmit}>
-        <Field
-          id={`${id}-date`}
-          label={labels.date}
-          error={errorOf("date", labels.date)}
-        >
-          <Input
-            id={`${id}-date`}
-            type="date"
-            max={today}
-            value={draft.date}
-            onChange={handleDateChange}
-            className="w-44"
-          />
-        </Field>
-        <Field
-          id={`${id}-weather`}
-          label={labels.weather}
-          error={errorOf("weather", labels.weather)}
-        >
-          <ToggleGroup
-            id={`${id}-weather`}
-            type="single"
-            variant="outline"
-            aria-label={labels.weather}
-            value={draft.weather}
-            onValueChange={handleWeatherChange}
-          >
-            {weathers.map((weather) => (
-              <ToggleGroupItem key={weather} value={weather}>
-                <WeatherIcon weather={weather} />
-                {t(`weather.${weather}`)}
-              </ToggleGroupItem>
-            ))}
-          </ToggleGroup>
-        </Field>
         <Field
           id={`${id}-title`}
           label={labels.title}

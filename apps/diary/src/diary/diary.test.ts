@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { emptyDraft, isWeather, missingFields, sortEntries } from "./diary";
+import { emptyDraft, missingFields, sortEntries } from "./diary";
 import { initialEntries } from "./entries";
 
 describe("diary", () => {
@@ -10,23 +10,9 @@ describe("diary", () => {
   });
 
   test("tell the empty fields before saving", () => {
-    expect(missingFields(emptyDraft("2026-10-07"))).toEqual([
-      "weather",
+    expect(missingFields(emptyDraft())).toEqual(["title", "body"]);
+    expect(missingFields({ title: "  ", body: "カレーを作った" })).toEqual([
       "title",
-      "body",
     ]);
-    expect(
-      missingFields({
-        date: "2026-10-07",
-        weather: "rainy",
-        title: "  ",
-        body: "カレーを作った",
-      }),
-    ).toEqual(["title"]);
-  });
-
-  test("know the weathers", () => {
-    expect(isWeather("rainy")).toBe(true);
-    expect(isWeather("stormy")).toBe(false);
   });
 });
