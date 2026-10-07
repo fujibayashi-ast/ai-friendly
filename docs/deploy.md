@@ -6,6 +6,7 @@
 dist/
   index.html            # トップ（apps/home）
   _redirects            # ページ遷移のあるサンプルの URL（apps/home/public/_redirects）
+  _headers              # WebMCP の origin trial のトークン（apps/home/public/_headers）
   settings/ tasks/ shop/ reservation/ admin/ diary/   # 各サンプル（apps/<id>/dist）
 ```
 
@@ -40,6 +41,21 @@ Cloudflare Pages の Git 連携で、このリポジトリをつなぐ。
 * サンプルにページ（ルート）を足したら、ここにも足す
 * どのルートにも当たらない URL（`/admin/foo`）はトップが出る
 
+## WebMCP の origin trial（`_headers`）
+
+WebMCP（`document.modelContext`）は Chrome の origin trial 中で、トークンを付けたサイトでは、見に来た人がフラグを入れなくても使える。全パスに `Origin-Trial` ヘッダーで付ける。
+
+```
+/*
+  Origin-Trial: <トークン>
+```
+
+* トークンは https://developer.chrome.com/origintrials で `https://ai-friendly-2i0.pages.dev` を登録して受け取る。秘密ではない（ページに出る値）のでコミットする
+* 期限は 2027-03-30。切れたら同じページで延長し、新しいトークンに差し替える
+* サブドメインも対象にしているので、PR のプレビューの URL（`xxxx.ai-friendly-2i0.pages.dev`）でも効く。手元の `localhost` では効かないので、Chrome のフラグで試す
+* 各アプリの `index.html` の meta タグにはしない（同じトークンを何か所にも書くことになる）
+* WebMCP が使えないブラウザでは、登録をしないだけで、サイト・チャットはそのまま動く
+
 ## 手元で確かめる
 
 ```bash
@@ -47,4 +63,4 @@ bun run build
 bunx wrangler pages dev dist
 ```
 
-`wrangler` は Pages の動き（`_redirects` を含む）をまねる。依存には入れず、確かめるときだけ `bunx` で使う。
+`wrangler` は Pages の動き（`_redirects`・`_headers` を含む）をまねる。依存には入れず、確かめるときだけ `bunx` で使う。
