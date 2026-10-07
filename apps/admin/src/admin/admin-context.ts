@@ -6,8 +6,8 @@ export type AdminResult = { ok: true } | { ok: false; error: AdminError };
 
 export type AdminContextValue = {
   state: AdminState;
-  markShipped(id: string): AdminResult;
-  setStock(id: string, stock: number): AdminResult;
+  markShipped(id: number): AdminResult;
+  setStock(id: number, stock: number): AdminResult;
 };
 
 export const AdminContext = createContext<AdminContextValue | null>(null);

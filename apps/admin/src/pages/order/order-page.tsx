@@ -15,7 +15,8 @@ import { StatusBadge } from "../status-badge";
 export function OrderPage() {
   const { language, t } = useI18n();
   const { state, markShipped } = useAdmin();
-  const { id = "" } = useParams();
+  const params = useParams();
+  const id = Number(params.id);
   const order = findOrder(state, id);
 
   const handleShip = () => {
@@ -32,7 +33,7 @@ export function OrderPage() {
     return (
       <div className="flex flex-col gap-4">
         {back}
-        <p>{t("order.notFound", { id })}</p>
+        <p>{t("order.notFound", { id: params.id ?? "" })}</p>
       </div>
     );
   }

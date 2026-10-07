@@ -17,13 +17,13 @@ export type ProductFilters = { maxStock?: number };
 /** 在庫に入れられる数 */
 export const maxStock = 999;
 
-export function findOrder(state: AdminState, id: string): Order | undefined {
+export function findOrder(state: AdminState, id: number): Order | undefined {
   return state.orders.find((order) => order.id === id);
 }
 
 export function findProduct(
   state: AdminState,
-  id: string,
+  id: number,
 ): Product | undefined {
   return state.products.find((product) => product.id === id);
 }
@@ -45,13 +45,13 @@ export function filterOrders(
   return state.orders
     .filter((order) => !status || order.status === status)
     .filter((order) => {
-      const text = [order.id, order.customer.ja, order.customer.en]
+      const text = [String(order.id), order.customer.ja, order.customer.en]
         .join(" ")
         .toLowerCase()
         .replace(/\s+/g, "");
       return words.every((word) => text.includes(word));
     })
-    .sort((a, b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id));
+    .sort((a, b) => b.date.localeCompare(a.date) || b.id - a.id);
 }
 
 export function filterProducts(
@@ -72,7 +72,7 @@ export type AdminError =
 
 export function markShippedError(
   state: AdminState,
-  id: string,
+  id: number,
 ): AdminError | undefined {
   const order = findOrder(state, id);
   if (!order) return { code: "order_not_found" };
@@ -81,7 +81,7 @@ export function markShippedError(
 
 export function setStockError(
   state: AdminState,
-  id: string,
+  id: number,
   stock: number,
 ): AdminError | undefined {
   if (!findProduct(state, id)) return { code: "product_not_found" };
@@ -90,7 +90,7 @@ export function setStockError(
   }
 }
 
-export function markShipped(state: AdminState, id: string): AdminState {
+export function markShipped(state: AdminState, id: number): AdminState {
   if (markShippedError(state, id)) return state;
   return {
     ...state,
@@ -102,7 +102,7 @@ export function markShipped(state: AdminState, id: string): AdminState {
 
 export function setStock(
   state: AdminState,
-  id: string,
+  id: number,
   stock: number,
 ): AdminState {
   if (setStockError(state, id, stock)) return state;
@@ -116,8 +116,8 @@ export function setStock(
 
 export function itemName(
   state: AdminState,
-  productId: string,
+  productId: number,
   language: Language,
 ): string {
-  return findProduct(state, productId)?.name[language] ?? productId;
+  return findProduct(state, productId)?.name[language] ?? String(productId);
 }

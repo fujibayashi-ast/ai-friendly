@@ -18,7 +18,7 @@ describe("paths", () => {
       query: "佐藤",
     });
     expect(ordersPath()).toBe("/orders");
-    expect(orderPath("1001")).toBe("/orders/1001");
+    expect(orderPath(1001)).toBe("/orders/1001");
     expect(productsPath({ maxStock: 5 })).toBe("/products?max_stock=5");
     expect(readProductFilters(params("/products?max_stock=5"))).toEqual({
       maxStock: 5,

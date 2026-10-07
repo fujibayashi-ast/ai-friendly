@@ -15,8 +15,8 @@ export function ordersPath({ status, query }: OrderFilters = {}): string {
   return withParams("/orders", params);
 }
 
-export function orderPath(id: string): string {
-  return `/orders/${encodeURIComponent(id)}`;
+export function orderPath(id: number): string {
+  return `/orders/${id}`;
 }
 
 export function productsPath({ maxStock }: ProductFilters = {}): string {

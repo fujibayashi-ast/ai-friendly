@@ -25,12 +25,12 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       error ? { ok: false, error } : { ok: true };
     return {
       state,
-      markShipped: (id: string) => {
+      markShipped: (id: number) => {
         const error = markShippedError(state, id);
         if (!error) setState((s) => markShipped(s, id));
         return result(error);
       },
-      setStock: (id: string, stock: number) => {
+      setStock: (id: number, stock: number) => {
         const error = setStockError(state, id, stock);
         if (!error) setState((s) => setStock(s, id, stock));
         return result(error);
