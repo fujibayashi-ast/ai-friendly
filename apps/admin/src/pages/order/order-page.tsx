@@ -1,26 +1,23 @@
 import { Button } from "@ai-friendly/ui";
+import { useQuery } from "@tanstack/react-query";
 import { Link, useParams } from "react-router";
-import {
-  findOrder,
-  itemName,
-  itemSubtotal,
-  orderTotal,
-} from "../../admin/admin";
-import { useAdmin } from "../../admin/admin-context";
+import { ApiError } from "../../admin/admin-api";
+import { orderQuery, useShipOrder } from "../../admin/queries";
 import { formatDate, formatPrice } from "../../i18n/format";
 import { useI18n } from "../../i18n/use-i18n";
 import { ordersPath } from "../../routes/paths";
+import { ApiErrorMessage } from "../api-error-message";
 import { StatusBadge } from "../status-badge";
 
 export function OrderPage() {
   const { language, t } = useI18n();
-  const { state, markShipped } = useAdmin();
   const params = useParams();
   const id = Number(params.id);
-  const order = findOrder(state, id);
+  const { data: order, error, isPending } = useQuery(orderQuery(id));
+  const ship = useShipOrder();
 
   const handleShip = () => {
-    markShipped(id);
+    ship.mutate(id);
   };
 
   const back = (
@@ -29,11 +26,18 @@ export function OrderPage() {
     </Link>
   );
 
-  if (!order) {
+  if (isPending || !order) {
+    const message = isPending
+      ? t("loading")
+      : error instanceof ApiError
+        ? t("order.notFound", { id: params.id ?? "" })
+        : t("loadError");
     return (
       <div className="flex flex-col gap-4">
         {back}
-        <p>{t("order.notFound", { id: params.id ?? "" })}</p>
+        <p className={isPending ? "text-sm text-muted-foreground" : ""}>
+          {message}
+        </p>
       </div>
     );
   }
@@ -69,14 +73,12 @@ export function OrderPage() {
           <tbody>
             {order.items.map((item) => (
               <tr key={item.productId} className="border-t">
-                <td className="px-3 py-2">
-                  {itemName(state, item.productId, language)}
-                </td>
+                <td className="px-3 py-2">{item.name[language]}</td>
                 <td className="px-3 py-2 text-right tabular-nums">
                   {item.quantity}
                 </td>
                 <td className="px-3 py-2 text-right tabular-nums">
-                  {formatPrice(language, itemSubtotal(state, item))}
+                  {formatPrice(language, item.subtotal)}
                 </td>
               </tr>
             ))}
@@ -85,15 +87,18 @@ export function OrderPage() {
                 {t("orders.total")}
               </td>
               <td className="px-3 py-2 text-right tabular-nums">
-                {formatPrice(language, orderTotal(state, order))}
+                {formatPrice(language, order.total)}
               </td>
             </tr>
           </tbody>
         </table>
       </div>
       {order.status === "pending" && (
-        <div>
-          <Button onClick={handleShip}>{t("order.ship")}</Button>
+        <div className="flex flex-col items-start gap-2">
+          <Button onClick={handleShip} disabled={ship.isPending}>
+            {t("order.ship")}
+          </Button>
+          <ApiErrorMessage error={ship.error} />
         </div>
       )}
     </div>

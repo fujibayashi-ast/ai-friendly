@@ -26,6 +26,11 @@ export function productsPath({ maxStock }: ProductFilters = {}): string {
   return withParams("/products", params);
 }
 
+/** URL の検索条件（`?` の後ろ）を読む */
+export function paramsOf(path: string): URLSearchParams {
+  return new URLSearchParams(path.split("?")[1] ?? "");
+}
+
 export function readOrderFilters(params: URLSearchParams): OrderFilters {
   const status = orderStatuses.find((value) => value === params.get("status"));
   const query = params.get("q") ?? undefined;

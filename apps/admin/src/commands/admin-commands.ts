@@ -1,62 +1,87 @@
 import { defineCommand } from "@ai-friendly/command";
+import { type QueryClient, useQueryClient } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { useNavigate } from "react-router";
 import { z } from "zod";
+import { type AdminError, orderStatuses } from "../admin/admin";
 import {
-  type AdminError,
-  filterOrders,
-  filterProducts,
-  findOrder,
-  itemName,
-  markShippedError,
-  orderStatuses,
-  orderTotal,
-} from "../admin/admin";
+  ApiError,
+  type OrderDetail,
+  type OrderSummary,
+} from "../admin/admin-api";
 import {
-  type AdminContextValue,
-  type AdminResult,
-  useAdmin,
-} from "../admin/admin-context";
+  orderQuery,
+  ordersQuery,
+  productsQuery,
+  useShipOrder,
+  useUpdateStock,
+} from "../admin/queries";
 import type { Language, Translate } from "../i18n/messages";
 import { useI18n } from "../i18n/use-i18n";
-import { orderPath, ordersPath, productsPath } from "../routes/paths";
+import {
+  orderPath,
+  ordersPath,
+  paramsOf,
+  productsPath,
+  readOrderFilters,
+  readProductFilters,
+} from "../routes/paths";
 
-type AdminActions = Pick<
-  AdminContextValue,
-  "state" | "markShipped" | "setStock"
-> & {
+type AdminActions = {
+  /** 画面と同じキャッシュ。ページと同じキーで取る */
+  queryClient: QueryClient;
   /** React Router の navigate（画面のリンク・絞り込みと同じ） */
   navigate(path: string): void;
+  /** 画面のボタンと同じ mutation */
+  shipOrder(id: number): Promise<void>;
+  updateStock(input: { id: number; stock: number }): Promise<void>;
   language: Language;
   t: Translate;
 };
 
 export function createAdminCommands({
-  state,
-  markShipped,
-  setStock,
+  queryClient,
   navigate,
+  shipOrder,
+  updateStock,
   language,
   t,
 }: AdminActions) {
   const done = (message: string) => ({ ok: true as const, message });
-  /** サイトの関数が返した理由を、AI が読んで直せる英文にする */
-  const describe = (error: AdminError, id: string | number) => {
+  const fail = (message: string) => ({ ok: false as const, message });
+  /** API が返した理由を、AI が読んで直せる英文にする */
+  const describe = (error: AdminError, id: number) => {
     switch (error.code) {
       case "order_not_found":
-        return `order "${id}" not found; use show_orders to search`;
+        return `order ${id} not found; use show_orders to search`;
       case "already_shipped":
-        return `order "${id}" is already shipped`;
+        return `order ${id} is already shipped`;
       case "product_not_found":
-        return `product "${id}" not found (ids: ${state.products.map((product) => product.id).join(", ")})`;
+        return `product ${id} not found; use show_products to find the id`;
       case "invalid_stock":
         return "stock must be a whole number from 0 to 999";
     }
   };
-  const toRunResult = (result: AdminResult, id: string | number) =>
-    result.ok
-      ? undefined
-      : { ok: false as const, message: describe(result.error, id) };
+  /** API に断られたら理由を返す。それ以外の失敗（通信など）はそのまま投げる */
+  const call = async (request: Promise<unknown>, id: number) => {
+    try {
+      await request;
+    } catch (error) {
+      if (error instanceof ApiError) return fail(describe(error.error, id));
+      throw error;
+    }
+  };
+  /** 確認の文言用。取ってきた注文のキャッシュからお客さまを探す */
+  const cachedCustomer = (id: number) => {
+    const detail = queryClient.getQueryData(orderQuery(id).queryKey);
+    if (detail) return detail.customer[language];
+    for (const [, orders] of queryClient.getQueriesData<OrderSummary[]>({
+      queryKey: ["orders"],
+    })) {
+      const order = orders?.find((item) => item.id === id);
+      if (order) return order.customer[language];
+    }
+  };
 
   return [
     defineCommand({
@@ -67,10 +92,14 @@ export function createAdminCommands({
         status: z.enum(orderStatuses).optional(),
         query: z.string().optional(),
       }),
-      run: (filters) => {
-        navigate(ordersPath(filters));
+      run: async (input) => {
+        const path = ordersPath(input);
+        navigate(path);
+        // ページと同じキーで、届くのを待つ（取得はページと共有する）
+        const orders = await queryClient.fetchQuery(
+          ordersQuery(readOrderFilters(paramsOf(path))),
+        );
         // 小さいモデルは get_state を読まずに番号を作りがちなので、開いたページに見えているものも短く伝える
-        const orders = filterOrders(state, filters);
         const list = orders
           .map(
             (order) =>
@@ -86,24 +115,23 @@ export function createAdminCommands({
       type: "show_order",
       description: "Open the page of one order.",
       args: z.object({ order_id: z.number().int() }),
-      run: ({ order_id }) => {
-        const order = findOrder(state, order_id);
-        // 画面にもない注文へのリンクはないので、開かずに知らせる
-        if (!order) {
-          return {
-            ok: false,
-            message: describe({ code: "order_not_found" }, order_id),
-          };
+      run: async ({ order_id }) => {
+        // 画面にもない注文へのリンクはないので、取れなければ開かずに知らせる
+        let order: OrderDetail;
+        try {
+          order = await queryClient.fetchQuery(orderQuery(order_id));
+        } catch (error) {
+          if (error instanceof ApiError) {
+            return fail(describe(error.error, order_id));
+          }
+          throw error;
         }
         navigate(orderPath(order_id));
         const items = order.items
-          .map(
-            (item) =>
-              `${itemName(state, item.productId, language)} x${item.quantity}`,
-          )
+          .map((item) => `${item.name[language]} x${item.quantity}`)
           .join(", ");
         return done(
-          `the order page now shows order ${order_id} (${order.status}, ${order.customer[language]}): ${items}; total ${orderTotal(state, order)}`,
+          `the order page now shows order ${order_id} (${order.status}, ${order.customer[language]}): ${items}; total ${order.total}`,
         );
       },
     }),
@@ -112,10 +140,12 @@ export function createAdminCommands({
       description:
         "Open the product list, optionally only products with max_stock or fewer in stock.",
       args: z.object({ max_stock: z.number().int().min(0).optional() }),
-      run: ({ max_stock }) => {
-        const filters = { maxStock: max_stock };
-        navigate(productsPath(filters));
-        const products = filterProducts(state, filters);
+      run: async ({ max_stock }) => {
+        const path = productsPath({ maxStock: max_stock });
+        navigate(path);
+        const products = await queryClient.fetchQuery(
+          productsQuery(readProductFilters(paramsOf(path))),
+        );
         const list = products
           .map(
             (product) =>
@@ -131,18 +161,20 @@ export function createAdminCommands({
       type: "mark_order_shipped",
       description: "Mark an order as shipped.",
       args: z.object({ order_id: z.number().int() }),
-      // 見つからない・発送済みは確認せずに知らせる
-      requiresConfirmation: ({ order_id }) =>
-        !markShippedError(state, order_id),
-      confirmation: ({ order_id }) => ({
-        title: t("ship.title"),
-        description: t("ship.description", {
-          id: order_id,
-          customer: findOrder(state, order_id)?.customer[language] ?? "",
-        }),
-        confirmLabel: t("ship.confirm"),
-      }),
-      run: ({ order_id }) => toRunResult(markShipped(order_id), order_id),
+      // 発送済みかどうかは API にしかわからないので、いつも確認する（断られたら理由を返す）
+      requiresConfirmation: true,
+      confirmation: ({ order_id }) => {
+        const name = cachedCustomer(order_id);
+        return {
+          title: t("ship.title"),
+          description: t("ship.description", {
+            id: order_id,
+            customer: name ? t("ship.customer", { name }) : "",
+          }),
+          confirmLabel: t("ship.confirm"),
+        };
+      },
+      run: ({ order_id }) => call(shipOrder(order_id), order_id),
     }),
     defineCommand({
       type: "set_stock",
@@ -152,26 +184,28 @@ export function createAdminCommands({
         stock: z.number().int(),
       }),
       run: ({ product_id, stock }) =>
-        toRunResult(setStock(product_id, stock), product_id),
+        call(updateStock({ id: product_id, stock }), product_id),
     }),
   ];
 }
 
-/** 管理画面の Command。サイトの useAdmin の関数と、React Router の navigate を呼ぶ */
+/** 管理画面の Command。画面と同じ取得（TanStack Query）・mutation と、React Router の navigate を呼ぶ */
 export function useAdminCommands() {
-  const { state, markShipped, setStock } = useAdmin();
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const { mutateAsync: shipOrder } = useShipOrder();
+  const { mutateAsync: updateStock } = useUpdateStock();
   const { language, t } = useI18n();
   return useMemo(
     () =>
       createAdminCommands({
-        state,
-        markShipped,
-        setStock,
+        queryClient,
         navigate,
+        shipOrder,
+        updateStock,
         language,
         t,
       }),
-    [state, markShipped, setStock, navigate, language, t],
+    [queryClient, navigate, shipOrder, updateStock, language, t],
   );
 }

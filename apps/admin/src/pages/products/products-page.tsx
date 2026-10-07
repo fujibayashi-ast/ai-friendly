@@ -1,6 +1,6 @@
+import { useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "react-router";
-import { filterProducts } from "../../admin/admin";
-import { useAdmin } from "../../admin/admin-context";
+import { productsQuery } from "../../admin/queries";
 import { useI18n } from "../../i18n/use-i18n";
 import { readProductFilters } from "../../routes/paths";
 import { ProductRow } from "./product-row";
@@ -8,10 +8,13 @@ import { StockFilterForm } from "./stock-filter-form";
 
 export function ProductsPage() {
   const { t } = useI18n();
-  const { state } = useAdmin();
   const [params] = useSearchParams();
   const filters = readProductFilters(params);
-  const products = filterProducts(state, filters);
+  const {
+    data: products,
+    isPending,
+    isError,
+  } = useQuery(productsQuery(filters));
 
   return (
     <div className="flex flex-col gap-5">
@@ -19,7 +22,11 @@ export function ProductsPage() {
         {t("products.title")}
       </h1>
       <StockFilterForm key={params.toString()} filters={filters} />
-      {products.length === 0 ? (
+      {isPending ? (
+        <p className="text-sm text-muted-foreground">{t("loading")}</p>
+      ) : isError ? (
+        <p className="text-sm text-destructive">{t("loadError")}</p>
+      ) : products.length === 0 ? (
         <p className="text-sm text-muted-foreground">{t("products.empty")}</p>
       ) : (
         <div className="overflow-x-auto rounded-lg border">
