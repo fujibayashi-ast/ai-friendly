@@ -16,7 +16,7 @@
 * 打ち込みは 1 文字ずつサイトの関数（`setDraftField`）に渡す。人が打つと 1 文字ごとに `onChange` が呼ばれるのと同じなので、「画面と AI は同じ関数」のまま
 * カーソルの動きは `packages/assistant` に置き、チャットがツールの実行（`execute(input, { pointer })`）に渡す。Command は `run` の 2 つ目の引数で受け取り、押す先の id を指すだけ。サイトもアプリも、カーソルのために何も import しない
   * `packages/command` には `Pointer` の型と、動きなしの既定（`click` はすぐ終わる・`type` は全部まとめて渡す）だけを置く。確認フック（`confirm`）と同じく、実行する側が渡すもの
-  * WebMCP は `execute` の 2 つ目に自分の client を渡すので、登録するときに入力だけを渡すように包む。WebMCP から呼ばれたときはカーソルは動かない
+  * WebMCP は `execute` の 2 つ目に自分の client を渡すので、登録するときに入力だけを渡すように包む。WebMCP から呼ばれたときはカーソルは動かない（のちに #119 で動くようにした。[2026-10-07-webmcp-pointer.md](2026-10-07-webmcp-pointer.md)）
   * AI の返事が終わったら `Chat` がカーソルを隠す
   * 経緯: 最初は日記の中（`apps/diary/src/ai/cursor/`）に置いていた。レビューで package に出し（`@ai-friendly/assistant/cursor`）、さらに Command・アプリの import もなくしたいとなり、今の形にした
   * 使うのは日記だけで、本編の題材には付けない

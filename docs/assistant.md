@@ -197,7 +197,7 @@ const [aiRunning, setAiRunning] = useState(false);
 * `prefers-reduced-motion` のときは、動きも打ち込みも省いて、すぐに `write` に全部渡す
 * AI の返事が終わったら、`Chat` がカーソルを隠す
 * 動きの間に何度も描き直さないよう、React ではなく DOM を直接動かす
-* WebMCP から呼ばれたときは、カーソルは動かない（動きなしの `pointer` で同じ結果になる）
+* WebMCP から呼ばれたときも、チャットと同じ動きにする。アプリが `registerWebMcpTools(tools, { pointer: webMcpPointer })` で渡す（[ai-tools.md](ai-tools.md)）。`webMcpPointer` はチャットのカーソルと同じで、WebMCP にはチャットの「返事の終わり」がないので、押す・打ち込むが終わってから 2 秒操作がなければカーソルを隠す（次の操作でまた出る）
 * カーソルの動きは assistant に置き、`command` には型（`Pointer`）と動きなしの既定だけを置く。`command` はチャットなしの WebMCP だけでも使う純粋なロジックで、画面の演出は持たない（[docs/history/2026-10-07-diary-cursor.md](history/2026-10-07-diary-cursor.md)）
 
 ## 文言

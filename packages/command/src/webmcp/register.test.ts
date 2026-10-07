@@ -40,13 +40,26 @@ test("registers every tool with the signal", async () => {
   ]);
 });
 
-test("passes only the input to execute, not the WebMCP client", async () => {
+test("passes the input to execute, not the WebMCP client", async () => {
   const modelContext = mockModelContext();
   const execute = mock<AiTool["execute"]>(async () => ({ ok: true }));
   await registerWebMcpTools([{ ...tool("a"), execute }], { modelContext });
   const registered = modelContext.registerTool.mock.calls[0]?.[0];
   await registered?.execute({ x: 1 }, { requestUserInteraction() {} } as never);
-  expect(execute.mock.calls).toEqual([[{ x: 1 }]]);
+  expect(execute.mock.calls).toEqual([[{ x: 1 }, { pointer: undefined }]]);
+});
+
+test("passes the pointer to execute, like the chat", async () => {
+  const modelContext = mockModelContext();
+  const execute = mock<AiTool["execute"]>(async () => ({ ok: true }));
+  const pointer = { click: async () => {}, type: async () => {} };
+  await registerWebMcpTools([{ ...tool("a"), execute }], {
+    modelContext,
+    pointer,
+  });
+  const registered = modelContext.registerTool.mock.calls[0]?.[0];
+  await registered?.execute({ x: 1 }, { requestUserInteraction() {} } as never);
+  expect(execute.mock.calls).toEqual([[{ x: 1 }, { pointer }]]);
 });
 
 test("finds document.modelContext", async () => {

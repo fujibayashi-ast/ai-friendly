@@ -11,6 +11,7 @@ export {
   type ChatState,
   useChat,
 } from "./conversation/use-chat";
+export { webMcpPointer } from "./cursor/pointer";
 export type { ChatLanguage } from "./i18n/messages";
 export {
   FloatingChat,
