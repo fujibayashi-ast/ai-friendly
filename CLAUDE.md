@@ -44,7 +44,7 @@ apps/
 packages/
   command/      # 純粋なロジック（React / LLM に依存しない）
                 #   Command 定義の型（run でサイトの関数を呼ぶ）・引数の検証・確認フック
-                #   AI 向けツール（短い一覧・inputSchema）・WebMCP 登録（`@ai-friendly/command/webmcp`）
+                #   AI 向けツール（説明・inputSchema）・WebMCP 登録（`@ai-friendly/command/webmcp`）
   assistant/    # サイト内の AI チャット
                 #   チャット UI（React）・LLM プロバイダの切り替え（ローカル LLM / Claude API など）
                 #   AI の操作を見せるカーソル（Command の `run` が受け取る `pointer`。指した Command だけ動く）
@@ -63,7 +63,7 @@ packages/
 * サイトの機能から AI の層を参照しない
 * 実行結果は `{ ok: true }` / `{ ok: false, code, message }` で返す。`message` は LLM が読んで自分で直せる英文にする（どこの何が違うか）
 * 確認が必要な Command は定義に `requiresConfirmation` を持たせ、アプリが渡す確認フックで承認を得てから実行する。条件はコードで決める（LLM に決めさせない）
-* AI 向けツールの説明は JSON Schema の全文ではなく、1 Command 1 行の短い一覧にする（小さいローカル LLM 向け）
+* AI 向けツールの説明は短い英文 1 行にする。小さいローカル LLM には、システムプロンプトにツールの名前と説明を 1 行ずつ書き、引数の形は返事の JSON Schema で縛る（JSON Schema の全文をプロンプトに書かない）
 * バッチ・Undo は基盤に持たない。要るサイトは外側に足す
 
 ## Coding Rules

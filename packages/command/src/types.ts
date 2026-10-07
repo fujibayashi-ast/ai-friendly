@@ -2,7 +2,7 @@ import type { z } from "zod";
 
 /**
  * 引数の定義（zod のオブジェクト）
- * 同じ定義を、検証・WebMCP の `inputSchema`（`z.toJSONSchema`）・AI 向けの短い一覧に使う
+ * 同じ定義を、検証と AI 向けツールの `inputSchema`（`z.toJSONSchema`）に使う
  * @see docs/commands.md
  */
 export type ArgsSchema = z.ZodObject;

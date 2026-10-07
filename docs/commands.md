@@ -118,7 +118,7 @@ const fillEntryCommand = defineCommand({
 
 ### 引数の書き方
 
-zod（v4）のオブジェクトで書く。同じ定義を、検証・WebMCP の `inputSchema`（`z.toJSONSchema(args, { io: "input" })`。`default` のある項目を必須にしないため入力側で出す）・AI 向けの短い一覧に使う。
+zod（v4）のオブジェクトで書く。同じ定義を、検証と AI 向けツール（チャット・WebMCP）の `inputSchema`（`z.toJSONSchema(args, { io: "input" })`。`default` のある項目を必須にしないため入力側で出す）に使う。
 
 ```ts
 args: z.object({

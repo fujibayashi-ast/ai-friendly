@@ -3,7 +3,6 @@ export {
   type AiToolsOptions,
   createAiTools,
 } from "./ai/create-ai-tools";
-export { describeCommands } from "./ai/describe-commands";
 export { defineCommand } from "./define-command";
 export type {
   ArgsSchema,
