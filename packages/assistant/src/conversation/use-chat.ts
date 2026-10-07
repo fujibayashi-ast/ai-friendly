@@ -73,6 +73,8 @@ export function useChat({
         show({ role: "notice", kind: "too_many_steps" });
       }
     } catch (error) {
+      // 画面には「返事を受け取れませんでした」としか出ないので、原因はコンソールに残す
+      console.error(error);
       show({
         role: "notice",
         kind: error instanceof ProviderAuthError ? "auth" : "failed",

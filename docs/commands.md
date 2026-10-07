@@ -105,6 +105,7 @@ args: z.object({
 * 一番外側は定義にないフィールドをエラーにする（`.strict()` で検証する）。入れ子の `z.object` で同じようにしたいときは `z.strictObject` を使う
 * `.describe()` の説明は WebMCP の `inputSchema` に載る
 * 引数のない Command は `args: z.object({})` と書く
+* 引数の型は、AI が見ている値の形（`get_state` の値・ユーザーの文）とそろえる。数字だけの ID（注文番号など）は `z.number()` にする。文中や `get_state` で `1029` と見えている値を `z.string()` で受けると、Qwen3.5 4B（WebLLM）は JSON を書く途中で壊れる（文字列の途中で終わる・空白を書き続ける）。WebLLM の不具合として報告済み（[mlc-ai/web-llm#868](https://github.com/mlc-ai/web-llm/issues/868)、[docs/history/2026-10-07-webllm-string-id.md](history/2026-10-07-webllm-string-id.md)）
 
 ## 実行の流れ
 

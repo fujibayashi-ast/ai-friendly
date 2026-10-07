@@ -86,7 +86,7 @@ src/
   { page: "products", filters: { maxStock }, data: [{ id, name, price, stock }] }
   ```
 
-* 注文番号・商品 ID は数値。Qwen3.5 4B（WebLLM）は、`"1026"` のような数字だけの文字列を書く途中で JSON が切れることがあった（#93・`docs/history/2026-10-07-admin-app.md`）
+* 注文番号・商品 ID は数値。Qwen3.5 4B（WebLLM）は、`"1026"` のような数字だけの文字列を書く途中で JSON が切れることがあった（#93・[mlc-ai/web-llm#868](https://github.com/mlc-ai/web-llm/issues/868)・`docs/history/2026-10-07-webllm-string-id.md`）
 
 ## AI から操作する
 

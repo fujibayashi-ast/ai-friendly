@@ -115,6 +115,7 @@ Gemini Nano と WebLLM にはツールを呼ぶ仕組みがない（または使
 
 * WebGPU が使えるブラウザ（Chrome・Edge など）で動く。メモリ 16 GB 程度の端末が前提
 * `createWebLlmProvider({ engine, system? })`: 読み込み済みの WebLLM のエンジンで返事を作る。返事の形は `response_format: { type: "json_object", schema }` で縛る。Qwen3.5 の思考モードは `extra_body: { enable_thinking: false }` で止め、それでも先頭に付く空の `<think></think>` は取り除いてから読む。`temperature: 0`（ばらつかせると返事の日本語にほかの言語の単語が混ざる）
+* 縛りがあっても JSON が壊れることがある（引数の型と、AI が見ている値の形が食い違うとき。[docs/commands.md](commands.md) の「引数の書き方」）。読めなかったときは「返事を受け取れませんでした」と出し、原因（例外）はコンソールに出す
 * `useQwen({ system, language })` は、`providers` に入れる候補（`{ label: "Qwen3.5 4B", provider?, setup }`）を返す
 
 | 状態 | 出すもの |
