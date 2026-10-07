@@ -39,7 +39,7 @@ export const samples = [
     id: "diary",
     group: "extra",
     port: 5179,
-    example: { name: "fill_entry", input: { weather: "rainy" } },
+    example: { name: "fill_entry", input: { title: "雨の日のカレー" } },
   },
 ] as const;
 
