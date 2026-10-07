@@ -52,6 +52,7 @@ React では、状態が変わるたびに Command とツールを作り直す�
 
 * `message` は LLM が読んで直せる英文にする（`todo "1" not found`）
 * 成功の `message` は、AI が次の一手を決めるための短い英文にする（`filled in; not sent yet. still missing: party_size, seat`）。小さいモデルは `{ ok: true }` だけを見て「完了しました」と返事をしがち。一覧などのデータは返さない（読むものは `get_state`）
+  * 例外: ページを移る Command は、開いたページに見えているものを短く返す（管理画面の `show_orders` など。小さいモデルは `get_state` を読まずに ID を作りがちなため）
 
 ### 条件付きの確認
 

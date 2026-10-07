@@ -8,7 +8,7 @@ flowchart LR
   Chat --> Loop["runChat<br>（会話のループ）"]
   Loop -- "messages + tools" --> Provider["ChatProvider<br>（Claude API / Gemini Nano / WebLLM）"]
   Provider -- "返事 / ツールの呼び出し" --> Loop
-  Loop -- "tool.execute(input)" --> Tools["AI 向けツール<br>（検証 → 確認 → run）"]
+  Loop -- "tool.execute(input, { pointer })" --> Tools["AI 向けツール<br>（検証 → 確認 → run）"]
 ```
 
 ## 使い方
@@ -48,6 +48,7 @@ const qwen = useQwen({ system, language });
 * `provider` と `tools` は、ステップごとに最新を読む。React では、状態が変わるとツール（`get_state` など）が作り直されるため
 * ツールの呼び出しの `id` は、会話の中で一意にする（プロバイダの責任。画面はこの `id` で結果を探す）
 * 知らないツールを呼んだときは、使えるツールを添えた英文のエラーを結果として返す（LLM が自分で直せるように）
+* ツールの実行には、カーソルの `pointer` を渡す（下の「AI の操作を見せるカーソル」）
 
 ```ts
 type ChatMessage =
@@ -163,7 +164,7 @@ src/
 * 実行中は「考えています…」を出し、送信できない
 * 返事を受け取れなかった・API キーが正しくない・ステップ数の上限で止めた、は会話の流れの中にお知らせとして残す（LLM には送らない）
 * キーを保存した・「キーを変更」を押した・LLM を切り替えた・モデルのダウンロードが終わった、で入力欄が入れ替わるので、新しい入力欄にフォーカスを移す
-* 確認が要る Command は、アプリが `createAiTools` に渡した `confirm` で確認する（チャット内の確認は #10）
+* 確認が要る Command は、アプリが `createAiTools` に渡した `confirm` で確認する（チャット内のボタンでの確認は見送った。#10）
 
 ## AI が操作している間
 
@@ -182,7 +183,7 @@ const [aiRunning, setAiRunning] = useState(false);
 ```
 
 * オーバーレイは、チャットのパネル（`z-50`）と確認ダイアログより下に重ねる。確認が要る Command は、AI の実行中に確認ダイアログを出すため
-* settings サイトでは使っていない
+* 今はどの題材でも使っていない
 
 ## AI の操作を見せるカーソル
 

@@ -24,7 +24,7 @@
 * 言語: TypeScript
 * フレームワーク: React + Vite（SPA）
 * UI: shadcn/ui + Tailwind v4（`packages/ui`）
-* ストレージ: localStorage
+* ストレージ: なし（状態は React の state に持ち、保存しない。再読み込みで最初に戻る）
 * パッケージマネージャ: bun（bun workspaces によるモノレポ）
 * lint / format: Biome
 * テスト: `bun test`
@@ -127,7 +127,7 @@ packages/
   * 例外: ローカル LLM のモデルのダウンロード（ユーザーが選んだときのみ）
   * 例外: Claude API（ユーザーが自分の API キーを入れて話しかけたときのみ。キーはコードに含めない）
 * API キーなどの機密情報は持たない。必要な場合は `.env` に置き、コミットしない
-* 個人情報は扱わない。localStorage に保存するのはサンプルデータのみ
+* 個人情報は扱わない。データはサンプルだけで、保存しない
 * AI からの操作は、引数の検証と（必要なら）確認を通してからサイトの関数に届ける
 
 ## MCP

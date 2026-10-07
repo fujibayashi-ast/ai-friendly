@@ -45,7 +45,9 @@ controller.abort();
 
 ## 短い一覧（`describeCommands`）
 
-小さい LLM 向けに、JSON Schema の代わりに 1 Command 1 行で書く。チャットのシステムプロンプトなどに使う。
+小さい LLM 向けに、JSON Schema の代わりに 1 Command 1 行で書く。システムプロンプトなどに使える。
+
+* 今はどの題材・チャットも使っていない。チャットの Gemini Nano・WebLLM は、システムプロンプトにツールの名前と説明を 1 行ずつ書き、引数の形は返事の JSON Schema で縛っている（[assistant.md](assistant.md) の「JSON でツールを呼ぶ」）
 
 ```
 add_todo(id: string, title: string, tags?: string[]) — Add a todo
