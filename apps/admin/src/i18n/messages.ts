@@ -8,8 +8,37 @@ const ja = {
   "nav.orders": "注文",
   "nav.products": "商品・在庫",
   "orders.title": "注文",
-  "order.title": "注文の詳細",
+  "orders.count": "{count} 件",
+  "orders.empty": "条件に合う注文はありません。",
+  "orders.status": "状態",
+  "orders.status.all": "すべて",
+  "orders.status.pending": "未発送",
+  "orders.status.shipped": "発送済み",
+  "orders.search": "お客さまの名前・注文番号",
+  "orders.searchButton": "検索",
+  "orders.id": "注文番号",
+  "orders.date": "注文日",
+  "orders.customer": "お客さま",
+  "orders.total": "合計",
+  "order.title": "注文 {id}",
+  "order.notFound": "注文 {id} は見つかりません。",
+  "order.back": "注文の一覧へ",
+  "order.items": "商品",
+  "order.quantity": "数量",
+  "order.subtotal": "小計",
+  "order.ship": "発送済みにする",
   "products.title": "商品・在庫",
+  "products.filter": "在庫が",
+  "products.filterSuffix": "個以下",
+  "products.filterButton": "絞り込む",
+  "products.clear": "すべて表示",
+  "products.empty": "条件に合う商品はありません。",
+  "products.id": "ID",
+  "products.name": "商品名",
+  "products.price": "価格",
+  "products.stock": "在庫",
+  "products.stockLabel": "「{name}」の在庫",
+  "products.save": "保存",
 };
 
 export type MessageKey = keyof typeof ja;
@@ -21,8 +50,37 @@ const en: Record<MessageKey, string> = {
   "nav.orders": "Orders",
   "nav.products": "Products & stock",
   "orders.title": "Orders",
-  "order.title": "Order details",
+  "orders.count": "{count} orders",
+  "orders.empty": "No orders match.",
+  "orders.status": "Status",
+  "orders.status.all": "All",
+  "orders.status.pending": "Not shipped",
+  "orders.status.shipped": "Shipped",
+  "orders.search": "Customer name or order number",
+  "orders.searchButton": "Search",
+  "orders.id": "Order",
+  "orders.date": "Date",
+  "orders.customer": "Customer",
+  "orders.total": "Total",
+  "order.title": "Order {id}",
+  "order.notFound": "Order {id} was not found.",
+  "order.back": "Back to orders",
+  "order.items": "Items",
+  "order.quantity": "Qty",
+  "order.subtotal": "Subtotal",
+  "order.ship": "Mark as shipped",
   "products.title": "Products & stock",
+  "products.filter": "Stock of",
+  "products.filterSuffix": "or fewer",
+  "products.filterButton": "Filter",
+  "products.clear": "Show all",
+  "products.empty": "No products match.",
+  "products.id": "ID",
+  "products.name": "Name",
+  "products.price": "Price",
+  "products.stock": "Stock",
+  "products.stockLabel": "Stock of {name}",
+  "products.save": "Save",
 };
 
 export const messages: Record<Language, Record<MessageKey, string>> = {
@@ -30,8 +88,14 @@ export const messages: Record<Language, Record<MessageKey, string>> = {
   en,
 };
 
-export type Translate = (key: MessageKey) => string;
+export type Translate = (
+  key: MessageKey,
+  values?: Record<string, string | number>,
+) => string;
 
 export function createTranslate(language: Language): Translate {
-  return (key) => messages[language][key];
+  return (key, values = {}) =>
+    messages[language][key].replace(/\{(\w+)\}/g, (match, name: string) =>
+      name in values ? String(values[name]) : match,
+    );
 }
