@@ -52,7 +52,7 @@ packages/
 
 * 依存の向きは `apps → packages/assistant → packages/command`、`apps / assistant → packages/ui`。`command` と `ui` は他の package に依存しない
 * `command` 単体でも成立させる（チャットを使わず WebMCP だけで操作される場合も、`command` だけで AI から操作できる）
-* 題材は複数用意する（テーマ・言語の切り替え `apps/settings`・やることリスト `apps/tasks`・ネットショップ `apps/shop`・予約フォーム `apps/reservation`・管理画面 `apps/admin`）
+* 題材は複数用意する（テーマ・言語の切り替え `apps/settings`・やることリスト `apps/tasks`・ネットショップ `apps/shop`・予約フォーム `apps/reservation`・管理画面 `apps/admin`）。おまけ（遊び・実験）として日記 `apps/diary`
 
 ## Domain Rules
 

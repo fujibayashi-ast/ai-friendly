@@ -40,6 +40,7 @@
 - [apps/shop/docs/commands.md](../apps/shop/docs/commands.md) — ネットショップのサイトと Command
 - [apps/reservation/docs/commands.md](../apps/reservation/docs/commands.md) — 予約フォームのサイトと Command
 - [apps/admin/docs/commands.md](../apps/admin/docs/commands.md) — 管理画面のサイトと Command
+- [apps/diary/docs/commands.md](../apps/diary/docs/commands.md) — おまけ: 日記のサイトと Command（カーソルの演出）
 
 ## Claude / 運用向け（`docs/claude/`）
 
