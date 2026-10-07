@@ -25,13 +25,8 @@ src/
   i18n/                   # 文言（ja / en）・言語の state（I18nProvider・useI18n）
   layout/                 # ヘッダー（サイト名・言語の切り替え）
   pages/                  # entries（日記の一覧）・new-entry（書く）
-  commands/               # 足した層: 日記の Command（pointer でカーソルを動かしてから、useDiary の関数を呼ぶ）
-  ai/
-    ai.tsx                # 足した層: <Ai />（AI 向けツール・WebMCP・右下のチャット）
-    cursor/               # 足した層: カーソルの演出
-      cursor.ts           #   仮のカーソル（押すふり・打ち込むふり）
-      find-target.ts      #   押す先を画面の名前で探す
-      pointer.ts          #   探して動かす（Command が受け取る）
+  commands/               # 足した層: 日記の Command（@ai-friendly/assistant/cursor の pointer でカーソルを動かしてから、useDiary の関数を呼ぶ）
+  ai/ai.tsx               # 足した層: <Ai />（AI 向けツール・WebMCP・右下のチャット）
 ```
 
 | URL | ページ |
@@ -58,12 +53,10 @@ src/
 
 ## カーソルの演出
 
-* 押すふり・打ち込むふりをするだけで、実際の DOM にクリック・入力のイベントは送らない。終わってから、Command が画面と同じサイトの関数を呼ぶ
-* 押す先は、画面に出ている名前で探す（ボタン・リンクは文字か `aria-label`、入力欄は `<label>` の文字）。Playwright の `getByRole` / `getByLabel` と同じ考えで、サイト側に AI のための目印を足さない
-* 動き: 最初は画面の右下から出て、対象まで 0.5 秒で動き、押した印（黄色の輪）を出す。画面の外ならスクロールしてから動く。AI の返事が終わったら隠す
-* 打ち込み: 入力欄を押してから、カーソルを右下へよけ、1 文字ずつサイトの関数に渡す（人が打つと 1 文字ごとに `onChange` が呼ばれるのと同じ）。1 文字 45ms、全体で 4 秒まで（長い本文は 1 文字あたりを短くする）
-* `prefers-reduced-motion` のときは、動きも打ち込みも省いて、すぐに実行する
-* 動きの間に何度も描き直さないよう、カーソルは React ではなく DOM を直接動かす
+カーソルは `@ai-friendly/assistant/cursor` の `pointer` を使う（動き・押す先の探し方・`prefers-reduced-motion` は [docs/assistant.md](../../../docs/assistant.md)）。日記で決めているのは、何をどの順に押すかだけ。
+
+* 押す先は画面の文言で指す（`{ button: t("entries.write") }`・`{ field: t("newEntry.title.label") }`）。言語を切り替えても、同じ `t` で探すので見つかる
+* AI の返事が終わったら、チャット（`Chat`）がカーソルを隠す
 
 ## AI から操作する
 

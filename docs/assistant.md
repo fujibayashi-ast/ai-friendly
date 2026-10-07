@@ -152,6 +152,7 @@ src/
   layouts/floating-chat.tsx  # FloatingChat: Chat を右下のパネルに入れる
   ui/                        # 見た目だけの部品。props だけで描画し、会話の状態や i18n を知らない
   conversation/              # 会話の状態（useChat）とループ（runChat）。画面なし
+  cursor/                    # AI の操作を見せる仮のカーソル（@ai-friendly/assistant/cursor）
   providers/                 # プロバイダの型・Claude API（useClaude）・Gemini Nano（useGeminiNano）・WebLLM（useQwen）・JSON でツールを呼ぶ共通部分
   i18n/                      # チャットの文言（ja / en）
 ```
@@ -182,6 +183,38 @@ const [aiRunning, setAiRunning] = useState(false);
 
 * オーバーレイは、チャットのパネル（`z-50`）と確認ダイアログより下に重ねる。確認が要る Command は、AI の実行中に確認ダイアログを出すため
 * settings サイトでは使っていない
+
+## AI の操作を見せるカーソル（`@ai-friendly/assistant/cursor`）
+
+AI の操作を、仮のマウスカーソルが押す・打ち込む動きで見せる。使いたいサイトだけが、Command の `run` で `pointer` を待ってから、画面と同じサイトの関数を呼ぶ（日記で使っている。[apps/diary/docs/commands.md](../apps/diary/docs/commands.md)）。
+
+```ts
+import { pointer } from "@ai-friendly/assistant/cursor";
+
+run: async ({ title }) => {
+  await pointer.click({ button: t("entries.write") }); // 「書く」を押すふり
+  navigate("/new");
+  await pointer.type({ field: t("newEntry.title.label") }, title, (value) =>
+    setDraftField("title", value), // 1 文字ずつサイトの関数に渡す
+  );
+},
+```
+
+| 公開するもの | 内容 |
+| --- | --- |
+| `pointer.click(target)` | 対象へ動いて押すふりをする |
+| `pointer.type(target, text, write)` | 入力欄を押してから、1 文字ずつ `write` に渡す |
+| `Target` | `{ button: "書く" }`（ボタン・リンクの文字か `aria-label`）/ `{ field: "タイトル" }`（入力欄の `<label>` の文字） |
+| `Pointer` | `pointer` の型。テストでは一瞬で終わるものに差し替える |
+| `hideCursor()` | カーソルを隠す。`Chat` は AI の返事が終わったときに自分で呼ぶので、チャットを使うサイトは呼ばなくてよい（WebMCP だけで操作されるときに使う） |
+
+* 押すふり・打ち込むふりをするだけで、実際の DOM にクリック・入力のイベントは送らない。結果（だめな理由）を AI に返せるよう、操作はサイトの関数で行う
+* 押す先は、画面に出ている名前で探す（Playwright の `getByRole` / `getByLabel` と同じ考え）。サイト側に AI のための目印を足さない。見つからなければ動かずに進む
+* 動き: 最初は画面の右下から出て、対象まで 0.5 秒で動き、押した印（`--primary` の輪）を出す。画面の外ならスクロールしてから動く
+* 打ち込み: 入力欄を押してから、カーソルを右下へよけ、1 文字ずつ `write` に渡す（人が打つと 1 文字ごとに `onChange` が呼ばれるのと同じ）。1 文字 45ms、全体で 4 秒まで
+* `prefers-reduced-motion` のときは、動きも打ち込みも省いて、すぐに `write` に全部渡す
+* 動きの間に何度も描き直さないよう、React ではなく DOM を直接動かす
+* `command` には置かない。`command` はチャットなしの WebMCP だけでも使う純粋なロジックで、画面の演出は持たない（[docs/history/2026-10-07-diary-cursor.md](history/2026-10-07-diary-cursor.md)）
 
 ## 文言
 

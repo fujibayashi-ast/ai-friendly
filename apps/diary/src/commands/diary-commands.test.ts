@@ -1,6 +1,6 @@
 import { describe, expect, mock, test } from "bun:test";
+import type { Target } from "@ai-friendly/assistant/cursor";
 import { createAiTools } from "@ai-friendly/command";
-import type { Target } from "../ai/cursor/pointer";
 import { type Draft, emptyDraft } from "../diary/diary";
 import type { SaveResult } from "../diary/diary-context";
 import { createTranslate } from "../i18n/messages";

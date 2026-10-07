@@ -6,12 +6,11 @@ import {
 } from "@ai-friendly/assistant";
 import { type AiTool, createAiTools } from "@ai-friendly/command";
 import { registerWebMcpTools } from "@ai-friendly/command/webmcp";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useDiaryCommands } from "../commands/diary-commands";
 import { missingFields, sortEntries } from "../diary/diary";
 import { useDiary } from "../diary/diary-context";
 import { useI18n } from "../i18n/use-i18n";
-import { hideCursor } from "./cursor/cursor";
 
 declare global {
   interface Window {
@@ -54,11 +53,6 @@ export function Ai() {
     };
   }, [tools]);
 
-  // AI の操作が終わったら、カーソルを隠す
-  const handleRunningChange = useCallback((running: boolean) => {
-    if (!running) hideCursor();
-  }, []);
-
   // 再読み込みで消える。保存はしない
   const [apiKey, setApiKey] = useState<string | null>(null);
   const claude = useClaude({
@@ -76,7 +70,6 @@ export function Ai() {
       tools={tools}
       language={language}
       debug={import.meta.env.DEV}
-      onRunningChange={handleRunningChange}
       suggestions={[t("chat.suggest.rainy"), t("chat.suggest.walk")]}
     />
   );

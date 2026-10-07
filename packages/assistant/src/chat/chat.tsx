@@ -14,6 +14,7 @@ import {
   isRejected,
 } from "../conversation/tool-result";
 import { useChat } from "../conversation/use-chat";
+import { hideCursor } from "../cursor/cursor";
 import { type ChatLanguage, createTranslate } from "../i18n/messages";
 import type { ChatProvider, ToolCall } from "../providers/provider";
 import { AssistantMessage } from "../ui/assistant-message";
@@ -86,6 +87,8 @@ export function Chat({
   useEffect(() => {
     if (running !== wasRunning.current) {
       latestOnRunningChange.current?.(running);
+      // AI の返事が終わったら、操作を見せていたカーソルを隠す（使っていなければ何もしない）
+      if (!running) hideCursor();
     }
     wasRunning.current = running;
   }, [running]);

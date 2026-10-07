@@ -7,7 +7,11 @@ export type Target = { button: string } | { field: string };
 const find = (target: Target) =>
   "button" in target ? findClickable(target.button) : findField(target.field);
 
-/** カーソルで押すふり・打ち込むふりをする。Command はこれを受け取る（テストでは一瞬で終わるものに差し替える） */
+/**
+ * カーソルで押すふり・打ち込むふりをする。Command の run で、サイトの関数を呼ぶ前に待つ
+ * テストでは一瞬で終わるものに差し替える
+ * @see docs/assistant.md
+ */
 export const pointer = {
   click: (target: Target) => clickOn(find(target)),
   type: (target: Target, text: string, write: (value: string) => void) =>

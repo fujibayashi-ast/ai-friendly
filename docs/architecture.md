@@ -30,7 +30,7 @@ flowchart LR
 | package | 責務 | 依存 |
 | --- | --- | --- |
 | `packages/command` | Command 定義の型（`run` でサイトの関数を呼ぶ）・引数の検証（LLM が読める英文のエラー）・確認フック。仕様は [commands.md](commands.md)<br>AI 向けツール（Command ごと・`get_state`）と WebMCP への登録（`@ai-friendly/command/webmcp`）。仕様は [ai-tools.md](ai-tools.md) | zod のみ（React / LLM に依存しない） |
-| `packages/assistant` | サイト内の AI チャット：チャット UI（`FloatingChat`）・会話のループ・LLM プロバイダ（Claude API・Chrome の Gemini Nano・WebLLM の Qwen。入力欄で切り替える）。仕様は [assistant.md](assistant.md) | `packages/command`, `packages/ui` |
+| `packages/assistant` | サイト内の AI チャット：チャット UI（`FloatingChat`）・会話のループ・LLM プロバイダ（Claude API・Chrome の Gemini Nano・WebLLM の Qwen。入力欄で切り替える）・AI の操作を見せるカーソル（`@ai-friendly/assistant/cursor`）。仕様は [assistant.md](assistant.md) | `packages/command`, `packages/ui` |
 | `packages/ui` | 共通 UI：shadcn/ui の部品と Tailwind v4 の配色トークン（`theme.css`）。使い方は [ui.md](ui.md) | なし（React は peer） |
 | `apps/<題材>` | 普通のサイト（状態・画面）と、そのサイトの関数を包む Command 定義 | `packages/command`, `packages/assistant`, `packages/ui` |
 | `apps/home` | トップページ（サンプルのカード）。サンプルの一覧（`samples.ts`）・開発時の転送・公開用のまとめ（`build-site.ts`） | `packages/assistant`（カードの `ToolCallLine`）, `packages/ui` |

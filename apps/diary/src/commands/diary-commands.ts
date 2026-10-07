@@ -1,8 +1,8 @@
+import { type Pointer, pointer } from "@ai-friendly/assistant/cursor";
 import { defineCommand } from "@ai-friendly/command";
 import { useMemo } from "react";
 import { useNavigate } from "react-router";
 import { z } from "zod";
-import { type Pointer, pointer } from "../ai/cursor/pointer";
 import { type Draft, type DraftField, missingFields } from "../diary/diary";
 import { type DiaryContextValue, useDiary } from "../diary/diary-context";
 import { useSaveEntry } from "../diary/use-save-entry";

@@ -47,6 +47,7 @@ packages/
                 #   AI 向けツール（短い一覧・inputSchema）・WebMCP 登録（`@ai-friendly/command/webmcp`）
   assistant/    # サイト内の AI チャット
                 #   チャット UI（React）・LLM プロバイダの切り替え（ローカル LLM / Claude API など）
+                #   AI の操作を見せるカーソル（`@ai-friendly/assistant/cursor`。使うサイトだけ）
   ui/           # 共通 UI（shadcn/ui + Tailwind v4 の配色トークン `theme.css`）
 ```
 

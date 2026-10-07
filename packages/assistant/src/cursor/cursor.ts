@@ -109,11 +109,16 @@ export async function typeInto(
   const rect = target.getBoundingClientRect();
   cursorElement().style.transform = `translate(${rect.right - 32}px, ${rect.bottom - 28}px)`;
   const chars = [...text];
-  const delay = Math.min(typeCharMs, typeMaxMs / Math.max(chars.length, 1));
+  const delay = typeDelay(chars.length);
   for (let i = 0; i <= chars.length; i++) {
     write(chars.slice(0, i).join(""));
     await sleep(delay);
   }
+}
+
+/** 1 文字あたりの待ち時間。長い文は全体が上限に収まるよう短くする */
+export function typeDelay(length: number): number {
+  return Math.min(typeCharMs, typeMaxMs / Math.max(length, 1));
 }
 
 /** 操作が終わったらカーソルを隠す */
