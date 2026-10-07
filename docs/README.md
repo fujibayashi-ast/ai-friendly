@@ -36,6 +36,7 @@
 - [apps/tasks/docs/commands.md](../apps/tasks/docs/commands.md) — やることリストのサイトと Command
 - [apps/shop/docs/commands.md](../apps/shop/docs/commands.md) — ネットショップのサイトと Command
 - [apps/reservation/docs/commands.md](../apps/reservation/docs/commands.md) — 予約フォームのサイトと Command
+- [apps/admin/docs/commands.md](../apps/admin/docs/commands.md) — 管理画面のサイトと Command
 
 ## Claude / 運用向け（`docs/claude/`）
 
