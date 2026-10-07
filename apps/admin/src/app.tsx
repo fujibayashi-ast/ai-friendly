@@ -1,5 +1,7 @@
+import { QueryClientProvider } from "@tanstack/react-query";
+import { useState } from "react";
 import { Navigate, Route, Routes } from "react-router";
-import { AdminProvider } from "./admin/admin-provider";
+import { createQueryClient } from "./admin/queries";
 import { Ai } from "./ai/ai";
 import { ConfirmProvider } from "./confirm/confirm-provider";
 import { I18nProvider } from "./i18n/i18n-provider";
@@ -9,9 +11,10 @@ import { OrdersPage } from "./pages/orders/orders-page";
 import { ProductsPage } from "./pages/products/products-page";
 
 export function App() {
+  const [queryClient] = useState(createQueryClient);
   return (
     <I18nProvider>
-      <AdminProvider>
+      <QueryClientProvider client={queryClient}>
         <ConfirmProvider>
           <Routes>
             <Route element={<Layout />}>
@@ -23,7 +26,7 @@ export function App() {
           </Routes>
           <Ai />
         </ConfirmProvider>
-      </AdminProvider>
+      </QueryClientProvider>
     </I18nProvider>
   );
 }

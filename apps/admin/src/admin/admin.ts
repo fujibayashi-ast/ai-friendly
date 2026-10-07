@@ -1,4 +1,4 @@
-import type { Language } from "../i18n/messages";
+/** 注文・商品のルール（絞り込み・合計・変えられない理由）。ダミーの API がサーバーの役として使う */
 import type { Order, OrderItem, OrderStatus, Product } from "./data";
 
 export const orderStatuses = [
@@ -63,7 +63,7 @@ export function filterProducts(
   );
 }
 
-/** 注文・在庫を変えられない理由。画面と AI のどちらから呼ばれても、同じ判定で断る */
+/** 注文・在庫を変えられない理由。ダミーの API（サーバーの役）が判定して返す */
 export type AdminError =
   | { code: "order_not_found" }
   | { code: "already_shipped" }
@@ -112,12 +112,4 @@ export function setStock(
       product.id === id ? { ...product, stock } : product,
     ),
   };
-}
-
-export function itemName(
-  state: AdminState,
-  productId: number,
-  language: Language,
-): string {
-  return findProduct(state, productId)?.name[language] ?? String(productId);
 }
