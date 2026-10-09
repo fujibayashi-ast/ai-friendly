@@ -4,6 +4,7 @@
 import type { AiTool } from "@ai-friendly/command";
 import { isFailure, isRejected } from "../conversation/tool-result";
 import type { ChatMessage, ProviderReply } from "./provider";
+import { plainTextRule } from "./reply-format";
 
 export type JsonToolsMessage = {
   role: "user" | "assistant";
@@ -22,6 +23,7 @@ export function toJsonToolsSystemPrompt(
     "Answer in JSON, in one of two forms:",
     '- To use tools: {"calls": [{"name": "<tool>", "input": {...}}]}. You will get the results as "Result of <tool>: ...".',
     '- To reply to the user: {"reply": "<text>"}.',
+    plainTextRule,
     "Do not call a tool again for a request that already succeeded.",
   ].join("\n");
 }

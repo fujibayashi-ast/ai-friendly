@@ -6,6 +6,7 @@ import {
   toClaudeMessages,
 } from "./claude-provider";
 import { ProviderAuthError } from "./provider";
+import { plainTextRule } from "./reply-format";
 
 const originalFetch = globalThis.fetch;
 afterEach(() => {
@@ -135,6 +136,16 @@ describe("fromClaudeResponse", () => {
 });
 
 describe("createClaudeProvider", () => {
+  test("tells Claude to reply in plain text even without a site prompt", async () => {
+    const fetch = mockFetch(200, { content: [{ type: "text", text: "Hi" }] });
+    await createClaudeProvider({ apiKey: "sk-test" }).complete({
+      messages: [{ role: "user", content: "hello" }],
+      tools: [],
+    });
+    const [, init] = fetch.mock.calls[0] as unknown as [string, RequestInit];
+    expect(JSON.parse(String(init.body)).system).toBe(plainTextRule);
+  });
+
   test("sends the request with the API key and tools", async () => {
     const fetch = mockFetch(200, { content: [{ type: "text", text: "Hi" }] });
     const provider = createClaudeProvider({ apiKey: "sk-test", system: "S" });
@@ -154,7 +165,7 @@ describe("createClaudeProvider", () => {
     expect(JSON.parse(String(init.body))).toEqual({
       model: "claude-haiku-4-5",
       max_tokens: 1024,
-      system: "S",
+      system: `S\n\n${plainTextRule}`,
       tools: [
         {
           name: "set_theme",

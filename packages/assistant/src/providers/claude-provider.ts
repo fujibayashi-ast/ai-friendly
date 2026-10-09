@@ -6,6 +6,7 @@ import {
   ProviderAuthError,
   type ProviderReply,
 } from "./provider";
+import { plainTextRule } from "./reply-format";
 
 export type ClaudeProviderOptions = {
   apiKey: string;
@@ -55,7 +56,7 @@ export function createClaudeProvider({
         body: JSON.stringify({
           model,
           max_tokens: 1024,
-          ...(system && { system }),
+          system: [system, plainTextRule].filter(Boolean).join("\n\n"),
           tools: tools.map(toClaudeTool),
           messages: toClaudeMessages(messages),
         }),
