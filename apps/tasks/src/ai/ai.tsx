@@ -59,10 +59,11 @@ export function Ai() {
   });
   const geminiNano = useGeminiNano({ system, language });
   const qwen = useQwen({ system, language });
+  const qwen9b = useQwen({ system, language, model: "9B" });
 
   return (
     <FloatingChat
-      providers={[claude, geminiNano, qwen]}
+      providers={[qwen, qwen9b, geminiNano, claude]}
       tools={tools}
       language={language}
       debug={import.meta.env.DEV}

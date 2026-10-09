@@ -35,7 +35,7 @@ bun run dev   # トップと各サンプルをまとめて起動
 `http://localhost:5173/` を開くと、トップページにサンプルが並ぶ。カードから各サンプル（`/settings/` など）を開く。
 
 * 言語を右上のボタンで切り替えられる（テーマ・言語の切り替えサイトではテーマも）
-* 右下のボタンからチャットを開き、Claude の API キーを入れるか、入力欄の左下で Gemini Nano（パソコン版の Chrome 148 以降）か Qwen3.5 4B（WebGPU が使えるブラウザ）に切り替えると、話しかけて操作できる
+* 右下のボタンからチャットを開き、Qwen3.5 4B（WebGPU が使えるブラウザ）のモデルを読み込むと、話しかけて操作できる。入力欄の左下で Qwen3.5 9B・Gemini Nano（パソコン版の Chrome 148 以降）・Claude（API キーを入れる）に切り替えられる
 * 開発中は devtools のコンソールで `window.__aiTools` から同じツールを呼べる（[apps/settings/docs/commands.md](apps/settings/docs/commands.md)）
 
 ### チェック

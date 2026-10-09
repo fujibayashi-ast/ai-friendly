@@ -34,11 +34,15 @@ const ja = {
     "ダウンロードできませんでした。もう一度試してください。",
   "nano.unavailable":
     "このブラウザでは使えません。パソコン版の Chrome（148 以降）で開いてください。",
-  "qwen.description":
+  "qwen.4b.description":
     "ブラウザの中で Qwen3.5 4B を動かします。API キーは要りません。",
-  "qwen.load": "モデルを読み込む",
-  "qwen.note":
+  "qwen.4b.note":
     "初回だけ、モデル（約 2.4 GB）をダウンロードします。メモリ 16 GB 程度の端末向けです。",
+  "qwen.9b.description":
+    "ブラウザの中で Qwen3.5 9B を動かします。4B より賢く、API キーは要りません。",
+  "qwen.9b.note":
+    "初回だけ、モデル（約 5 GB）をダウンロードします。GPU のメモリを 6.5 GB ほど使うので、GPU のメモリが 8 GB 以上ある端末向けです。",
+  "qwen.load": "モデルを読み込む",
   "qwen.downloading": "ダウンロードしています…",
   "qwen.loading": "読み込んでいます…",
   "qwen.failed": "読み込めませんでした。もう一度試してください。",
@@ -81,10 +85,15 @@ const en: Record<MessageKey, string> = {
   "nano.downloadFailed": "Couldn't download the model. Try again.",
   "nano.unavailable":
     "Not available in this browser. Open this site in Chrome 148 or later on a computer.",
-  "qwen.description": "Runs Qwen3.5 4B inside your browser. No API key needed.",
-  "qwen.load": "Load the model",
-  "qwen.note":
+  "qwen.4b.description":
+    "Runs Qwen3.5 4B inside your browser. No API key needed.",
+  "qwen.4b.note":
     "The model (about 2.4 GB) is downloaded only the first time. Needs a device with about 16 GB of memory.",
+  "qwen.9b.description":
+    "Runs Qwen3.5 9B inside your browser. Smarter than 4B. No API key needed.",
+  "qwen.9b.note":
+    "The model (about 5 GB) is downloaded only the first time. It uses about 6.5 GB of GPU memory, so it needs a GPU with 8 GB of memory or more.",
+  "qwen.load": "Load the model",
   "qwen.downloading": "Downloading…",
   "qwen.loading": "Loading…",
   "qwen.failed": "Couldn't load the model. Try again.",
