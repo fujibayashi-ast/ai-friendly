@@ -6,6 +6,7 @@ import {
   toJsonToolsSchema,
   toJsonToolsSystemPrompt,
 } from "./json-tools";
+import { plainTextRule } from "./reply-format";
 
 const tool: AiTool = {
   name: "set_theme",
@@ -24,6 +25,7 @@ describe("toJsonToolsSystemPrompt", () => {
     const prompt = toJsonToolsSystemPrompt("Operate the site.", [tool]);
     expect(prompt.startsWith("Operate the site.\n\nTools:\n")).toBe(true);
     expect(prompt).toContain("- set_theme: Change the color theme.");
+    expect(prompt).toContain(plainTextRule);
   });
 });
 

@@ -70,6 +70,8 @@ type ChatProvider = {
 | `createGeminiNanoProvider({ system? })` | Chrome に入っている Gemini Nano（Prompt API・`LanguageModel`）を使う。API キーもサーバーも要らない。ふつうは `useGeminiNano` から使う |
 | `createWebLlmProvider({ engine, system? })` | WebLLM（WebGPU）でブラウザの中の LLM を使う。API キーもサーバーも要らない。ふつうは `useQwen` から使う |
 
+* どのプロバイダも、サイトのシステムプロンプト（`system`）の後に「Markdown を使わず普通の文で返す」（`providers/reply-format.ts` の `plainTextRule`）を足して送る。チャットは返事を文のまま出し、Markdown を表示に変換しないため（変換するライブラリは足さない）。表示のしかたはチャットが決めることなので、サイトのシステムプロンプトには書かない
+
 ### Claude API
 
 * ヘッダーは `x-api-key`・`anthropic-version: 2023-06-01`・`anthropic-dangerous-direct-browser-access: true`（ブラウザから直接呼ぶための許可）
