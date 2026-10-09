@@ -9,7 +9,7 @@
 - [ui.md](ui.md) — 共通 UI（`@ai-friendly/ui`）の使い方・配色・部品の追加
 - [ai-tools.md](ai-tools.md) — AI 向けツールと WebMCP への登録（`createAiTools`・`@ai-friendly/command/webmcp`）
 - [assistant.md](assistant.md) — サイト内の AI チャット（`FloatingChat`・会話のループ・プロバイダ）
-- [llm-comparison.md](llm-comparison.md) — LLM ごとの比較（Claude・Gemini Nano・Qwen3.5 4B / 9B。記事用の表・向き不向き・やり方）
+- [llm-comparison.md](llm-comparison.md) — LLM ごとの比較（Claude・Gemini Nano・Qwen3.5 4B / 9B / 35B-A3B。記事用の表・向き不向き・やり方）
 - [deploy.md](deploy.md) — 公開（Cloudflare Pages の設定・ページ遷移のあるサンプルの `_redirects`）
 - `history/` — 設計判断の経緯（`YYYY-MM-DD-<topic>.md`）
   - [2026-10-05-initial-setup.md](history/2026-10-05-initial-setup.md) — 初期セットアップで決めたこと
