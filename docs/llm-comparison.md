@@ -18,6 +18,7 @@
 
 * ✓: 2 回ともできた・△: 一部できない・✗: ほとんどできない
 * 1 ターン = 送ってから返事が終わるまで（ツールの呼び出しと、その結果を読んで返事を作るまでを含む）
+* Qwen3.5 9B は Ollama で測った。デモのチャットで選べる Qwen3.5 9B は WebLLM（同じモデル・量子化と文脈の長さ 4,096 が違う）で、こちらは測っていない（メモリ 16 GB の Mac では、ほかのアプリがメモリを使っていると読み込みで止まった）
 * Qwen3.5 9B は、Ollama の文脈の長さを 8,192 にして GPU に全部載せたとき。既定の長さ（262,144）では GPU に載り切らず、CPU と分け合って中央値 6.9 秒だった（できた数は同じ 40 / 44）
 
 ## LLM ごとの向き不向き
@@ -76,7 +77,7 @@
 * 判定: 画面の状態（テーマ・カート・予約番号・URL など）をスクリプトで確かめ、会話のログを読んで直した（台本の決め打ちの返事がずれた 1 件は、会話が正しければ ✓ にした）
 * 環境
   * Mac: Apple M2 Pro・メモリ 16 GB・Chrome 154（Gemini Nano・Qwen3.5 4B）
-  * Windows: GeForce RTX 20 系（VRAM 8 GB 前後）・Ollama（Qwen3.5 9B・Q4_K_M）。Mac のブラウザから LAN の Ollama を呼んだ
+  * Windows: GeForce RTX 2070 SUPER（VRAM 8 GB）・メモリ 64 GB・Ollama（Qwen3.5 9B・Q4_K_M）。Mac のブラウザから LAN の Ollama を呼んだ
 * Ollama のプロバイダはこの比較のためだけに手元で足したもので、リポジトリには入れていない（返事の形は Gemini Nano・WebLLM と同じ JSON の方式。`format` に返事の JSON Schema を渡す）
 * Playwright で Gemini Nano を使うには、Playwright が既定で付ける起動オプションのうち、モデルの配布を止めるもの（`--disable-component-update`・`--disable-features=…OptimizationHints…` など）を外す必要があった
 * スクリプトはリポジトリに入れていない（API キー・モデル・playwright-core が要るため）

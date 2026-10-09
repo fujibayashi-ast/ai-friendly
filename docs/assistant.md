@@ -21,10 +21,11 @@ const [apiKey, setApiKey] = useState<string | null>(null);
 // それぞれ候補 { label, provider?, setup?, actions? } を返す
 const claude = useClaude({ apiKey, onApiKeyChange: setApiKey, system, language });
 const geminiNano = useGeminiNano({ system, language });
-const qwen = useQwen({ system, language });
+const qwen = useQwen({ system, language }); // 既定は 4B
+const qwen9b = useQwen({ system, language, model: "9B" });
 
 <FloatingChat
-  providers={[claude, geminiNano, qwen]} // 入力欄の左下で切り替える。最初は先頭。provider がないときは setup を出す
+  providers={[qwen, qwen9b, geminiNano, claude]} // 入力欄の左下で切り替える。最初は先頭。provider がないときは setup を出す
   tools={tools} // createAiTools の結果
   language={language} // "ja" | "en"。チャットの文言の言語
   suggestions={["ダークにして", "サイトを英語にして"]} // 何も話していないときに出す例
@@ -112,26 +113,27 @@ Gemini Nano と WebLLM にはツールを呼ぶ仕組みがない（または使
 
 * ダウンロードはユーザーが押したときだけ。失敗したら知らせて、もう一度押せるようにする
 
-### WebLLM（Qwen3.5 4B）
+### WebLLM（Qwen3.5 4B / 9B）
 
-* WebGPU が使えるブラウザ（Chrome・Edge など）で動く。メモリ 16 GB 程度の端末が前提
+* WebGPU が使えるブラウザ（Chrome・Edge など）で動く。メモリ 16 GB 程度の端末が前提（9B は GPU のメモリを約 6.5 GB 使うので、GPU のメモリが 8 GB 以上ある端末向け。メモリ 16 GB の Mac では、ほかのアプリがメモリを使っていると読み込みで止まった）
 * `createWebLlmProvider({ engine, system? })`: 読み込み済みの WebLLM のエンジンで返事を作る。返事の形は `response_format: { type: "json_object", schema }` で縛る。Qwen3.5 の思考モードは `extra_body: { enable_thinking: false }` で止め、それでも先頭に付く空の `<think></think>` は取り除いてから読む。`temperature: 0`（ばらつかせると返事の日本語にほかの言語の単語が混ざる）
 * 縛りがあっても JSON が壊れることがある（引数の型と、AI が見ている値の形が食い違うとき。[docs/commands.md](commands.md) の「引数の書き方」）。読めなかったときは「返事を受け取れませんでした」と出し、原因（例外）はコンソールに出す
-* `useQwen({ system, language })` は、`providers` に入れる候補（`{ label: "Qwen3.5 4B", provider?, setup }`）を返す
+* `useQwen({ system, language, model? })` は、`providers` に入れる候補（`{ label: "Qwen3.5 4B", provider?, setup }`）を返す。`model` は `"4B"`（既定）か `"9B"`。モデルの ID・名前・説明の文言は `qwenModels` で切り替える
 
 | 状態 | 出すもの |
 | --- | --- |
 | WebGPU がない（`navigator.gpu?.requestAdapter()` が null） | `setup` に「このブラウザでは使えません」 |
-| WebGPU がある | `setup` に「モデルを読み込む」。押すと、初回はダウンロード（約 2.4 GB・Hugging Face から）と読み込み、2 回目からは読み込みだけ（キャッシュ）。進み具合（%）を出し、終わったら `provider` を返す。進み具合は段階（ダウンロード・GPU への読み込みなど）ごとに 0 から数え直すので、ダウンロード中は「ダウンロードしています…」、それ以外は「読み込んでいます…」と出す |
+| WebGPU がある | `setup` に「モデルを読み込む」。押すと、初回はダウンロード（4B は約 2.4 GB・9B は約 5 GB・Hugging Face から）と読み込み、2 回目からは読み込みだけ（キャッシュ）。進み具合（%）を出し、終わったら `provider` を返す。進み具合は段階（ダウンロード・GPU への読み込みなど）ごとに 0 から数え直すので、ダウンロード中は「ダウンロードしています…」、それ以外は「読み込んでいます…」と出す |
 
 * ページを開いただけでは読み込まない（GPU のメモリを使うので、押したときだけ）。失敗したら知らせて、もう一度押せるようにする
 * 推論は Web Worker（`providers/web-llm-worker.ts`）で動かす。WebLLM 本体は押したときに動的 import するので、選ばない人のページは重くならない
-* モデルは `Qwen3.5-4B-q4f16_1-MLC` に固定。読み込んだモデルはページを閉じるまで持つ
+* モデルは `Qwen3.5-4B-q4f16_1-MLC` / `Qwen3.5-9B-q4f16_1-MLC`。読み込んだモデルはページを閉じるまで持つ（4B と 9B を両方読み込むと両方が残る）
 
 ### 切り替え
 
 * `providers` に候補（`ProviderOption`: `{ label, provider?, setup?, actions? }`）を並べる。ふつうは `useClaude` / `useGeminiNano` / `useQwen` の結果をそのまま並べる。2 つ以上あると、入力欄の左下（`setup` を出している間はその下）に、選んでいる候補の名前のボタンを出し、押すと一覧から選べる
 * どれを選んでいるかはチャットが持つ。最初は先頭で、保存はしない
+* 題材のサイトは、Qwen3.5 4B → Qwen3.5 9B → Gemini Nano → Claude の順に並べる。API キーなしで試せるローカル LLM を最初に出す。最初を 9B にしないのは、ダウンロードが大きく、GPU のメモリが足りない端末が多いため
 * 切り替えても会話は続く。次の返事から新しい LLM が答える
 * 選んでいる候補の `actions` を、切り替えのボタンの隣に出す（Claude の「キーを変更」など）。見出しに置かないのは、見出しを描く `FloatingChat` がどの候補を選んでいるかを知らないため
 
@@ -141,7 +143,7 @@ Gemini Nano と WebLLM にはツールを呼ぶ仕組みがない（または使
 | --- | --- |
 | `Chat` | メッセージの一覧と入力欄。会話の状態を自分で持ち、単体で使える（`<Chat providers tools language />`）。置き場所に依存しないので、ページの中・ドロワーなどにも入れられる。選んでいる候補に `provider` がないときは `setup` を出す |
 | `ApiKeyForm` | Claude の API キーを入れるフォーム。`useClaude` が `setup` に置く |
-| `useClaude` / `useGeminiNano` / `useQwen` | Claude / Gemini Nano / Qwen3.5 4B の候補（キーの入力・ダウンロード・読み込み・使えないときの表示を含む）を返す |
+| `useClaude` / `useGeminiNano` / `useQwen` | Claude / Gemini Nano / Qwen3.5 4B・9B の候補（キーの入力・ダウンロード・読み込み・使えないときの表示を含む）を返す |
 | `FloatingChat` | `Chat` を右下のボタンから開く浮いたパネルに入れる。スマホでは画面いっぱいに開く。閉じてもパネルは隠すだけなので、会話は残る |
 | `ToolCallLine` | ツールの実行の既定の見せ方。`✓ set_theme(theme: "dark")` のブロックで、実行中は灰、成功は黄、失敗は赤の地。失敗は「やめました」（確認で拒否）/「実行できませんでした」と出し、`debug` のときは LLM 向けの英文のメッセージも出す。`renderToolCall` で差し替えられる（`ToolCallLineProps` を受け取る） |
 

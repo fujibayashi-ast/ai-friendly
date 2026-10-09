@@ -1,30 +1,57 @@
 import type { MLCEngineInterface } from "@mlc-ai/web-llm";
 import { useEffect, useMemo, useState } from "react";
 import type { ProviderOption } from "../chat/chat";
-import { type ChatLanguage, createTranslate } from "../i18n/messages";
+import {
+  type ChatLanguage,
+  createTranslate,
+  type MessageKey,
+} from "../i18n/messages";
 import { ModelSetup } from "../ui/model-setup";
 import { createWebLlmProvider } from "./web-llm-provider";
 
-const modelId = "Qwen3.5-4B-q4f16_1-MLC";
+export type QwenModel = "4B" | "9B";
+
+export const qwenModels: Record<
+  QwenModel,
+  { id: string; label: string; description: MessageKey; note: MessageKey }
+> = {
+  "4B": {
+    id: "Qwen3.5-4B-q4f16_1-MLC",
+    label: "Qwen3.5 4B",
+    description: "qwen.4b.description",
+    note: "qwen.4b.note",
+  },
+  "9B": {
+    id: "Qwen3.5-9B-q4f16_1-MLC",
+    label: "Qwen3.5 9B",
+    description: "qwen.9b.description",
+    note: "qwen.9b.note",
+  },
+};
 
 type Status = "checking" | "unavailable" | "ready" | "loading" | "available";
 
 /**
- * WebLLM で動かす Qwen3.5 4B を `Chat` の `providers` の候補にする
- * WebGPU があれば「モデルを読み込む」を出し、押したときだけダウンロード・読み込みをする（初回は約 2.4 GB）
+ * WebLLM で動かす Qwen3.5（`model` は 4B か 9B。既定は 4B）を `Chat` の `providers` の候補にする
+ * WebGPU があれば「モデルを読み込む」を出し、押したときだけダウンロード・読み込みをする（初回は 4B が約 2.4 GB・9B が約 5 GB）
+ * 4B と 9B を両方読み込むと、両方がページを閉じるまでメモリに残る
  *
  * @example
  * const qwen = useQwen({ system, language });
+ * const qwen9b = useQwen({ system, language, model: "9B" });
  * <FloatingChat providers={[claude, geminiNano, qwen]} … />
  * @see docs/assistant.md
  */
 export function useQwen({
   system,
   language,
+  model = "4B",
 }: {
   system?: string;
   language: ChatLanguage;
+  model?: QwenModel;
 }): ProviderOption {
+  const { id, label, description, note } = qwenModels[model];
   const [status, setStatus] = useState<Status>("checking");
   const [progress, setProgress] = useState(0);
   // 進み具合はダウンロード・GPU への読み込みなどの段階ごとに 0 から数え直すので、段階で文言を変える
@@ -57,7 +84,7 @@ export function useQwen({
         type: "module",
       });
       setEngine(
-        await CreateWebWorkerMLCEngine(worker, modelId, {
+        await CreateWebWorkerMLCEngine(worker, id, {
           initProgressCallback: (report) => {
             setDownloading(report.text.startsWith("Fetching"));
             setProgress(report.progress);
@@ -83,7 +110,7 @@ export function useQwen({
   };
 
   return {
-    label: "Qwen3.5 4B",
+    label,
     provider,
     setup: status !== "available" && (
       <ModelSetup
@@ -92,9 +119,9 @@ export function useQwen({
         failed={failed}
         onLoad={handleLoad}
         texts={{
-          description: t("qwen.description"),
+          description: t(description),
           action: t("qwen.load"),
-          note: t("qwen.note"),
+          note: t(note),
           loading: t(downloading ? "qwen.downloading" : "qwen.loading"),
           failed: t("qwen.failed"),
           unavailable: t("qwen.unavailable"),
