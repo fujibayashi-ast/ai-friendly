@@ -11,7 +11,7 @@
     "@ai-friendly/assistant": "workspace:*",
     "@ai-friendly/command": "workspace:*",
     "@ai-friendly/ui": "workspace:*",
-    "lucide-react": "1.52.0",
+    "lucide-react": "1.54.0",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "zod": "4.6.5"
