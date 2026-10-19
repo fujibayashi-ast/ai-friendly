@@ -12,7 +12,7 @@
     "@ai-friendly/command": "workspace:*",
     "@ai-friendly/ui": "workspace:*",
     "@tanstack/react-query": "5.104.1",
-    "react": "19.3.0",
+    "react": "19.3.1",
     "react-dom": "19.3.0",
     "react-router": "8.4.0",
     "zod": "4.6.5"
